@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Spatie\Multitenancy\Models\Tenant as BaseTenant;
+use Illuminate\Database\Eloquent\Model;
 
-class Tenant extends BaseTenant
+class Tenant extends Model
 {
     protected $fillable = [
         'name',
@@ -62,7 +62,7 @@ class Tenant extends BaseTenant
 
     const SUBSCRIPTION_PLANS = [
         'basic' => 'Basic',
-        'professional' => 'Professional', 
+        'professional' => 'Professional',
         'enterprise' => 'Enterprise',
     ];
 
@@ -109,7 +109,7 @@ class Tenant extends BaseTenant
         if ($this->trial_ends_at && $this->trial_ends_at > now()) {
             return true;
         }
-        
+
         // Check if subscription is active
         return $this->subscription_expires_at && $this->subscription_expires_at > now();
     }
@@ -139,7 +139,10 @@ class Tenant extends BaseTenant
      */
     public function execute(callable $callable): mixed
     {
-        return $this->makeCurrent()->execute($callable);
+        // Temporary fallback: directly execute the callback.
+        // When `spatie/laravel-multitenancy` is installed this should
+        // use the package's context switching behaviour instead.
+        return $callable();
     }
 
     /**

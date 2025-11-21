@@ -1,0 +1,10 @@
+[33m8a27784[m[33m ([m[1;36mHEAD[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Complete database recreation with foreign key relationships
+[33mb6b1323[m 🚨 HOTFIX: Skip existing transactions table on creation (prevents deploy failures)
+[33mdf0b399[m 🚨 URGENT: Fix workers table deployment collision
+[33m2e62c9c[m 🔧 Extend table existence checks to tasks migration
+[33me8a3e73[m 🚨 HOTFIX: Add table existence checks to prevent deployment errors
+[33me597c2f[m 🔧 Fix migration dependencies and table structures
+[33m1bcfaaa[m 🔄 MAJOR: Complete migration structure reorganization
+[33mce9c803[m Add deployment migration fix documentation
+[33mdb8099f[m Fix deployment migration issue: Add table existence check
+[33m346b971[m Implement comprehensive dark mode theme system across entire application
