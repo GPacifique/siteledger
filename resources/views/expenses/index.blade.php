@@ -1,139 +1,393 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        .category-section {
+            margin-bottom: 2rem;
+        }
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            background: #667eea;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category-total {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        thead {
+            background: #27ae60;
+            color: white;
+        }
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        tbody tr:hover {
+            background: #f0f8f5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-approved {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        .summary-card:hover::before {
+            left: 100%;
+        }
+        .summary-card:hover {
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+            transform: translateY(-4px);
+            background: linear-gradient(135deg, #f8f9ff 0%, white 100%);
+        }
+        .summary-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        .summary-card h3 {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .summary-card .amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            background: white;
+            border-radius: 8px;
+        }
 
-@section('title', 'Expense Management - Track All Construction Costs | SiteLedger')
-@section('meta_description', 'Comprehensive expense management for construction companies. Track materials, labor, equipment, and overhead costs. Monitor project expenses, manage vendor payments, and analyze cost patterns.')
-@section('meta_keywords', 'expense management, construction costs, material expenses, labor costs, equipment expenses, vendor payments, cost tracking, construction accounting')
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
 
-@section('content')
-<div class="container mx-auto px-4 py-6">
-    {{-- Role Check: Admin or Accountant Only --}}
-    @unless(auth()->user()->hasAnyRole(['admin', 'accountant']))
-        <div class="p-4 mb-4 bg-red-50 border border-red-200 rounded text-red-800">
-            <i class="fas fa-exclamation-triangle"></i> You do not have permission to access this page.
+    <script>
+        // Enhanced card interaction functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.summary-card').forEach(card => {
+                const h3 = card.querySelector('h3');
+
+                // Add pointer cursor
+                card.style.cursor = 'pointer';
+
+                // Click handler with ripple effect
+                card.addEventListener('click', function(e) {
+                    // Create ripple effect
+                    const ripple = document.createElement('span');
+                    const rect = card.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+
+                    ripple.style.cssText = `
+                        position: absolute;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: ${size}px;
+                        height: ${size}px;
+                        background: rgba(102, 126, 234, 0.5);
+                        border-radius: 50%;
+                        transform: scale(0);
+                        animation: ripple 0.6s ease-out;
+                        pointer-events: none;
+                    `;
+
+                    card.style.position = 'relative';
+                    card.style.overflow = 'hidden';
+                    card.appendChild(ripple);
+
+                    // Scroll to expenses table
+                    setTimeout(() => {
+                        const table = document.querySelector('table');
+                        if (table) {
+                            table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 300);
+                });
+
+                // Keyboard support (Enter key)
+                card.setAttribute('tabindex', '0');
+                card.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+
+                // Visual feedback on focus
+                card.addEventListener('focus', function() {
+                    this.style.outline = '2px solid #667eea';
+                    this.style.outlineOffset = '2px';
+                });
+
+                card.addEventListener('blur', function() {
+                    this.style.outline = 'none';
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    @include('components.navbar')
+
+    <div class="container">
+        <div class="page-header">
+            <h1>💰 Expenses</h1>
+            <p>Track expenses by category: Offices and Project Expenses</p>
         </div>
-        @php
-            abort(403, 'Unauthorized access');
-        @endphp
-    @endunless
 
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold">Expenses</h1>
-        <div class="flex gap-2">
-            {{-- Download Buttons --}}
-            <x-download-buttons 
-                route="expenses.export" 
-                filename="expenses" 
-                size="sm" />
-            
-            @if(auth()->user()->hasAnyRole(['admin', 'accountant']))
-                <a href="{{ route('expenses.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded">+ New Expense</a>
-            @endif
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+            <a href="/expenses/create" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">+ Add Expense</a>
         </div>
-    </div>
 
-    @if(session('success'))
-        <div class="mb-4 p-3 rounded bg-green-50 text-green-800">{{ session('success') }}</div>
-    @endif
-    @if(session('success'))
-        <div class="mb-4 p-3 rounded bg-green-50 text-green-800">{{ session('success') }}</div>
-    @endif
+        @if($officeTotal > 0 || $projectTotal > 0)
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>Office Expenses</h3>
+                    <div class="amount">RWF {{ number_format($officeTotal, 2) }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Project Expenses</h3>
+                    <div class="amount">RWF {{ number_format($projectTotal, 2) }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Expenses</h3>
+                    <div class="amount">RWF {{ number_format($officeTotal + $projectTotal, 2) }}</div>
+                </div>
+            </div>
 
-    {{-- Daily category stats --}}
-    <div class="mb-6 theme-aware-bg-card rounded-lg shadow p-4">
-        <h2 class="text-lg font-semibold mb-3">Daily totals by category</h2>
-
-        @if(empty($dailyTotals))
-            <p class="text-sm theme-aware-text-muted">No stats available.</p>
-        @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border">
-                    <thead class="theme-aware-bg-secondary">
-                        <tr>
-                            <th class="py-2 px-3 border-r text-sm theme-aware-text-secondary">Date</th>
-                            @foreach($categories as $cat)
-                                <th class="py-2 px-3 border-r text-sm theme-aware-text-secondary">{{ $cat }}</th>
+            <!-- Office Expenses -->
+            @if($officeExpenses->count() > 0)
+                <div class="category-section">
+                    <div class="category-title">
+                        <span>🏢 Office Expenses</span>
+                        <span class="category-total">RWF {{ number_format($officeTotal, 2) }}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($officeExpenses as $expense)
+                                <tr data-expense-id="{{ $expense->id }}">
+                                    <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
+                                    <td>{{ $expense->description ?? 'N/A' }}</td>
+                                    <td>{{ $expense->category ?? 'General' }}</td>
+                                    <td><strong>RWF {{ number_format($expense->amount ?? 0, 2) }}</strong></td>
+                                    <td>
+                                        @php
+                                            $statusClass = match($expense->status ?? 'pending') {
+                                                'approved' => 'badge-approved',
+                                                'completed' => 'badge-completed',
+                                                default => 'badge-pending'
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($expense->status ?? 'Pending') }}</span>
+                                    </td>
+                                </tr>
                             @endforeach
-                            <th class="py-2 px-3 text-sm theme-aware-text-secondary">Daily Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($dailyTotals as $day => $cats)
-                            <tr class="border-t hover:theme-aware-bg-secondary">
-                                <td class="py-2 px-3 align-top font-medium">{{ $day }}</td>
+                        </tbody>
+                    </table>
+                </div>
+            @endif
 
-                                @php $rowTotal = 0; @endphp
-
-                                @foreach($categories as $cat)
-                                    @php
-                                        $amount = isset($cats[$cat]) ? $cats[$cat] : 0;
-                                        $rowTotal += $amount;
-                                    @endphp
-                                    <td class="py-2 px-3 text-sm">
-                                        @if($amount > 0)
-                                            <span class="inline-block px-2 py-1 rounded text-sm font-medium theme-aware-bg-secondary">
-                                                RWF {{ number_format($amount, 2) }}
-                                            </span>
+            <!-- Project Expenses -->
+            @if($projectExpenses->count() > 0)
+                <div class="category-section">
+                    <div class="category-title">
+                        <span>📊 Project Expenses</span>
+                        <span class="category-total">RWF {{ number_format($projectTotal, 2) }}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($projectExpenses as $expense)
+                                <tr data-expense-id="{{ $expense->id }}">
+                                    <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
+                                    <td>
+                                        @if($expense->project)
+                                            <a href="/projects/{{ $expense->project->id }}" style="color: #667eea; text-decoration: none;">{{ $expense->project->name }}</a>
                                         @else
-                                            <span class="text-gray-300">—</span>
+                                            N/A
                                         @endif
                                     </td>
-                                @endforeach
-
-                                <td class="py-2 px-3 text-sm font-semibold text-red-600">
-                                    RWF {{ number_format($rowTotal, 2) }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    <td>{{ $expense->description ?? 'N/A' }}</td>
+                                    <td>{{ $expense->category ?? 'General' }}</td>
+                                    <td><strong>RWF {{ number_format($expense->amount ?? 0, 2) }}</strong></td>
+                                    <td>
+                                        @php
+                                            $statusClass = match($expense->status ?? 'pending') {
+                                                'approved' => 'badge-approved',
+                                                'completed' => 'badge-completed',
+                                                default => 'badge-pending'
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($expense->status ?? 'Pending') }}</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        @else
+            <div class="empty-message">
+                <p>No expenses found. <a href="/admin/dashboard">Go to Dashboard</a></p>
             </div>
         @endif
     </div>
+    <script>
+        // Make table rows clickable
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all table rows
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.style.cursor = 'pointer';
 
-    <div class="theme-aware-bg-card rounded-lg shadow overflow-x-auto">
-        <table class="w-full text-left">
-            <thead class="theme-aware-bg-secondary border-b">
-                <tr>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">#</th>
-                     <th class="py-3 px-4 text-sm theme-aware-text-secondary">Date</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Category</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Description</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Amount</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Project</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Client</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary">Method</th>
-                    <th class="py-3 px-4 text-sm theme-aware-text-secondary text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($expenses as $expense)
-                    <tr class="border-b hover:theme-aware-bg-secondary">
-                        <td class="py-3 px-4">{{ $expense->id }}</td>
-                        <td class="py-3 px-4">{{ optional($expense->date)->format('Y-m-d') }}</td>
-                        <td class="py-3 px-4">{{ $expense->category ?? '—' }}</td>
-                        <td class="py-3 px-4">{{ $expense->description ?? '—' }}</td>   
-                        <td class="py-3 px-4 font-medium text-red-600">RWF {{ number_format($expense->amount, 2) }}</td>
-                        
-                        <td class="py-3 px-4">{{ $expense->project_id ? $expense->project->name : '—' }}</td>
-                        <td class="py-3 px-4">{{ $expense->client_id ? $expense->client->name : '—' }}</td>
-                        <td class="py-3 px-4 text-right">
-                            <a href="{{ route('expenses.show', $expense) }}" class="text-blue-600 hover:underline">View</a>
-                            <a href="{{ route('expenses.edit', $expense) }}" class="ml-2 text-green-600 hover:underline">Edit</a>
-                            <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="ml-2 text-red-600 hover:underline" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="py-4 px-4 text-center theme-aware-text-muted">No expenses found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                row.addEventListener('click', function(e) {
+                    // Don't navigate if clicking on a link
+                    if (e.target.tagName === 'A') {
+                        return;
+                    }
 
-    <div class="mt-4">
-        {{ $expenses->links() }}
-    </div>
-</div>
-@endsection
+                    // Get the expense ID from the first cell or data attribute
+                    const expenseId = this.getAttribute('data-expense-id');
+                    if (expenseId) {
+                        window.location.href = `/expenses/${expenseId}`;
+                    }
+                });
+
+                // Add keyboard support
+                row.setAttribute('tabindex', '0');
+                row.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const expenseId = this.getAttribute('data-expense-id');
+                        if (expenseId) {
+                            window.location.href = `/expenses/${expenseId}`;
+                        }
+                    }
+                });
+            });
+        });
+    </script></body>
+</html>

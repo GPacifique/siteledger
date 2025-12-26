@@ -1,86 +1,274 @@
-{{-- resources/views/projects/edit.blade.php --}}
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Project - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        button[type="submit"],
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn {
+            background: #95a5a6;
+            color: white;
+            display: inline-block;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    @include('components.navbar')
 
-@section('title', 'Edit Project')
+    <div class="container">
+        <div class="form-card">
+            <h2>📁 Edit Project</h2>
 
-@section('content')
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold theme-aware-text mb-6">✏️ Edit Project</h1>
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Please fix the following errors:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-    {{-- Validation Errors --}}
-    @if ($errors->any())
-        <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
-            <ul class="list-disc pl-6">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+            <form action="{{ route('projects.update', $project->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client_id">Client *</label>
+                        <select name="client_id" id="client_id" required>
+                            <option value="">Select a client</option>
+                            @foreach($clients as $client)
+                                <option value="{{ $client->id }}" {{ old('client_id', $project->client_id) == $client->id ? 'selected' : '' }}>
+                                    {{ $client->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('client_id')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Project Name *</label>
+                        <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" required>
+                        @error('name')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project_code">Project Code</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                        <input type="text" name="project_code" id="project_code" placeholder="e.g., PRJ-001" value="{{ old('project_code', $project->project_code) }}" style="flex: 1;">
+                        <button type="button" id="generateCodeBtn" style="padding: 0.75rem 1rem; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Generate</button>
+                    </div>
+                    @error('project_code')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea name="description" id="description" placeholder="Project description and details...">{{ old('description', $project->description) }}</textarea>
+                    @error('description')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $project->start_date) }}">
+                        @error('start_date')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_date">End Date</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $project->end_date) }}">
+                        @error('end_date')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contract_value">Contract Value (RWF)</label>
+                        <input type="number" name="contract_value" id="contract_value" step="0.01" value="{{ old('contract_value', $project->contract_value) }}">
+                        @error('contract_value')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status">
+                            <option value="planning" {{ old('status', $project->status) == 'planning' ? 'selected' : '' }}>Planning</option>
+                            <option value="active" {{ old('status', $project->status) == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="completed" {{ old('status', $project->status) == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="on_hold" {{ old('status', $project->status) == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                        </select>
+                        @error('status')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                @if($managers && count($managers) > 0)
+                    <div class="form-group">
+                        <label for="manager_id">Project Manager</label>
+                        <select name="manager_id" id="manager_id">
+                            <option value="">Select a manager</option>
+                            @foreach($managers as $manager)
+                                <option value="{{ $manager->id }}" {{ old('manager_id', $project->manager_id) == $manager->id ? 'selected' : '' }}>
+                                    {{ $manager->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('manager_id')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                @endif
+
+                <div class="button-group">
+                    <button type="submit">Update Project</button>
+                    <a href="{{ route('projects.show', $project->id) }}" class="btn">Cancel</a>
+                </div>
+            </form>
         </div>
-    @endif
-
-    {{-- Back Button --}}
-    <a href="{{ route('projects.index') }}" 
-       class="inline-block mb-4 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-       ⬅ Back to Projects
-    </a>
-
-    {{-- Edit Project Form --}}
-    <div class="theme-aware-bg-card shadow-lg rounded-2xl p-6">
-        <form action="{{ route('projects.update', $project->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-
-            {{-- Project Name --}}
-            <div class="mb-4">
-                <label for="name" class="block theme-aware-text-secondary font-medium">Project Name</label>
-                <input type="text" id="name" name="name" value="{{ old('name', $project->name) }}"
-                       class="w-full mt-2 p-2 border rounded-lg focus:ring focus:ring-blue-300"
-                       required>
-            </div>
-
-            {{-- Client --}}
-            <div class="mb-4">
-                <label for="client" class="block theme-aware-text-secondary font-medium">Client</label>
-                <input type="text" id="client" name="client" value="{{ old('client', $project->client) }}"
-                       class="w-full mt-2 p-2 border rounded-lg focus:ring focus:ring-blue-300"
-                       required>
-            </div>
-
-            {{-- Status --}}
-            <div class="mb-4">
-                <label for="status" class="block theme-aware-text-secondary font-medium">Status</label>
-                <select id="status" name="status"
-                        class="w-full mt-2 p-2 border rounded-lg focus:ring focus:ring-blue-300"
-                        required>
-                    <option value="Ongoing" {{ old('status', $project->status) == 'Ongoing' ? 'selected' : '' }}>Ongoing</option>
-                    <option value="Completed" {{ old('status', $project->status) == 'Completed' ? 'selected' : '' }}>Completed</option>
-                    <option value="Pending" {{ old('status', $project->status) == 'Pending' ? 'selected' : '' }}>Pending</option>
-                </select>
-            </div>
-
-            {{-- Deadline --}}
-            <div class="mb-4">
-                <label for="deadline" class="block theme-aware-text-secondary font-medium">Deadline</label>
-                <input type="date" id="deadline" name="deadline" value="{{ old('deadline', $project->deadline) }}"
-                       class="w-full mt-2 p-2 border rounded-lg focus:ring focus:ring-blue-300"
-                       required>
-            </div>
-
-            {{-- Budget --}}
-            <div class="mb-4">
-                <label for="budget" class="block theme-aware-text-secondary font-medium">Budget ($)</label>
-                <input type="number" step="0.01" id="budget" name="budget" value="{{ old('budget', $project->budget) }}"
-                       class="w-full mt-2 p-2 border rounded-lg focus:ring focus:ring-blue-300">
-            </div>
-
-            {{-- Submit Button --}}
-            <div class="mt-6">
-                <button type="submit" 
-                        class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 shadow">
-                    💾 Update Project
-                </button>
-            </div>
-        </form>
     </div>
-</div>
-@endsection
+
+    <script>
+        function generateProjectCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = 'PRJ-';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('project_code').value = code;
+        }
+
+        document.getElementById('generateCodeBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            generateProjectCode();
+        });
+    </script>
+</body>
+</html>

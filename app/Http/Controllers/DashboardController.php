@@ -26,30 +26,32 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Check if user has any meaningful permissions
-        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant']) && 
+        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant']) &&
             !$user->hasAnyPermission(['projects.create', 'expenses.create', 'users.view', 'payments.create', 'reports.generate'])) {
             // Redirect users with no permissions to welcome page
             return redirect('/')->with('error', 'You need proper permissions to access the dashboard.');
         }
-        
-        // Route to appropriate dashboard based on role (prioritize highest privilege)
-        if ($user->hasRole(['super-admin', 'admin'])) {
-            return $this->adminDashboard();
+
+        // Redirect to appropriate dashboard URL based on role (prioritize highest privilege)
+        if ($user->is_super_admin) {
+            return redirect('/super-admin/dashboard');
+        } elseif ($user->hasRole('admin')) {
+            return redirect('/admin/dashboard');
         } elseif ($user->hasRole('accountant')) {
-            return $this->accountantDashboard();
+            return redirect('/accountant/dashboard');
         } elseif ($user->hasRole('manager')) {
-            return $this->managerDashboard();
+            return redirect('/manager/dashboard');
         }
-        
-        return $this->userDashboard();
+
+        return redirect('/user/dashboard');
     }
 
     /**
      * Admin sees all data and statistics with enhanced analytics
      */
-    private function adminDashboard()
+    public function adminDashboard()
     {
         $today = Carbon::today();
         $startOfMonth = $today->copy()->startOfMonth();
@@ -74,7 +76,7 @@ class DashboardController extends Controller
         $expenseByMethod = $this->statsService->getExpenseByMethod();
         $paymentStatusBreakdown = $this->statsService->getPaymentStatusBreakdown();
         $outstandingReceivables = $this->statsService->getOutstandingReceivables();
-        
+
         // Additional stats for admin dashboard
         $dailyTotals = [];
         $categories = [];
@@ -91,12 +93,12 @@ class DashboardController extends Controller
         // Payroll calculations
         $totalPayroll = $has('workers', 'salary') ? Worker::sum('salary') : 0;
         $workersAvgSalary = $totalWorkers > 0 ? $totalPayroll / $totalWorkers : 0;
-        $employeesAvgSalary = class_exists('App\Models\Employee') && $totalEmployees > 0 
-            ? \App\Models\Employee::avg('salary') ?? 0 
+        $employeesAvgSalary = class_exists('App\Models\Employee') && $totalEmployees > 0
+            ? \App\Models\Employee::avg('salary') ?? 0
             : 0;
 
         // Worker payments (using employee_id to identify worker-related payments)
-        $workerPaymentsToday = $has('payments', 'employee_id') 
+        $workerPaymentsToday = $has('payments', 'employee_id')
             ? Payment::whereDate('created_at', $today)->whereNotNull('employee_id')->sum('amount')
             : 0;
         $workerPaymentsThisMonth = $has('payments', 'employee_id')
@@ -133,6 +135,16 @@ class DashboardController extends Controller
             : 0;
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(7)->get() : collect();
 
+        // Expenses by category (Office vs Project)
+        $officeExpenses = $has('expenses') ? Expense::whereNull('project_id')->sum('amount') : 0;
+        $projectExpenses = $has('expenses') ? Expense::whereNotNull('project_id')->sum('amount') : 0;
+        $officeExpensesThisMonth = $has('expenses')
+            ? Expense::whereNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+            : 0;
+        $projectExpensesThisMonth = $has('expenses')
+            ? Expense::whereNotNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+            : 0;
+
         // Projects
         $projectsCount = $has('projects') ? Project::count() : 0;
         $projectsThisMonth = $has('projects')
@@ -156,17 +168,43 @@ class DashboardController extends Controller
         // Project Stats
         $projectStats = collect();
         if ($has('projects') && $has('incomes', 'amount_received')) {
-            $projectStats = DB::table('projects')
-                ->leftJoin('incomes', 'projects.id', '=', 'incomes.project_id')
-                ->select(
-                    'projects.id',
-                    'projects.name as project_name',
-                    DB::raw('COALESCE(SUM(incomes.amount_received), 0) as amount_paid'),
-                    DB::raw('COALESCE(projects.contract_value, 0) as total_amount'),
-                    DB::raw('(COALESCE(projects.contract_value, 0) - COALESCE(SUM(incomes.amount_received), 0)) as amount_remaining')
-                )
-                ->groupBy('projects.id', 'projects.name', 'projects.contract_value')
-                ->get();
+            $projectStats = Project::with('incomes')
+                ->get()
+                ->map(function($project) {
+                    $amountPaid = (float) $project->incomes->sum('amount_received');
+                    $totalAmount = (float) ($project->contract_value ?? 0);
+                    return [
+                        'id' => $project->id,
+                        'project_name' => $project->name,
+                        'amount_paid' => $amountPaid,
+                        'total_amount' => $totalAmount,
+                        'amount_remaining' => $totalAmount - $amountPaid,
+                    ];
+                })
+                ->toArray();
+        }
+
+        // Daily stats (last 30 days)
+        $dailyDates = [];
+        $dailyRevenue = [];
+        $dailyExpenses = [];
+        $dailyTasks = [];
+
+        for ($i = 29; $i >= 0; $i--) {
+            $dt = Carbon::now()->subDays($i);
+            $dailyDates[] = $dt->format('M d');
+
+            $dailyRevenue[] = $has('incomes', 'amount_received')
+                ? Income::whereDate('received_at', $dt)->sum('amount_received')
+                : 0;
+
+            $dailyExpenses[] = $has('expenses', 'amount')
+                ? Expense::whereDate('created_at', $dt)->sum('amount')
+                : 0;
+
+            $dailyTasks[] = $has('tasks')
+                ? \App\Models\Task::whereDate('created_at', $dt)->count()
+                : 0;
         }
 
         // Monthly series
@@ -206,9 +244,11 @@ class DashboardController extends Controller
             'recentTransactions', 'transactionsThisMonth',
             'incomesTotal', 'incomesThisMonth', 'recentIncomes',
             'expensesTotal', 'expensesThisMonth', 'recentExpenses',
+            'officeExpenses', 'projectExpenses', 'officeExpensesThisMonth', 'projectExpensesThisMonth',
             'projectsCount', 'projectsThisMonth', 'projectsTotal', 'recentProjects',
             'totalClients', 'activeClients', 'clientsThisMonth', 'totalOrders',
-            'projectStats', 'months', 'paymentsMonthly', 'expensesMonthly', 'incomeMonthly'
+            'projectStats', 'months', 'paymentsMonthly', 'expensesMonthly', 'incomeMonthly',
+            'dailyDates', 'dailyRevenue', 'dailyExpenses', 'dailyTasks'
         ));
     }
 
@@ -220,22 +260,22 @@ class DashboardController extends Controller
         // Get comprehensive financial summary
         $financialSummary = $this->statsService->getFinancialSummary();
         $quickStats = $this->statsService->getQuickStats();
-        
+
         // Get daily, weekly, and monthly trends
         $dailyStats = $this->statsService->getDailyStats(30);
         $weeklyStats = $this->statsService->getWeeklyStats(12);
         $cashFlowAnalysis = $this->statsService->getCashFlowAnalysis(6);
-        
+
         // Category breakdowns
         $incomeByCategory = $this->statsService->getIncomeByCategory();
         $expenseByCategory = $this->statsService->getExpenseByCategory();
         $expenseByMethod = $this->statsService->getExpenseByMethod();
     $transactionsByCategory = $this->statsService->getTransactionsByCategory();
-        
+
         // Payment analysis
         $paymentStatusBreakdown = $this->statsService->getPaymentStatusBreakdown();
         $outstandingReceivables = $this->statsService->getOutstandingReceivables();
-        
+
         // Recent transactions
         $has = function (string $table, ?string $column = null): bool {
             if (! Schema::hasTable($table)) {
@@ -297,18 +337,22 @@ class DashboardController extends Controller
         // Project Stats with payments
         $projectStats = collect();
         if ($has('projects') && $has('incomes', 'amount_received')) {
-            $projectStats = DB::table('projects')
-                ->leftJoin('incomes', 'projects.id', '=', 'incomes.project_id')
-                ->select(
-                    'projects.id',
-                    'projects.name as project_name',
-                    DB::raw('COALESCE(SUM(incomes.amount_received), 0) as amount_paid'),
-                    DB::raw('COALESCE(projects.contract_value, 0) as total_amount'),
-                    DB::raw('(COALESCE(projects.contract_value, 0) - COALESCE(SUM(incomes.amount_received), 0)) as amount_remaining')
-                )
-                ->groupBy('projects.id', 'projects.name', 'projects.contract_value')
+            $projectStats = Project::with('incomes')
+                ->latest()
                 ->limit(10)
-                ->get();
+                ->get()
+                ->map(function($project) {
+                    $amountPaid = (float) $project->incomes->sum('amount_received');
+                    $totalAmount = (float) ($project->contract_value ?? 0);
+                    return [
+                        'id' => $project->id,
+                        'project_name' => $project->name,
+                        'amount_paid' => $amountPaid,
+                        'total_amount' => $totalAmount,
+                        'amount_remaining' => $totalAmount - $amountPaid,
+                    ];
+                })
+                ->toArray();
         }
 
         // Monthly project data
@@ -369,14 +413,14 @@ class DashboardController extends Controller
     public function analytics()
     {
         $user = Auth::user();
-        
+
         // Check if user has permissions to view analytics
-        if (!$user->hasRole(['super-admin', 'admin', 'manager']) && 
+        if (!$user->hasRole(['super-admin', 'admin', 'manager']) &&
             !$user->hasPermission('analytics.view')) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to view analytics.');
         }
-        
+
         // Get enhanced analytics data
         $analyticsData = [
             'financialSummary' => $this->statsService->getFinancialSummary(),
@@ -391,7 +435,7 @@ class DashboardController extends Controller
             'paymentStatusBreakdown' => $this->statsService->getPaymentStatusBreakdown(),
             'outstandingReceivables' => $this->statsService->getOutstandingReceivables(),
         ];
-        
+
         return view('dashboard.analytics', $analyticsData);
     }
 }

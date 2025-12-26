@@ -12,6 +12,7 @@ return new class extends Migration
         if (!Schema::hasTable('projects')) {
             Schema::create('projects', function (Blueprint $table) {
                 $table->id();
+                $table->foreignId('tenant_id')->nullable()->constrained('tenants')->onDelete('cascade');
                 $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
                 $table->string('name');
                 $table->date('start_date')->nullable();

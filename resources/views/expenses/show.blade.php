@@ -1,102 +1,375 @@
-@extends('layouts.app')
-@section('title','Expense Details')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $expense->description ?? 'Expense Details' }} - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-@section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div>
-                <h1 class="text-3xl font-bold theme-aware-text leading-tight">Expense #{{ $expense->id }}</h1>
-                <p class="text-sm theme-aware-text-muted mt-1">Added {{ optional($expense->created_at)->diffForHumans() }}</p>
-            </div>
-            <div class="mt-4 sm:mt-0 text-right">
-                <div class="text-2xl font-extrabold text-red-600">RWF {{ number_format($expense->amount,2) }}</div>
-                <div class="text-xs theme-aware-text-muted">{{ optional($expense->date)->format('Y-m-d') }}</div>
-            </div>
-        </div>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
 
-        <!-- Details Card -->
-        <div class="theme-aware-bg-card rounded-xl shadow-lg overflow-hidden">
-            <div class="p-6 sm:p-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-lg font-semibold theme-aware-text-secondary border-b pb-2 mb-4">Expense Info</h3>
-                        <dl class="space-y-4">
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Date</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ optional($expense->date)->format('Y-m-d') ?? '—' }}</dd>
-                            </div>
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Category</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->category ?? '—' }}</dd>
-                            </div>
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Method</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->method ?? '—' }}</dd>
-                            </div>
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Reference</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->reference ?? '—' }}</dd>
-                            </div>
-                        </dl>
-                    </div>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-                    <div>
-                        <h3 class="text-lg font-semibold theme-aware-text-secondary border-b pb-2 mb-4">Associations</h3>
-                        <dl class="space-y-4">
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Project</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->project_id ? ($expense->project->name ?? '—') : '—' }}</dd>
-                            </div>
-                            <div class="flex flex-col">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Client</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->client_id ? ($expense->client->name ?? '—') : '—' }}</dd>
-                            </div>
-                            <div class="flex flex-col md:col-span-2">
-                                <dt class="text-sm font-medium theme-aware-text-muted">Registered By</dt>
-                                <dd class="mt-1 text-md theme-aware-text">{{ $expense->user->name ?? '—' }}</dd>
-                            </div>
-                        </dl>
-                    </div>
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .expense-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .expense-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expense-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .expense-value {
+            font-size: 18px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .expense-amount {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .description-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .description-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .description-text {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .relation-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .relation-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .relation-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .relation-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .relation-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .meta-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .meta-item {
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .detail-card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .expense-header {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url()->previous() }}" class="back-link">← Back</a>
+
+        <div class="detail-card">
+            <h1>💰 Expense Details</h1>
+
+            <div class="expense-header">
+                <div class="expense-item">
+                    <span class="expense-label">Amount</span>
+                    <span class="expense-amount">RWF {{ number_format($expense->amount ?? 0, 2) }}</span>
                 </div>
 
-                <div class="mt-6">
-                    <h3 class="text-sm font-medium theme-aware-text-muted">Description</h3>
-                    <p class="mt-1 theme-aware-text">{{ $expense->description ?? '—' }}</p>
+                <div class="expense-item">
+                    <span class="expense-label">Category</span>
+                    <span class="expense-value">{{ $expense->category ?? 'General' }}</span>
+                </div>
+
+                <div class="expense-item">
+                    <span class="expense-label">Status</span>
+                    @php
+                        $statusClass = match($expense->status ?? 'pending') {
+                            'approved' => 'badge-approved',
+                            'completed' => 'badge-completed',
+                            'rejected' => 'badge-rejected',
+                            default => 'badge-pending'
+                        };
+                    @endphp
+                    <span class="status-badge {{ $statusClass }}">{{ ucfirst($expense->status ?? 'Pending') }}</span>
+                </div>
+
+                <div class="expense-item">
+                    <span class="expense-label">Date</span>
+                    <span class="expense-value">{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</span>
+                </div>
+
+                <div class="expense-item">
+                    <span class="expense-label">Payment Method</span>
+                    <span class="expense-value">{{ $expense->method ?? 'Not Specified' }}</span>
+                </div>
+
+                <div class="expense-item">
+                    <span class="expense-label">Recorded</span>
+                    <span class="expense-value">{{ $expense->created_at->format('M d, Y - g:i A') }}</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Actions -->
-        <div class="mt-6 flex flex-wrap gap-2">
-            <a href="{{ route('expenses.edit', $expense) }}" class="btn-primary">
-                <i class="fas fa-edit mr-2"></i>Edit
-            </a>
-            <form action="{{ route('expenses.destroy', $expense) }}" method="POST" onsubmit="return confirm('Delete this expense?');">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn-danger">
-                    <i class="fas fa-trash-alt mr-2"></i>Delete
-                </button>
-            </form>
-            <a href="{{ route('expenses.index') }}" class="btn-secondary">
-                <i class="fas fa-arrow-left mr-2"></i>Back
-            </a>
+            <div class="description-section">
+                <div class="description-label">Description</div>
+                <div class="description-text">{{ $expense->description ?? 'No description provided' }}</div>
+            </div>
+
+            @if($expense->project)
+                <div class="relation-card">
+                    <div class="relation-label">📁 Associated Project</div>
+                    <div class="relation-value">
+                        <a href="{{ route('projects.show', $expense->project->id) }}" class="relation-link">{{ $expense->project->name }}</a>
+                    </div>
+                </div>
+            @endif
+
+            @if($expense->client)
+                <div class="relation-card">
+                    <div class="relation-label">🏢 Associated Client</div>
+                    <div class="relation-value">
+                        <a href="{{ route('clients.show', $expense->client->id) }}" class="relation-link">{{ $expense->client->name }}</a>
+                    </div>
+                </div>
+            @endif
+
+            @if($expense->user)
+                <div class="relation-card">
+                    <div class="relation-label">👤 Recorded By</div>
+                    <div class="relation-value">{{ $expense->user->name }}</div>
+                </div>
+            @endif
+
+            <div class="action-buttons">
+                <a href="{{ route('expenses.edit', $expense->id) }}" class="btn btn-primary">Edit Expense</a>
+                <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Back to Expenses</a>
+                <form method="POST" action="{{ route('expenses.destroy', $expense->id) }}" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this expense?')">Delete Expense</button>
+                </form>
+            </div>
+
+            <div class="meta-info">
+                <div class="meta-item">ID: <strong>{{ $expense->id }}</strong></div>
+                <div class="meta-item">Last Updated: <strong>{{ $expense->updated_at->format('M d, Y - g:i A') }}</strong></div>
+            </div>
         </div>
     </div>
-</div>
-@endsection
-
-@push('styles')
-<style>
-    .btn-primary {
-        @apply inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150;
-    }
-    .btn-danger {
-        @apply inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150;
-    }
-    .btn-secondary {
-        @apply inline-flex items-center px-4 py-2 theme-aware-bg-tertiary border theme-aware-border rounded-md font-semibold text-xs theme-aware-text-secondary uppercase tracking-widest hover:bg-gray-300 active:bg-gray-400 focus:outline-none focus:theme-aware-border-secondary focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150;
-    }
-</style>
-@endpush
+</body>
+</html>

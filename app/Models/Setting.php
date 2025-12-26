@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Setting extends Model
 {
-    protected $fillable = ['key', 'value'];
+    use BelongsToTenant;
+
+    protected $fillable = ['tenant_id', 'key', 'value'];
     public $timestamps = false;
 }

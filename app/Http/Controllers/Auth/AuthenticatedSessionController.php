@@ -7,16 +7,21 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(): Response
     {
-        return view('auth.login');
+        return Inertia::render('Auth/Login', [
+            'canResetPassword' => Route::has('password.request'),
+            'status' => session('status'),
+        ]);
     }
 
     /**
@@ -28,7 +33,21 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Role-based dashboard redirection
+        $user = Auth::user();
+        if ($user->hasRole('admin')) {
+            return redirect()->route('dashboard.admin');
+        } elseif ($user->hasRole('accountant')) {
+            return redirect()->route('dashboard.accountant');
+        } elseif ($user->hasRole('site manager')) {
+            return redirect()->route('dashboard.site_manager');
+        } elseif ($user->hasRole('store keeper')) {
+            return redirect()->route('dashboard.store_keeper');
+        } elseif ($user->hasRole('system administrator')) {
+            return redirect()->route('dashboard.system_admin');
+        }
+        // Default fallback
+        return redirect()->route('dashboard');
     }
 
     /**

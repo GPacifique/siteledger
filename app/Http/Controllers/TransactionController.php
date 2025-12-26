@@ -5,30 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Traits\Downloadable;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
     use Downloadable;
-    public function __construct()
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
     {
         $this->middleware('auth');
+        $this->rbacFilterService = $rbacFilterService;
     }
 
     public function index(Request $request)
     {
-        $transactions = Transaction::latest('date')->paginate(15);
-        return view('transactions.index', compact('transactions'));
+        return Inertia::render('Admin/Placeholder', ['page' => 'Transactions', 'filterContext' => $this->rbacFilterService->getFilterContext()]);
     }
 
-    public function create() 
-    { 
+    public function create()
+    {
         // Generate automatic reference
         $autoReference = $this->generateReference();
-        return view('transactions.create', compact('autoReference')); 
+        return view('transactions.create', compact('autoReference'));
     }
 
-    public function store(Request $request) 
-    { 
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'reference' => 'required|string|max:255|unique:transactions,reference',
             'date' => 'required|date',
@@ -50,22 +55,22 @@ class TransactionController extends Controller
             ->with('success', 'Transaction created successfully!');
     }
 
-    public function show($id) 
-    { 
+    public function show($id)
+    {
         $transaction = Transaction::findOrFail($id);
-        return view('transactions.show', compact('transaction')); 
+        return view('transactions.show', compact('transaction'));
     }
 
-    public function edit($id) 
-    { 
+    public function edit($id)
+    {
         $transaction = Transaction::findOrFail($id);
-        return view('transactions.edit', compact('transaction')); 
+        return view('transactions.edit', compact('transaction'));
     }
 
-    public function update(Request $r, $id) 
-    { 
+    public function update(Request $r, $id)
+    {
         $transaction = Transaction::findOrFail($id);
-        
+
         $validated = $r->validate([
             'reference' => 'required|string|max:255|unique:transactions,reference,' . $id,
             'date' => 'required|date',
@@ -81,8 +86,8 @@ class TransactionController extends Controller
             ->with('success', 'Transaction updated successfully!');
     }
 
-    public function destroy($id) 
-    { 
+    public function destroy($id)
+    {
         $transaction = Transaction::findOrFail($id);
         $transaction->delete();
 
@@ -101,16 +106,16 @@ class TransactionController extends Controller
 
         return $reference;
     }
-    
+
     /**
      * Export transactions as CSV
      */
     public function exportCsv(Request $request)
     {
         $filename = $request->get('filename', 'transactions');
-        
+
         $transactions = Transaction::latest('date')->get();
-        
+
         $headers = [
             'id' => 'ID',
             'reference' => 'Reference',
@@ -121,7 +126,7 @@ class TransactionController extends Controller
             'status' => 'Status',
             'created_at' => 'Created Date'
         ];
-        
+
         // Transform data for CSV
         $csvData = $transactions->map(function ($transaction) {
             return [
@@ -135,26 +140,26 @@ class TransactionController extends Controller
                 'created_at' => $transaction->created_at->format('Y-m-d H:i:s')
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export transactions as PDF
      */
     public function exportPdf(Request $request)
     {
         $filename = $request->get('filename', 'transactions');
-        
+
         $transactions = Transaction::latest('date')->get();
-        
+
         $html = $this->generatePdfHtml('exports.financial-pdf', [
             'data' => $transactions,
             'title' => 'Transactions Report',
             'subtitle' => 'Complete list of all transactions',
             'totalRecords' => $transactions->count()
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 }

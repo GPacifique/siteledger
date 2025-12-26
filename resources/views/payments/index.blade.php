@@ -1,108 +1,136 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        thead {
+            background: #27ae60;
+            color: white;
+        }
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #e8f5e9;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    @include('components.navbar')
 
-@section('title', 'Payment Tracking System - Worker & Vendor Payments | SiteLedger')
-@section('meta_description', 'Comprehensive payment management system for construction companies. Track worker payments, vendor payments, manage payroll, and monitor all outgoing payments with detailed records and reporting.')
-@section('meta_keywords', 'payment tracking, worker payments, vendor payments, construction payroll, payment management, outgoing payments, payment records')
-
-@section('content')
-<div class="container-fluid py-4">
-    {{-- Role Check: Admin or Accountant Only --}}
-    @unless(auth()->user()->hasAnyRole(['admin', 'accountant']))
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> You do not have permission to access this page.
+    <div class="container">
+        <div class="page-header">
+            <h1>💳 Payments</h1>
+            <p>View all payments and their status</p>
         </div>
-        @php
-            abort(403, 'Unauthorized access');
-        @endphp
-    @endunless
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="fa-solid fa-money-bill me-2"></i> Payments</h2>
-        <div class="d-flex gap-2">
-            {{-- Download Buttons --}}
-            <x-download-buttons 
-                route="payments.export" 
-                filename="payments" 
-                size="sm" />
-            
-            @if(auth()->user()->hasAnyRole(['admin', 'accountant']))
-                <a href="{{ route('payments.create') }}" class="btn btn-primary">
-                    <i class="fa fa-plus me-1"></i> New Payment
-                </a>
-            @endif
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+            <a href="{{ route('payments.create') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">+ Add Payment</a>
         </div>
-    </div>
 
-    <!-- Flash messages -->
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    <!-- Table -->
-    <div class="card shadow-sm">
-        <div class="card-body table-responsive">
-            <table class="table table-striped align-middle">
+        @if($payments->count() > 0)
+            <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Reference</th>
-                        <th>Employee</th>
-                        <th>Method</th>
                         <th>Amount</th>
-                        <th>Date</th>
+                        <th>Worker</th>
+                        <th>Type</th>
                         <th>Status</th>
-                        <th class="text-end">Actions</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($payments as $payment)
-                        <tr>
-                            <td>{{ $payment->id }}</td>
-                            <td>{{ $payment->reference ?? '—' }}</td>
+                    @foreach($payments as $payment)
+                        <tr onclick="window.location.href='/payments/{{ $payment->id }}';">
+                            <td><strong>RWF {{ number_format($payment->amount ?? 0, 2) }}</strong></td>
+                            <td>{{ $payment->employee->first_name ?? 'N/A' }} {{ $payment->employee->last_name ?? '' }}</td>
+                            <td>{{ ucfirst($payment->type ?? 'Payment') }}</td>
                             <td>
-                                @if($payment->employee)
-                                    {{ $payment->employee->full_name }}
-                                @else
-                                    <span class="text-muted">N/A</span>
-                                @endif
+                                @php
+                                    $statusClass = match($payment->status ?? 'pending') {
+                                        'completed' => 'badge-completed',
+                                        default => 'badge-pending'
+                                    };
+                                @endphp
+                                <span class="badge {{ $statusClass }}">{{ ucfirst($payment->status ?? 'Pending') }}</span>
                             </td>
-                            <td>{{ ucfirst($payment->method) }}</td>
-                            <td>RWF {{ number_format($payment->amount, 2) }}</td>
-                            <td>{{ optional($payment->created_at)->format('Y-m-d') }}</td>
-                            <td>
-                                <span class="badge bg-{{ $payment->status === 'completed' ? 'success' : 'secondary' }}">
-                                    {{ ucfirst($payment->status ?? 'pending') }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <a href="{{ route('payments.show', $payment) }}" class="btn btn-sm btn-info">
-                                    <i class="fa fa-eye"></i>
-                                </a>
-                                <a href="{{ route('payments.edit', $payment) }}" class="btn btn-sm btn-warning">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-                                <form action="{{ route('payments.destroy', $payment) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this payment?')">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
+                            <td>{{ $payment->created_at ? $payment->created_at->format('M d, Y') : 'N/A' }}</td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">No payments found.</td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
-
-            <!-- Pagination -->
-            <div class="mt-3">
-                {{ $payments->links() }}
+        @else
+            <div class="empty-message">
+                <p>No payments found. <a href="/admin/dashboard">Go to Dashboard</a></p>
             </div>
-        </div>
+        @endif
     </div>
-</div>
-@endsection
+</body>
+</html>

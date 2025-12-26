@@ -10,6 +10,11 @@ use App\Models\Expense;
 use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\Project;
+use App\Models\User;
+use App\Models\Worker;
+use App\Models\Task;
+use App\Models\Product;
+use App\Utils\CurrencyFormatter;
 
 class DashboardStatsService
 {
@@ -76,23 +81,22 @@ class DashboardStatsService
         $startDate = $startDate ?? Carbon::today()->startOfMonth();
         $endDate = $endDate ?? Carbon::today()->endOfDay();
 
-        return DB::table('incomes')
-            ->select(
-                DB::raw('COALESCE(projects.name, "Uncategorized") as category'),
-                DB::raw('SUM(incomes.amount_received) as total'),
-                DB::raw('COUNT(*) as count')
-            )
-            ->leftJoin('projects', 'incomes.project_id', '=', 'projects.id')
-            ->whereBetween('incomes.received_at', [$startDate, $endDate])
-            ->groupBy('incomes.project_id', 'projects.name')
-            ->orderByDesc('total')
+        $incomes = Income::with('project')
+            ->whereBetween('received_at', [$startDate, $endDate])
             ->get()
-            ->map(fn($item) => [
-                'category' => $item->category,
-                'total' => (float) $item->total,
-                'count' => $item->count,
-            ])
+            ->groupBy(fn($income) => $income->project->name ?? 'Uncategorized')
+            ->map(function($group) {
+                return [
+                    'category' => $group->first()->project->name ?? 'Uncategorized',
+                    'total' => (float) $group->sum('amount_received'),
+                    'count' => $group->count(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('total')
             ->toArray();
+
+        return $incomes;
     }
 
     /**
@@ -107,22 +111,21 @@ class DashboardStatsService
         $startDate = $startDate ?? Carbon::today()->startOfMonth();
         $endDate = $endDate ?? Carbon::today()->endOfDay();
 
-        return DB::table('expenses')
-            ->select(
-                'category',
-                DB::raw('SUM(amount) as total'),
-                DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween('date', [$startDate, $endDate])
-            ->groupBy('category')
-            ->orderByDesc('total')
+        $expenses = Expense::whereBetween('date', [$startDate, $endDate])
             ->get()
-            ->map(fn($item) => [
-                'category' => $item->category ?? 'Uncategorized',
-                'total' => (float) $item->total,
-                'count' => $item->count,
-            ])
+            ->groupBy(fn($expense) => $expense->category ?? 'Uncategorized')
+            ->map(function($group) {
+                return [
+                    'category' => $group->first()->category ?? 'Uncategorized',
+                    'total' => (float) $group->sum('amount'),
+                    'count' => $group->count(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('total')
             ->toArray();
+
+        return $expenses;
     }
 
     /**
@@ -261,7 +264,7 @@ class DashboardStatsService
                     $income = (float) ($project->incomes_sum_amount_received ?? 0);
                     $target = (float) ($project->contract_value ?? 0);
                     $completion_percent = $target > 0 ? round(($income / $target) * 100, 2) : 0;
-                    
+
                     return [
                         'id' => $project->id,
                         'name' => $project->name,
@@ -325,20 +328,19 @@ class DashboardStatsService
             return [];
         }
 
-        return DB::table('incomes')
-            ->select(
-                'payment_status',
-                DB::raw('COUNT(*) as count'),
-                DB::raw('SUM(amount_received) as total_amount')
-            )
+        $statuses = Income::get()
             ->groupBy('payment_status')
-            ->get()
-            ->map(fn($item) => [
-                'status' => $item->payment_status,
-                'count' => $item->count,
-                'total' => (float) $item->total_amount,
-            ])
+            ->map(function($group) {
+                return [
+                    'status' => $group->first()->payment_status,
+                    'count' => $group->count(),
+                    'total' => (float) $group->sum('amount_received'),
+                ];
+            })
+            ->values()
             ->toArray();
+
+        return $statuses;
     }
 
     /**
@@ -379,22 +381,21 @@ class DashboardStatsService
         $startDate = $startDate ?? Carbon::today()->startOfMonth();
         $endDate = $endDate ?? Carbon::today()->endOfDay();
 
-        return DB::table('expenses')
-            ->select(
-                'method',
-                DB::raw('SUM(amount) as total'),
-                DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween('date', [$startDate, $endDate])
-            ->groupBy('method')
-            ->orderByDesc('total')
+        $methods = Expense::whereBetween('date', [$startDate, $endDate])
             ->get()
-            ->map(fn($item) => [
-                'method' => $item->method ?? 'Unknown',
-                'total' => (float) $item->total,
-                'count' => $item->count,
-            ])
+            ->groupBy(fn($expense) => $expense->method ?? 'Unknown')
+            ->map(function($group) {
+                return [
+                    'method' => $group->first()->method ?? 'Unknown',
+                    'total' => (float) $group->sum('amount'),
+                    'count' => $group->count(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('total')
             ->toArray();
+
+        return $methods;
     }
 
     /**
@@ -410,28 +411,26 @@ class DashboardStatsService
         $startDate = $startDate ?? Carbon::today()->startOfMonth();
         $endDate = $endDate ?? Carbon::today()->endOfDay();
 
-        $query = DB::table('transactions')
-            ->select(
-                DB::raw('COALESCE(category, "Uncategorized") as category'),
-                DB::raw('SUM(amount) as total'),
-                DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween('date', [$startDate, $endDate]);
+        $query = Transaction::whereBetween('date', [$startDate, $endDate]);
 
         if ($type) {
             $query->where('type', $type);
         }
 
-        return $query
-            ->groupBy('category')
-            ->orderByDesc(DB::raw('SUM(amount)'))
-            ->get()
-            ->map(fn($item) => [
-                'category' => $item->category ?? 'Uncategorized',
-                'total' => (float) $item->total,
-                'count' => (int) $item->count,
-            ])
+        $categories = $query->get()
+            ->groupBy(fn($transaction) => $transaction->category ?? 'Uncategorized')
+            ->map(function($group) {
+                return [
+                    'category' => $group->first()->category ?? 'Uncategorized',
+                    'total' => (float) $group->sum('amount'),
+                    'count' => (int) $group->count(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('total')
             ->toArray();
+
+        return $categories;
     }
 
     /**
@@ -460,6 +459,103 @@ class DashboardStatsService
             'total_transactions' => $this->has('transactions')
                 ? (int) Transaction::count()
                 : 0,
+        ];
+    }
+
+    /**
+     * Get Admin Dashboard Stats
+     */
+    public function getAdminStats()
+    {
+        return [
+            'totalUsers' => User::count(),
+            'activeProjects' => $this->has('projects')
+                ? Project::whereIn('status', ['active', 'in_progress'])->count()
+                : 0,
+            'totalRevenue' => $this->has('projects')
+                ? (float) Project::sum('contract_value')
+                : 0,
+            'systemHealth' => '98%',
+        ];
+    }
+
+    /**
+     * Get Accountant Dashboard Stats
+     */
+    public function getAccountantStats()
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        $totalIncome = $this->has('incomes', 'amount_received')
+            ? (float) Income::whereBetween('received_at', [$startOfMonth, $endOfToday])->sum('amount_received')
+            : 0;
+
+        $totalExpense = $this->has('expenses', 'amount')
+            ? (float) Expense::whereBetween('date', [$startOfMonth, $endOfToday])->sum('amount')
+            : 0;
+
+        return [
+            'totalIncome' => $totalIncome,
+            'totalExpenses' => $totalExpense,
+            'netProfit' => $totalIncome - $totalExpense,
+            'unpaidInvoices' => $this->has('incomes')
+                ? Income::whereIn('payment_status', ['Pending', 'Overdue'])->count()
+                : 0,
+        ];
+    }
+
+    /**
+     * Get Site Manager Dashboard Stats
+     */
+    public function getSiteManagerStats()
+    {
+        return [
+            'activeProjects' => $this->has('projects')
+                ? Project::whereIn('status', ['active', 'in_progress'])->count()
+                : 0,
+            'teamMembers' => $this->has('workers')
+                ? Worker::count()
+                : 0,
+            'tasksCompleted' => $this->has('tasks')
+                ? Task::where('status', 'completed')->count()
+                : 0,
+            'onTimeRate' => '92%',
+        ];
+    }
+
+    /**
+     * Get Store Keeper Dashboard Stats
+     */
+    public function getStoreKeeperStats()
+    {
+        return [
+            'totalProducts' => $this->has('products')
+                ? Product::count()
+                : 0,
+            'lowStockItems' => $this->has('products')
+                ? Product::where('quantity_on_hand', '<', 10)->count()
+                : 0,
+            'recentOrders' => $this->has('payments')
+                ? Payment::whereDate('created_at', Carbon::today())->count()
+                : 0,
+            'pendingDeliveries' => $this->has('payments')
+                ? Payment::whereIn('status', ['pending', 'pending_delivery'])->count()
+                : 0,
+        ];
+    }
+
+    /**
+     * Get System Admin Dashboard Stats
+     */
+    public function getSystemAdminStats()
+    {
+        return [
+            'systemStatus' => 'Healthy',
+            'activeUsers' => User::count(),
+            'apiUptime' => 99.9,
+            'diskUsage' => 65,
         ];
     }
 }

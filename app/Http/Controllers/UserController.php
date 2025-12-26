@@ -7,19 +7,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Validation\Rule; 
+use Illuminate\Validation\Rule;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
+
 class UserController extends Controller
 {
-   
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
     /**
      * Display a paginated listing of users.
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 15);
-        $users = User::with('roles')->orderBy('name')->paginate($perPage);
+        $query = User::query();
+        $filteredUsers = $this->rbacFilterService->filterUsers($query)->get();
 
-        return view('users.index', compact('users'));
+        return Inertia::render('Admin/Users', [
+            'totalUsers' => User::count(),
+            'activeUsers' => User::where('email_verified_at', '!=', null)->count(),
+            'users' => $filteredUsers,
+            'filterContext' => $this->rbacFilterService->getFilterContext(),
+        ]);
     }
 
     /**
@@ -56,7 +70,7 @@ class UserController extends Controller
 
         if (!empty($data['roles'])) {
             $user->assignRole($data['roles']);
-            
+
             // If admin role is assigned, ensure they have all permissions
             if (in_array('admin', $data['roles'])) {
                 $this->ensureAdminFullPermissions($user);
@@ -154,27 +168,27 @@ class UserController extends Controller
         try {
             // Get the admin role
             $adminRole = Role::firstOrCreate(['name' => 'admin']);
-            
+
             // Get all available permissions
             $allPermissions = Permission::all();
-            
+
             // If no permissions exist yet, create the basic ones
             if ($allPermissions->isEmpty()) {
                 $this->createBasicPermissions();
                 $allPermissions = Permission::all();
             }
-            
+
             // Sync all permissions to admin role
             $adminRole->syncPermissions($allPermissions->pluck('name'));
-            
+
             // Ensure user has admin role
             if (!$user->hasRole('admin')) {
                 $user->assignRole('admin');
             }
-            
+
             // Clear permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-            
+
         } catch (\Throwable $e) {
             // Log but don't fail user creation
             report($e);

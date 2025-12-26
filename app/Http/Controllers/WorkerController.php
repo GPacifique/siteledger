@@ -6,47 +6,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Worker;
 use App\Traits\Downloadable;
+use App\Services\RbacFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 
 class WorkerController extends Controller
 {
     use Downloadable;
 
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
 // Display a listing of workers
 public function index(Request $request)
 {
-	$q = trim((string) $request->get('q'));
+    $query = Worker::query();
+    $filteredWorkers = $this->rbacFilterService->filterWorkers($query)->get();
 
-	$workersQuery = Worker::query();
-	if ($q !== '') {
-		$workersQuery->where(function ($w) use ($q) {
-			$w->where('first_name', 'like', "%{$q}%")
-			  ->orWhere('last_name', 'like', "%{$q}%")
-			  ->orWhere('email', 'like', "%{$q}%")
-			  ->orWhere('phone', 'like', "%{$q}%")
-			  ->orWhere('position', 'like', "%{$q}%");
-		});
-	}
-	$workers = $workersQuery->orderBy('last_name')->paginate(15)->appends($request->query());
-
-	// Daily payments history from first payment date to today
-	$firstPaymentDate = \App\Models\WorkerPayment::min('paid_on');
-	$payments = \App\Models\WorkerPayment::with('worker')
-		->when($q !== '', function ($pq) use ($q) {
-			$pq->whereHas('worker', function ($w) use ($q) {
-				$w->where('first_name', 'like', "%{$q}%")
-				  ->orWhere('last_name', 'like', "%{$q}%");
-			});
-		})
-		->orderByDesc('paid_on')
-		->orderByDesc('id')
-		->paginate(25)
-		->appends($request->query());
-
-	return view('workers.index', compact('workers', 'payments', 'firstPaymentDate'));
+    return view('workers.index', [
+        'workers' => $filteredWorkers,
+    ]);
 }
 
 
@@ -88,9 +74,20 @@ return redirect()->route('workers.show', $worker)->with('success', 'Worker creat
 // Display the specified worker
 public function show(Worker $worker)
 {
-	// eager load recent payments
-	$worker->load(['payments' => function($q){ $q->orderByDesc('paid_on')->limit(30); }]);
-	return view('workers.show', compact('worker'));
+	// eager load recent payments and tasks
+	$worker->load(['payments' => function($q){ $q->orderByDesc('created_at')->limit(10); }]);
+
+	// Get worker statistics - tasks are assigned via assigned_to field
+	$tasks = \App\Models\Task::where('assigned_to', $worker->id)->get();
+	$stats = [
+		'total_tasks' => $tasks->count(),
+		'completed_tasks' => $tasks->where('status', 'completed')->count(),
+		'total_wages' => $worker->payments()->sum('amount'),
+	];
+
+	$recentPayments = $worker->payments()->latest('created_at')->limit(10)->get();
+
+	return view('workers.show', compact('worker', 'stats', 'recentPayments'));
 }
 
 
@@ -107,7 +104,7 @@ public function bulkStorePayments(Request $request)
     if (!Auth::user()->can('workers.payments')) {
         abort(403, 'You do not have permission to process worker payments.');
     }
-    
+
 	$data = $request->validate([
 		'paid_on' => 'required|date',
 		'worker_ids' => 'required|array',
@@ -191,11 +188,11 @@ public function exportCsv(Request $request)
     if (!Auth::user()->can('workers.export')) {
         abort(403, 'You do not have permission to export workers.');
     }
-    
+
     $filename = $request->get('filename', 'workers');
-    
+
     $workers = Worker::latest()->get();
-    
+
     $headers = [
         'id' => 'ID',
         'name' => 'Name',
@@ -205,7 +202,7 @@ public function exportCsv(Request $request)
         'daily_rate' => 'Daily Rate (RWF)',
         'created_at' => 'Hired Date'
     ];
-    
+
     // Transform data for CSV
     $csvData = $workers->map(function ($worker) {
         return [
@@ -218,7 +215,7 @@ public function exportCsv(Request $request)
             'created_at' => $worker->created_at->format('Y-m-d H:i:s')
         ];
     });
-    
+
     return $this->downloadCsv($csvData, $filename, array_keys($headers));
 }
 
@@ -231,18 +228,18 @@ public function exportPdf(Request $request)
     if (!Auth::user()->can('workers.export')) {
         abort(403, 'You do not have permission to export workers.');
     }
-    
+
     $filename = $request->get('filename', 'workers');
-    
+
     $workers = Worker::latest()->get();
-    
+
     $html = $this->generatePdfHtml('exports.workers-pdf', [
         'data' => $workers,
         'title' => 'Workers Report',
         'subtitle' => 'Complete list of all workers',
         'totalRecords' => $workers->count()
     ]);
-    
+
     return $this->downloadPdf($html, $filename);
 }
 }

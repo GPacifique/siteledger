@@ -35,10 +35,26 @@ class Project extends Model
 public function client()
     {
         return $this->belongsTo(Client::class);
-    }   
+    }
     public function incomes()
     {
         return $this->hasMany(Income::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function workers()
+    {
+        // Get workers through tasks assigned to this project
+        return Worker::whereIn('id', $this->tasks()->pluck('assigned_to'))->distinct();
     }
 
     public function tenant()

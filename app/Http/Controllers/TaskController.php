@@ -8,63 +8,32 @@ use App\Models\User;
 use App\Traits\Downloadable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     use Downloadable;
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
 
     /**
      * Display a listing of tasks.
      */
     public function index(Request $request)
     {
-        $query = Task::with(['project', 'assignedTo', 'createdBy']);
+        $query = Task::with(['project', 'assignedTo']);
+        $filteredTasks = $this->rbacFilterService->filterTasks($query)->get();
 
-        // Apply filters
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('priority')) {
-            $query->where('priority', $request->priority);
-        }
-
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
-        }
-
-        if ($request->filled('assigned_to')) {
-            $query->where('assigned_to', $request->assigned_to);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        $tasks = $query->orderBy('due_date', 'asc')
-                      ->orderBy('priority', 'desc')
-                      ->paginate(15);
-
-        // Get task statistics
-        $taskStats = [
-            'total' => Task::count(),
-            'pending' => Task::where('status', 'pending')->count(),
-            'in_progress' => Task::where('status', 'in_progress')->count(),
-            'completed' => Task::where('status', 'completed')->count(),
-            'overdue' => Task::whereDate('due_date', '<', now())
-                            ->whereNotIn('status', ['completed', 'cancelled'])
-                            ->count(),
-        ];
-
-        // Get filter options
-        $projects = Project::select('id', 'name')->get();
-        $users = User::select('id', 'name')->get();
-
-        return view('tasks.index', compact('tasks', 'projects', 'users', 'taskStats'));
+        return Inertia::render('Admin/Tasks', [
+            'tasks' => $filteredTasks,
+            'filterContext' => $this->rbacFilterService->getFilterContext(),
+        ]);
     }
 
     /**
@@ -179,11 +148,11 @@ class TaskController extends Controller
         if (!Auth::user()->can('tasks.view')) {
             abort(403, 'You do not have permission to export tasks.');
         }
-        
+
         $filename = $request->get('filename', 'tasks');
-        
+
         $tasks = Task::with(['project', 'assignedTo', 'createdBy'])->get();
-        
+
         $headers = [
             'id' => 'ID',
             'title' => 'Title',
@@ -198,7 +167,7 @@ class TaskController extends Controller
             'actual_cost' => 'Actual Cost',
             'created_at' => 'Created At'
         ];
-        
+
         $csvData = $tasks->map(function ($task) {
             return [
                 'id' => $task->id,
@@ -215,7 +184,7 @@ class TaskController extends Controller
                 'created_at' => $task->created_at->format('Y-m-d H:i:s')
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
 
@@ -228,18 +197,18 @@ class TaskController extends Controller
         if (!Auth::user()->can('tasks.view')) {
             abort(403, 'You do not have permission to export tasks.');
         }
-        
+
         $filename = $request->get('filename', 'tasks');
-        
+
         $tasks = Task::with(['project', 'assignedTo', 'createdBy'])->get();
-        
+
         $html = $this->generatePdfHtml('exports.tasks-pdf', [
             'data' => $tasks,
             'title' => 'Tasks Report',
             'subtitle' => 'Complete list of all tasks',
             'totalRecords' => $tasks->count()
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 }

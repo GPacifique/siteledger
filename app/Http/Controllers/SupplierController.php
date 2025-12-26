@@ -4,18 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use App\Services\BusinessQueryService;
+use App\Services\RbacFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
     protected BusinessQueryService $queryService;
+    protected RbacFilterService $rbacFilterService;
 
-    public function __construct(BusinessQueryService $queryService)
+    public function __construct(BusinessQueryService $queryService, RbacFilterService $rbacFilterService)
     {
         $this->middleware('auth');
         $this->middleware('tenant.data');
         $this->queryService = $queryService;
+        $this->rbacFilterService = $rbacFilterService;
     }
 
     /**
@@ -23,38 +27,13 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
-        $suppliersQuery = $this->queryService->buildRoleBasedQuery('suppliers');
-        
-        // Apply filters
-        if ($request->filled('search')) {
-            $suppliersQuery->where(function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->search . '%')
-                      ->orWhere('email', 'like', '%' . $request->search . '%')
-                      ->orWhere('company', 'like', '%' . $request->search . '%');
-            });
-        }
+        $query = Supplier::query();
+        $filteredSuppliers = $this->rbacFilterService->filterSuppliers($query)->get();
 
-        if ($request->filled('status')) {
-            $suppliersQuery->where('status', $request->status);
-        }
-
-        if ($request->filled('category')) {
-            $suppliersQuery->where('category', $request->category);
-        }
-
-        $suppliers = $suppliersQuery->paginate(15);
-
-        $stats = [
-            'total' => $this->queryService->buildRoleBasedQuery('suppliers')->count(),
-            'active' => $this->queryService->buildRoleBasedQuery('suppliers')->where('status', 'active')->count(),
-            'by_category' => $this->queryService->buildRoleBasedQuery('suppliers')
-                                  ->selectRaw('category, COUNT(*) as count')
-                                  ->groupBy('category')
-                                  ->pluck('count', 'category')
-                                  ->toArray(),
-        ];
-
-        return view('suppliers.index', compact('suppliers', 'stats'));
+        return Inertia::render('Admin/Suppliers', [
+            'suppliers' => $filteredSuppliers,
+            'filterContext' => $this->rbacFilterService->getFilterContext(),
+        ]);
     }
 
     /**

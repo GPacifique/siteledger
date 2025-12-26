@@ -1,111 +1,164 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .page-header p {
+            color: #666;
+            margin: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        thead {
+            background: #27ae60;
+            color: white;
+        }
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        .add-button-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    @include('components.navbar')
 
-@section('title', 'Clients')
-
-@vite(['resources/css/app.css', 'resources/js/app.js'])
-
-@section('content')
-<div class="max-w-6xl mx-auto p-6">
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-semibold">Clients</h1>
-            <p class="text-sm theme-aware-text-muted mt-1">Manage your customers and contacts</p>
+    <div class="container">
+        <div class="page-header">
+            <h1>👥 Clients</h1>
+            <p>Manage all clients and their information</p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <form id="clientsSearchForm" action="{{ route('clients.index') }}" method="GET" class="flex items-center gap-2">
-                <label for="q" class="sr-only">Search clients</label>
-                <div class="relative">
-                    <input id="q" name="q" type="search" value="{{ request('q') ?? '' }}"
-                        placeholder="Search name, contact person, phone or email..."
-                        class="pl-10 pr-4 py-2 rounded-lg border theme-aware-bg-card shadow-sm focus:ring-2 focus:ring-indigo-200 focus:outline-none w-64"
-                        autocomplete="off" aria-label="Search clients">
-                    <svg class="w-4 h-4 absolute left-3 top-2.5 theme-aware-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
-                </div>
-
-                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm">Search</button>
-                <a href="{{ route('clients.index') }}" class="px-3 py-2 border rounded-lg theme-aware-text-secondary hover:theme-aware-bg-secondary">Reset</a>
-            </form>
-
-            <a href="{{ route('clients.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
-                + New Client
-            </a>
-
-            <button id="exportCsvBtn" class="px-3 py-2 border rounded-lg theme-aware-text-secondary hover:theme-aware-bg-secondary" title="Export visible clients to CSV">
-                Export CSV
-            </button>
+        <div class="add-button-container">
+            <a href="{{ route('clients.create') }}" class="btn-primary">+ Add Client</a>
         </div>
-    </div>
 
-    {{-- Flash --}}
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    {{-- Empty state --}}
-    @if($clients->isEmpty())
-        <div class="p-6 bg-yellow-50 border border-yellow-200 rounded text-center">
-            <p class="theme-aware-text-secondary">No clients found.</p>
-            <a href="{{ route('clients.create') }}" class="inline-block mt-3 px-4 py-2 bg-blue-600 text-white rounded">Create first client</a>
-        </div>
-    @else
-        {{-- Table --}}
-        <div class="overflow-x-auto theme-aware-bg-card rounded shadow-sm border">
-            <table class="w-full table-auto min-w-[720px]">
+        @if($clients->count() > 0)
+            <table>
                 <thead>
-                    <tr class="text-left theme-aware-bg-secondary text-sm">
-                        <th class="px-4 py-3 w-12">#</th>
-                        <th class="px-4 py-3">Client</th>
-                        <th class="px-4 py-3">Contact Person</th>
-                        <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">Phone</th>
-                        <th class="px-4 py-3 text-right">Actions</th>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Contact Person</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @foreach($clients as $client)
-                        <tr class="border-t hover:theme-aware-bg-secondary transition">
-                            <td class="px-4 py-3 align-middle">{{ $client->id }}</td>
-
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    {{-- small avatar initials --}}
-                                    <div class="w-10 h-10 rounded-md bg-indigo-50 text-indigo-700 flex items-center justify-center font-semibold text-sm">
-                                        {{ strtoupper(substr($client->name ?? '', 0, 2)) }}
-                                    </div>
-                                    <div>
-                                        <div class="font-medium">{{ $client->name }}</div>
-                                        @if(!empty($client->address))
-                                            <div class="text-xs theme-aware-text-muted">{{ Str::limit($client->address, 40) }}</div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="px-4 py-3 align-middle">
-                                <div class="font-medium">{{ $client->contact_person ?? '—' }}</div>
-                                @if(!empty($client->contact_title))
-                                    <div class="text-xs theme-aware-text-muted">{{ $client->contact_title }}</div>
-                                @endif
-                            </td>
-
-                            <td class="px-4 py-3 align-middle text-sm theme-aware-text-secondary">{{ $client->email ?? '—' }}</td>
-
-                            <td class="px-4 py-3 align-middle text-sm theme-aware-text-secondary">{{ $client->phone ?? '—' }}</td>
-
-                            <td class="px-4 py-3 align-middle text-right">
-                                <div class="inline-flex items-center gap-2">
-                                    <a href="{{ route('clients.show', $client) }}" class="text-indigo-600 hover:underline text-sm">View</a>
-                                    <a href="{{ route('clients.edit', $client) }}" class="text-yellow-600 hover:underline text-sm">Edit</a>
-
-                                    <form action="{{ route('clients.destroy', $client) }}" method="POST" class="inline-block delete-client-form" data-name="{{ $client->name }}" onsubmit="return false;">
+                        <tr onclick="window.location='{{ route('clients.show', $client->id) }}'">
+                            <td><strong>{{ $client->name }}</strong></td>
+                            <td>{{ $client->contact_person ?? '-' }}</td>
+                            <td>{{ $client->email ?? '-' }}</td>
+                            <td>{{ $client->phone ?? '-' }}</td>
+                            <td>{{ $client->address ?? '-' }}</td>
+                            <td onclick="event.stopPropagation()">
+                                <div class="action-buttons">
+                                    <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-edit">Edit</a>
+                                    <form action="{{ route('clients.destroy', $client->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="text-red-600 hover:underline text-sm btn-delete">Delete</button>
+                                        <button type="submit" class="btn btn-delete">Delete</button>
                                     </form>
                                 </div>
                             </td>
@@ -113,94 +166,11 @@
                     @endforeach
                 </tbody>
             </table>
-        </div>
-
-        {{-- Pagination --}}
-        <div class="mt-4 flex items-center justify-between">
-            <div class="text-sm theme-aware-text-muted">Showing {{ $clients->firstItem() ?? 0 }} to {{ $clients->lastItem() ?? 0 }} of {{ $clients->total() }}</div>
-            <div>{{ $clients->withQueryString()->links() }}</div>
-        </div>
-    @endif
-</div>
-@endsection
-
-@push('styles')
-<style>
-/* Small, focused tweaks to complement Tailwind */
-.shadow-sm { box-shadow: 0 6px 18px rgba(20,24,40,0.06); }
-.border { border: 1px solid rgba(17,24,39,0.04); }
-.table-auto th, .table-auto td { vertical-align: middle; }
-.btn-delete { cursor: pointer; }
-@media (max-width: 640px) {
-    #q { width: 100% !important; }
-}
-</style>
-@endpush
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Debounced search: if user clears query, auto-submit to reset quickly
-    (function () {
-        const input = document.getElementById('q');
-        if (!input) return;
-        let timer = null;
-        input.addEventListener('input', function () {
-            clearTimeout(timer);
-            timer = setTimeout(() => {
-                if (input.value.trim() === '') {
-                    document.getElementById('clientsSearchForm').submit();
-                }
-            }, 650);
-        });
-    })();
-
-    // Delete confirmation (delegated)
-    document.querySelectorAll('.delete-client-form').forEach(form => {
-        const btn = form.querySelector('.btn-delete');
-        if (!btn) return;
-        btn.addEventListener('click', function () {
-            const name = form.dataset.name || 'this client';
-            if (!confirm(`Delete ${name}? This action cannot be undone.`)) return;
-            // create a real submit — this avoids immediate form submission when user cancels
-            form.removeEventListener('submit', preventDefaultFn);
-            form.submit();
-        });
-        function preventDefaultFn(e) { e.preventDefault(); }
-        form.addEventListener('submit', preventDefaultFn);
-    });
-
-    // Export visible table rows to CSV (simple, client-side)
-    document.getElementById('exportCsvBtn')?.addEventListener('click', function () {
-        const rows = Array.from(document.querySelectorAll('table tbody tr'));
-        if (!rows.length) { alert('No clients to export'); return; }
-
-        const data = [];
-        // header
-        data.push(['ID','Name','Contact Person','Email','Phone']);
-
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 6) return;
-            const id = cells[0].innerText.trim();
-            const name = cells[1].querySelector('.font-medium')?.innerText.trim() ?? cells[1].innerText.trim();
-            const contact = cells[2].querySelector('.font-medium')?.innerText.trim() ?? cells[2].innerText.trim();
-            const email = cells[3].innerText.trim();
-            const phone = cells[4].innerText.trim();
-            data.push([id, name, contact, email, phone]);
-        });
-
-        const csvContent = data.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `clients-${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-    });
-});
-</script>
-@endpush
+        @else
+            <div style="background: white; padding: 3rem; border-radius: 8px; text-align: center; color: #999;">
+                <p>No clients found. <a href="{{ route('clients.create') }}" style="color: #667eea; text-decoration: none;">Create one now</a></p>
+            </div>
+        @endif
+    </div>
+</body>
+</html>

@@ -5,15 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
+use App\Models\Employee;
 use App\Traits\Downloadable;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
     use Downloadable;
-    public function __construct()
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
     {
         // Protect with authentication (adjust as needed)
         $this->middleware('auth');
+        $this->rbacFilterService = $rbacFilterService;
     }
 
     /**
@@ -21,8 +28,8 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $payments = Payment::with('employee')->latest()->paginate(10);
-        return view('payments.index', compact('payments'));
+        $payments = Payment::with('employee')->latest('created_at')->get();
+        return view('payments.index', ['payments' => $payments]);
     }
 
     /**
@@ -30,7 +37,8 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        return view('payments.create');
+        $employees = Employee::orderBy('first_name')->get();
+        return view('payments.create', compact('employees'));
     }
 
     /**
@@ -60,13 +68,13 @@ class PaymentController extends Controller
 
         // Validate payment method options
         $validMethods = ['cash', 'bank_transfer', 'mobile_money', 'credit_card', 'debit_card', 'check', 'wire_transfer', 'paypal', 'crypto', 'other'];
-        
+
         if (!in_array($validatedData['method'], $validMethods)) {
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
         $data = $request->only('employee_id', 'amount', 'method', 'reference', 'status');
-        
+
         // Use custom method if "other" was selected and custom_method is provided
         if ($validatedData['method'] === 'other') {
             if (empty($validatedData['custom_method'])) {
@@ -74,7 +82,7 @@ class PaymentController extends Controller
             }
             $data['method'] = $validatedData['custom_method'];
         }
-        
+
         // Auto-generate reference if not provided
         if (empty($data['reference'])) {
             $data['reference'] = $this->generatePaymentReference();
@@ -121,13 +129,13 @@ class PaymentController extends Controller
 
         // Validate payment method options
         $validMethods = ['cash', 'bank_transfer', 'mobile_money', 'credit_card', 'debit_card', 'check', 'wire_transfer', 'paypal', 'crypto', 'other'];
-        
+
         if (!in_array($validatedData['method'], $validMethods)) {
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
         $data = $request->only('employee_id', 'amount', 'method', 'reference', 'status');
-        
+
         // Use custom method if "other" was selected and custom_method is provided
         if ($validatedData['method'] === 'other') {
             if (empty($validatedData['custom_method'])) {
@@ -152,7 +160,7 @@ class PaymentController extends Controller
         return redirect()->route('payments.index')
             ->with('success', 'Payment deleted successfully.');
     }
-    
+
     /**
      * Export payments as CSV
      */
@@ -162,11 +170,11 @@ class PaymentController extends Controller
         if (!Auth::user()->can('payments.export')) {
             abort(403, 'You do not have permission to export payments.');
         }
-        
+
         $filename = $request->get('filename', 'payments');
-        
+
         $payments = Payment::with('employee')->latest()->get();
-        
+
         $headers = [
             'id' => 'ID',
             'employee_name' => 'Employee',
@@ -176,7 +184,7 @@ class PaymentController extends Controller
             'status' => 'Status',
             'method' => 'Method'
         ];
-        
+
         // Transform data for CSV
         $csvData = $payments->map(function ($payment) {
             return [
@@ -189,10 +197,10 @@ class PaymentController extends Controller
                 'method' => $payment->method ?? 'N/A'
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export payments as PDF
      */
@@ -202,18 +210,18 @@ class PaymentController extends Controller
         if (!Auth::user()->can('payments.export')) {
             abort(403, 'You do not have permission to export payments.');
         }
-        
+
         $filename = $request->get('filename', 'payments');
-        
+
         $payments = Payment::with('employee')->latest()->get();
-        
+
         $html = $this->generatePdfHtml('exports.financial-pdf', [
             'data' => $payments,
             'title' => 'Payments Report',
             'subtitle' => 'Complete list of all payments',
             'totalRecords' => $payments->count()
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 
@@ -226,17 +234,17 @@ class PaymentController extends Controller
             $date = now()->format('Ymd');
             $time = now()->format('His');
             $random = str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            
+
             $reference = "PAY-{$date}-{$time}-{$random}";
-            
+
             // Add microseconds for additional uniqueness if needed
             if (Payment::where('reference', $reference)->exists()) {
                 $microseconds = substr(microtime(), 2, 3);
                 $reference = "PAY-{$date}-{$time}-{$microseconds}";
             }
-            
+
         } while (Payment::where('reference', $reference)->exists());
-        
+
         return $reference;
     }
 }

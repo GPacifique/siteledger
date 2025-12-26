@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Blade;
-use App\Helpers\CurrencyHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,13 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register Blade directives for currency formatting
-        Blade::directive('rwf', function ($expression) {
-            return "<?php echo App\Helpers\CurrencyHelper::rwf($expression); ?>";
-        });
-
-        Blade::directive('rwfDecimals', function ($expression) {
-            return "<?php echo App\Helpers\CurrencyHelper::rwfWithDecimals($expression); ?>";
-        });
+        Vite::prefetch(concurrency: 3);
     }
 }

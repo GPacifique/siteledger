@@ -9,13 +9,18 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class OrderController extends Controller
 {
-    public function __construct()
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
     {
         // Require authentication; change or add role/permission middleware as needed
         $this->middleware('auth');
+        $this->rbacFilterService = $rbacFilterService;
     }
 
     /**
@@ -23,33 +28,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $q = trim((string) $request->get('q'));
-        $status = $request->get('status');
-        $from = $request->get('from');
-        $to = $request->get('to');
-
-        $ordersQuery = Order::withCount('items');
-        if ($q !== '') {
-            $ordersQuery->where(function ($o) use ($q) {
-                $o->where('customer_name', 'like', "%{$q}%")
-                  ->orWhere('customer_email', 'like', "%{$q}%")
-                  ->orWhere('id', $q);
-            })->orWhereHas('items', function ($i) use ($q) {
-                $i->where('product_name', 'like', "%{$q}%");
-            });
-        }
-        if (!empty($status)) {
-            $ordersQuery->where('status', $status);
-        }
-        if (!empty($from)) {
-            $ordersQuery->whereDate('created_at', '>=', $from);
-        }
-        if (!empty($to)) {
-            $ordersQuery->whereDate('created_at', '<=', $to);
-        }
-
-        $orders = $ordersQuery->latest()->paginate(15)->appends($request->query());
-        return view('orders.index', compact('orders'));
+        return Inertia::render('Admin/Placeholder', ['page' => 'Orders', 'filterContext' => $this->rbacFilterService->getFilterContext()]);
     }
 
     /**

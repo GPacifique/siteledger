@@ -22,11 +22,11 @@ class Worker extends Model
     ];
 
     /**
-     * A worker can have many tasks.
+     * A worker can have many tasks (assigned via assigned_to field).
      */
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class, 'assigned_to', 'id');
     }
 
     /**

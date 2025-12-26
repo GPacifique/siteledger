@@ -12,17 +12,7 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $q = trim((string) $request->get('q'));
-        $clientsQuery = Client::query();
-        if ($q !== '') {
-            $clientsQuery->where(function ($c) use ($q) {
-                $c->where('name', 'like', "%{$q}%")
-                  ->orWhere('contact_person', 'like', "%{$q}%")
-                  ->orWhere('email', 'like', "%{$q}%")
-                  ->orWhere('phone', 'like', "%{$q}%");
-            });
-        }
-        $clients = $clientsQuery->latest()->paginate(10)->appends($request->query());
+        $clients = Client::orderBy('name')->get();
         return view('clients.index', compact('clients'));
     }
 

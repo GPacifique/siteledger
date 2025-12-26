@@ -1,149 +1,129 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SiteLedger</title>
     <style>
-        body, html {
-            height: 100%;
+        * {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            background: var(--bg-gradient-primary);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            color: var(--text-primary);
+            justify-content: center;
+            padding: 20px;
         }
-
-        @keyframes gradientBG {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
-        }
-
-        .auth-container {
-            background: var(--bg-card-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 2.5rem;
-            width: 100%;
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             max-width: 400px;
-            box-shadow: var(--shadow-glass);
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
             text-align: center;
-            border: 1px solid var(--border-secondary);
         }
-
-        .auth-container h2 {
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-            font-size: 1.8rem;
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.95em;
         }
-
-        .auth-container form {
-            display: flex;
-            flex-direction: column;
+        .form-group {
+            margin-bottom: 20px;
         }
-
-        .auth-container input {
-            padding: 0.9rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border-secondary);
-            border-radius: 12px;
-            background: var(--bg-input);
-            box-shadow: var(--shadow-inset);
-            font-size: 1rem;
-            color: var(--text-primary);
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
-
-        .auth-container input:focus {
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input:focus {
             outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
-            border-color: var(--border-focus);
+            border-color: #667eea;
         }
-
-        .auth-container button {
-            padding: 0.9rem;
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
             border: none;
-            border-radius: 12px;
-            background: var(--bg-primary-button);
-            color: var(--text-button);
-            font-size: 1rem;
-            font-weight: bold;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease;
         }
-
-        .auth-container button:hover {
-            background: var(--bg-primary-button-hover);
+        button:hover {
+            background: #5568d3;
             transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
-
-        .auth-links {
-            margin-top: 1rem;
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
         }
-
-        .auth-links a {
+        .footer a {
+            color: #667eea;
             text-decoration: none;
-            color: var(--text-link);
-            font-size: 0.9rem;
+            font-weight: 600;
         }
-
-        .auth-links a:hover {
+        .footer a:hover {
             text-decoration: underline;
-            color: var(--text-link-hover);
         }
-
-        @media (max-width: 480px) {
-            .auth-container {
-                padding: 2rem 1.5rem;
-                border-radius: 16px;
-            }
+        .errors {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .errors.show {
+            display: block;
         }
     </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <p class="subtitle">Welcome back to SiteLedger</p>
 
-    <div class="auth-container">
-        <h2>{{ __('Login to Your Account') }}</h2>
-
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="/login">
             @csrf
-
-            <!-- Email Address -->
-            <div>
-                <x-input-label for="email" :value="__('Email')" />
-                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required value="{{ old('email') }}">
             </div>
-
-            <!-- Password -->
-            <div class="mt-4">
-                <x-input-label for="password" :value="__('Password')" />
-                <x-text-input id="password" class="block mt-1 w-full"
-                              type="password" name="password" required autocomplete="current-password" />
-                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
             </div>
-
-            <!-- Remember Me -->
-            <div class="block mt-4">
-                <label for="remember_me" class="inline-flex items-center">
-                    <input id="remember_me" type="checkbox" class="rounded theme-aware-border text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                    <span class="ms-2 text-sm theme-aware-text-secondary">{{ __('Remember me') }}</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-between mt-6">
-                @if (Route::has('password.request'))
-                    <a class="auth-links underline text-sm theme-aware-text-secondary hover:theme-aware-text" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
-                <x-primary-button class="ms-3">
-                    {{ __('Log in') }}
-                </x-primary-button>
-            </div>
+            <button type="submit">Login</button>
         </form>
+
+        <div class="footer">
+            Don't have an account? <a href="/register">Register here</a>
+        </div>
     </div>
-</x-guest-layout>
+</body>
+</html>

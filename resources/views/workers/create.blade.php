@@ -1,281 +1,218 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Worker - SiteLedger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        button[type="submit"],
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn {
+            background: #95a5a6;
+            color: white;
+            display: inline-block;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    @include('components.navbar')
 
-@section('content')
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="card shadow-sm border-0 overflow-hidden">
-                <div class="card-header bg-gradient p-4">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div>
-                            <h2 class="h4 mb-1 text-white">Create Worker</h2>
-                            <div class="text-white-50 small">Add a new team member — keep details accurate for payroll and records.</div>
-                        </div>
-                        <a href="{{ route('workers.index') }}" class="btn btn-outline-light btn-sm align-self-start">← Back to list</a>
-                    </div>
-                </div>
+    <div class="container">
+        <div class="form-card">
+            <h2>👷 Add New Worker</h2>
 
-                <form action="{{ route('workers.store') }}" method="POST" class="card-body p-4 needs-validation" novalidate>
-                    @csrf
-
-                    {{-- row 1: names --}}
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="first_name" class="form-label fw-medium">First name <span class="text-danger">*</span></label>
-                            <input id="first_name" type="text" name="first_name"
-                                   class="form-control form-control-lg @error('first_name') is-invalid @enderror"
-                                   value="{{ old('first_name') }}" required
-                                   placeholder="e.g. Jane" aria-describedby="firstNameHelp" >
-                            <div id="firstNameHelp" class="form-text small">Given name only.</div>
-                            @error('first_name')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="last_name" class="form-label fw-medium">Last name <span class="text-danger">*</span></label>
-                            <input id="last_name" type="text" name="last_name"
-                                   class="form-control form-control-lg @error('last_name') is-invalid @enderror"
-                                   value="{{ old('last_name') }}" required
-                                   placeholder="e.g. Doe">
-                            @error('last_name')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- row 2: contact --}}
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="email" class="form-label fw-medium">Email</label>
-                            <input id="email" type="email" name="email"
-                                   class="form-control @error('email') is-invalid @enderror"
-                                   value="{{ old('email') }}" placeholder="name@company.com">
-                            @error('email')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label fw-medium">Phone</label>
-                            <div class="input-group">
-                                <span class="input-group-text">📞</span>
-                                <input id="phone" type="tel" name="phone"
-                                       class="form-control @error('phone') is-invalid @enderror"
-                                       value="{{ old('phone') }}" placeholder="+250 78 123 4567" aria-label="phone">
-                            </div>
-                            <div class="form-text small">International format preferred.</div>
-                            @error('phone')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- row 3: position + status --}}
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="position" class="form-label fw-medium">Position</label>
-                            <input id="position" type="text" name="position"
-                                   class="form-control @error('position') is-invalid @enderror"
-                                   value="{{ old('position') }}" placeholder="e.g. Site Manager">
-                            @error('position')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="status" class="form-label fw-medium">Status</label>
-                            <select id="status" name="status" class="form-select">
-                                @php $st = old('status', 'active'); @endphp
-                                <option value="active" {{ $st === 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="probation" {{ $st === 'probation' ? 'selected' : '' }}>Probation</option>
-                                <option value="inactive" {{ $st === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                <option value="terminated" {{ $st === 'terminated' ? 'selected' : '' }}>Terminated</option>
-                            </select>
-                            <div class="form-text small">Choose the employment status.</div>
-                        </div>
-                    </div>
-
-                    {{-- row 4: salary + currency --}}
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="salary" class="form-label fw-medium">Salary</label>
-                            <div class="input-group">
-                                <span class="input-group-text">💰</span>
-                                <input id="salary" type="number" step="0.01" min="0" name="salary"
-                                       class="form-control form-control-lg @error('salary') is-invalid @enderror"
-                                       value="{{ old('salary') }}" placeholder="0.00" aria-label="salary">
-                                <span class="input-group-text">/ month</span>
-                            </div>
-                            <div class="form-text small">Enter gross salary (two decimals allowed).</div>
-                            @error('salary')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="currency" class="form-label fw-medium">Currency</label>
-                            <input id="currency" type="text" name="currency"
-                                   class="form-control @error('currency') is-invalid @enderror"
-                                   value="{{ old('currency', 'RWF') }}" placeholder="RWF">
-                            @error('currency')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- row 5: hired_at + notes --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="hired_at" class="form-label fw-medium">Hired at</label>
-                            <input id="hired_at" type="date" name="hired_at"
-                                   class="form-control @error('hired_at') is-invalid @enderror"
-                                   value="{{ old('hired_at') }}">
-                            @error('hired_at')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="notes" class="form-label fw-medium">Notes</label>
-                            <textarea id="notes" name="notes" rows="3"
-                                      class="form-control @error('notes') is-invalid @enderror"
-                                      placeholder="Optional notes, department, on-boarding tasks...">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- actions --}}
-                    <div class="d-flex gap-2 justify-content-end align-items-center">
-                        <button type="submit" class="btn btn-lg btn-success shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus me-1" viewBox="0 0 16 16">
-                                <path d="M8 8a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
-                                <path fill-rule="evenodd" d="M13 5.5a.5.5 0 0 1 .5.5V8h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V9H10a.5.5 0 0 1 0-1h2V6a.5.5 0 0 1 .5-.5z"/>
-                            </svg>
-                            Create
-                        </button>
-
-                        <a href="{{ route('workers.index') }}" class="btn btn-outline-secondary btn-lg">Cancel</a>
-                    </div>
-                </form>
-            </div>
-
-            {{-- simple list of validation errors at top (optional) --}}
-            @if ($errors->any())
-                <div class="mt-3">
-                    <div class="alert alert-danger small mb-0">
-                        <strong>There are {{ $errors->count() }} problem(s) with your submission.</strong>
-                        <ul class="mb-0 mt-2">
-                            @foreach ($errors->all() as $err)
-                                <li>{{ $err }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Please fix the following errors:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
+            <form action="{{ route('workers.store') }}" method="POST">
+                @csrf
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" name="name" id="name" value="{{ old('name') }}" required>
+                        @error('name')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}">
+                        @error('email')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" name="phone" id="phone" value="{{ old('phone') }}">
+                        @error('phone')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="position">Position</label>
+                        <input type="text" name="position" id="position" placeholder="e.g., Mason, Carpenter" value="{{ old('position') }}">
+                        @error('position')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="daily_wage">Daily Wage (RWF) *</label>
+                        <input type="number" name="daily_wage" id="daily_wage" step="0.01" value="{{ old('daily_wage') }}" required>
+                        @error('daily_wage')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hired_at">Hire Date</label>
+                        <input type="date" name="hired_at" id="hired_at" value="{{ old('hired_at') }}">
+                        @error('hired_at')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea name="notes" id="notes" placeholder="Additional information about the worker...">{{ old('notes') }}</textarea>
+                    @error('notes')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">Save Worker</button>
+                    <a href="{{ route('workers.index') }}" class="btn">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
-</div>
-@endsection
-
-@push('styles')
-<style>
-    /* Card header gradient */
-    .bg-gradient {
-        background: linear-gradient(90deg, rgba(58,123,213,1) 0%, rgba(0,210,255,0.85) 100%);
-    }
-
-    /* Slightly larger form controls for modern look */
-    .form-control, .form-select {
-        border-radius: 10px;
-        box-shadow: none;
-        border: 1px solid rgba(22,28,36,0.08);
-        padding: 0.65rem 0.75rem;
-        transition: box-shadow .15s ease, transform .06s ease;
-        background-clip: padding-box;
-    }
-
-    .form-control:focus, .form-select:focus {
-        outline: none;
-        box-shadow: 0 6px 18px rgba(13,110,253,0.08);
-        transform: translateY(-1px);
-        border-color: rgba(13,110,253,0.45);
-    }
-
-    .card {
-        border-radius: 12px;
-    }
-
-    .card-body {
-        background: #fff;
-    }
-
-    .input-group-text {
-        border-radius: 8px;
-        background: rgba(0,0,0,0.03);
-    }
-
-    .invalid-feedback { font-size: .85rem; }
-
-    /* Subtle responsive spacing */
-    @media (max-width: 575.98px) {
-        .card-header .d-flex { flex-direction: column; gap: .5rem; align-items: flex-start; }
-        .btn-lg { width: 100%; }
-        form .d-flex { flex-direction: column; gap: .5rem; }
-    }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-    // Bootstrap-like client-side validation + small helpers
-    (function () {
-        'use strict';
-
-        // auto-format salary to 2 decimals on blur
-        const salaryInput = document.getElementById('salary');
-        if (salaryInput) {
-            salaryInput.addEventListener('blur', function () {
-                if (this.value === '') return;
-                const v = parseFloat(this.value);
-                if (!isNaN(v)) this.value = v.toFixed(2);
-            });
-            salaryInput.addEventListener('input', function () {
-                if (this.value && parseFloat(this.value) < 0) this.value = 0;
-            });
-        }
-
-        // simple phone tidy on blur (keep digits + plus and spaces)
-        const phoneInput = document.getElementById('phone');
-        if (phoneInput) {
-            phoneInput.addEventListener('blur', function () {
-                let v = this.value || '';
-                v = v.replace(/[^\d+]/g, ''); // keep digits and plus
-                // insert a space after country code for readability (basic heuristic)
-                if (v.length > 3 && v[0] === '+') {
-                    v = v.slice(0, 3) + ' ' + v.slice(3);
-                }
-                this.value = v;
-            });
-        }
-
-        // HTML5 validation UX enhancement
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    // find first invalid and focus
-                    const firstInvalid = form.querySelector(':invalid');
-                    if (firstInvalid) firstInvalid.focus();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-</script>
-@endpush
+</body>
+</html>

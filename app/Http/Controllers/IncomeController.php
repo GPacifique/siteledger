@@ -8,38 +8,30 @@ use App\Models\Income;
 use App\Models\Project;
 use App\Traits\Downloadable;
 use Illuminate\Http\Request;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class IncomeController extends Controller
 {
     use Downloadable;
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
     public function index()
     {
-        // Fetch project stats (aligned with dashboard/project calculations)
-        // total_paid: sum of incomes.amount_received per project
-        // total_remaining: project.contract_value - sum(incomes.amount_received)
-        // total_amount: project.contract_value
-        $projectStats = DB::table('projects')
-            ->leftJoin('incomes', 'projects.id', '=', 'incomes.project_id')
-            ->select(
-                'projects.id as project_id',
-                'projects.name as project_name',
-                DB::raw('COALESCE(SUM(incomes.amount_received), 0) as total_paid'),
-                DB::raw('COALESCE(projects.contract_value, 0) as total_amount'),
-                DB::raw('(COALESCE(projects.contract_value, 0) - COALESCE(SUM(incomes.amount_received), 0)) as total_remaining')
-            )
-            ->groupBy('projects.id', 'projects.name', 'projects.contract_value')
-            ->get();
-
-        // Fetch incomes (paginated)
-    $incomes = Income::with('project')->latest()->paginate(10);
-
-    return view('incomes.index', compact('projectStats', 'incomes'));
+        $revenues = Income::with('project')->orderBy('created_at', 'desc')->paginate(15);
+        return view('revenues.index', compact('revenues'));
     }
 
     public function create()
     {
         $projects = Project::all(); // For project dropdown
-        return view('incomes.create', compact('projects'));
+        return view('revenues.create', compact('projects'));
     }
 
     public function store(Request $request)
@@ -57,20 +49,46 @@ class IncomeController extends Controller
         $validated = $this->ensureTenantId($validated);
         Income::create($validated);
 
-        return redirect()->route('incomes.index')
-                         ->with('success', 'Income record created successfully.');
+        return redirect()->route('revenues.index')
+                         ->with('success', 'Revenue record created successfully.');
     }
 
     public function show(Income $income)
     {
         $income->load('project');
-        return view('incomes.show', compact('income'));
+
+        // Get more project details
+        $project = $income->project;
+        $projectStats = [];
+        $projectRevenues = [];
+        $projectExpenses = 0;
+
+        if ($project) {
+            // Get all revenues for this project
+            $projectRevenues = Income::where('project_id', $project->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Get total expenses for this project
+            $projectExpenses = \App\Models\Expense::where('project_id', $project->id)->sum('amount');
+
+            // Calculate stats
+            $projectStats = [
+                'total_revenue' => $projectRevenues->sum('amount_received'),
+                'received_amount' => $projectRevenues->where('status', 'received')->sum('amount_received'),
+                'remaining_amount' => max(0, $project->contract_value - $projectRevenues->where('status', 'received')->sum('amount_received')),
+                'total_expenses' => $projectExpenses,
+                'revenue_count' => $projectRevenues->count(),
+            ];
+        }
+
+        return view('revenues.show', compact('income', 'project', 'projectStats', 'projectRevenues'));
     }
 
     public function edit(Income $income)
     {
         $projects = Project::all();
-        return view('incomes.edit', compact('income', 'projects'));
+        return view('revenues.edit', compact('income', 'projects'));
     }
 
     public function update(Request $request, Income $income)
@@ -87,18 +105,18 @@ class IncomeController extends Controller
 
         $income->update($validated);
 
-        return redirect()->route('incomes.index')
-                         ->with('success', 'Income record updated successfully.');
+        return redirect()->route('revenues.index')
+                         ->with('success', 'Revenue record updated successfully.');
     }
 
     public function destroy(Income $income)
     {
         $income->delete();
 
-        return redirect()->route('incomes.index')
-                         ->with('success', 'Income record deleted successfully.');
+        return redirect()->route('revenues.index')
+                         ->with('success', 'Revenue record deleted successfully.');
     }
-    
+
     /**
      * Export incomes as CSV
      */
@@ -108,11 +126,11 @@ class IncomeController extends Controller
         if (!Auth::user()->can('incomes.export')) {
             abort(403, 'You do not have permission to export incomes.');
         }
-        
+
         $filename = $request->get('filename', 'incomes');
-        
+
         $incomes = Income::with('project')->latest()->get();
-        
+
         $headers = [
             'id' => 'ID',
             'project_name' => 'Project',
@@ -123,7 +141,7 @@ class IncomeController extends Controller
             'status' => 'Status',
             'created_at' => 'Created Date'
         ];
-        
+
         // Transform data for CSV
         $csvData = $incomes->map(function ($income) {
             return [
@@ -137,10 +155,10 @@ class IncomeController extends Controller
                 'created_at' => $income->created_at->format('Y-m-d H:i:s')
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export incomes as PDF
      */
@@ -150,11 +168,11 @@ class IncomeController extends Controller
         if (!Auth::user()->can('incomes.export')) {
             abort(403, 'You do not have permission to export incomes.');
         }
-        
+
         $filename = $request->get('filename', 'incomes');
-        
+
         $incomes = Income::with('project')->latest()->get();
-        
+
         $html = $this->generatePdfHtml('exports.financial-pdf', [
             'data' => $incomes,
             'title' => 'Income Report',
@@ -162,7 +180,7 @@ class IncomeController extends Controller
             'totalRecords' => $incomes->count(),
             'showProject' => true
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 }

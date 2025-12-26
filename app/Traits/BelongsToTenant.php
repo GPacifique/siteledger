@@ -18,21 +18,56 @@ trait BelongsToTenant
     {
         // Automatically set tenant_id when creating models
         static::creating(function ($model) {
-            if (!$model->tenant_id && app()->bound('currentTenant')) {
-                $currentTenant = app('currentTenant');
-                if ($currentTenant) {
-                    $model->tenant_id = $currentTenant->id;
+            if (!$model->tenant_id) {
+                $tenantId = null;
+
+                // Try to get from app container first
+                if (app()->bound('currentTenant')) {
+                    $currentTenant = app('currentTenant');
+                    if ($currentTenant) {
+                        $tenantId = $currentTenant->id;
+                    }
                 }
+
+                // Fallback to authenticated user's tenant
+                if (!$tenantId && auth()->check()) {
+                    $user = auth()->user();
+                    if ($user->current_tenant_id) {
+                        $tenantId = $user->current_tenant_id;
+                    } else if ($user->tenants()->exists()) {
+                        $tenantId = $user->tenants()->first()->id;
+                    }
+                }
+
+                // Last resort: use default tenant
+                if (!$tenantId) {
+                    $tenantId = 1;
+                }
+
+                $model->tenant_id = $tenantId;
             }
         });
 
         // Add global scope to automatically filter by current tenant
         static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = null;
+
             if (app()->bound('currentTenant')) {
                 $currentTenant = app('currentTenant');
                 if ($currentTenant) {
-                    $builder->where('tenant_id', $currentTenant->id);
+                    $tenantId = $currentTenant->id;
                 }
+            }
+
+            if (!$tenantId && auth()->check()) {
+                $user = auth()->user();
+                if ($user->current_tenant_id) {
+                    $tenantId = $user->current_tenant_id;
+                }
+            }
+
+            if ($tenantId) {
+                $builder->where('tenant_id', $tenantId);
             }
         });
     }

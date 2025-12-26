@@ -4,15 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Traits\Downloadable;
+use App\Services\RbacFilterService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
     use Downloadable;
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
     public function index()
     {
-        $products = Product::latest()->paginate(15);
-        return view('products.index', compact('products'));
+        return Inertia::render('Admin/Placeholder', ['page' => 'Products', 'filterContext' => $this->rbacFilterService->getFilterContext()]);
     }
 
     public function create()
@@ -28,7 +37,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
         ]);
-        
+
         $validated = $this->ensureTenantId($validated);
         Product::create($validated);
         return redirect()->route('products.index')->with('success', 'Product created.');
@@ -56,16 +65,16 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('products.index')->with('success', 'Product deleted.');
     }
-    
+
     /**
      * Export products as CSV
      */
     public function exportCsv(Request $request)
     {
         $filename = $request->get('filename', 'products');
-        
+
         $products = Product::latest()->get();
-        
+
         $headers = [
             'id' => 'ID',
             'name' => 'Product Name',
@@ -75,7 +84,7 @@ class ProductController extends Controller
             'category' => 'Category',
             'created_at' => 'Created Date'
         ];
-        
+
         // Transform data for CSV
         $csvData = $products->map(function ($product) {
             return [
@@ -88,26 +97,26 @@ class ProductController extends Controller
                 'created_at' => $product->created_at->format('Y-m-d H:i:s')
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export products as PDF
      */
     public function exportPdf(Request $request)
     {
         $filename = $request->get('filename', 'products');
-        
+
         $products = Product::latest()->get();
-        
+
         $html = $this->generatePdfHtml('exports.products-pdf', [
             'data' => $products,
             'title' => 'Products Report',
             'subtitle' => 'Complete list of all products',
             'totalRecords' => $products->count()
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 }

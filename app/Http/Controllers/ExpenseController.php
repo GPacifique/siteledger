@@ -9,10 +9,20 @@ use App\Traits\Downloadable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class ExpenseController extends Controller
 {
     use Downloadable;
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
     /**
      * Items per page for pagination.
      */
@@ -29,37 +39,23 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        // Paginated list for the table (eager load relationships)
-        $expenses = Expense::with(['project', 'client', 'user'])
-                    ->latest()
-                    ->paginate($this->perPage);
+        // Get all expenses with relationships
+        $allExpenses = Expense::with('project')->latest('date')->get();
 
-        // Get distinct category list (so we can build columns in the stats table)
-        $categories = Expense::select('category')
-                        ->distinct()
-                        ->orderBy('category')
-                        ->pluck('category')
-                        ->toArray();
+        // Separate expenses into office and project categories
+        $officeExpenses = $allExpenses->whereNull('project_id');
+        $projectExpenses = $allExpenses->whereNotNull('project_id');
 
-        // Group by date (day only) and category, summing amounts.
-        // Use DATE(`date`) to ensure grouping by date only if date is a datetime column.
-        $rows = Expense::selectRaw('DATE(`date`) as day, category, SUM(amount) as total')
-                ->groupBy('day', 'category')
-                ->orderBy('day', 'desc')
-                ->get();
+        // Calculate totals
+        $officeTotal = $officeExpenses->sum('amount');
+        $projectTotal = $projectExpenses->sum('amount');
 
-        // Transform into [ 'YYYY-MM-DD' => [ 'Category' => total, ... ], ... ]
-        $dailyTotals = [];
-        foreach ($rows as $r) {
-            $day = (string) $r->day; // YYYY-MM-DD
-            // ensure an array exists for the day
-            if (! isset($dailyTotals[$day])) {
-                $dailyTotals[$day] = [];
-            }
-            $dailyTotals[$day][ $r->category ] = (float) $r->total;
-        }
-
-        return view('expenses.index', compact('expenses', 'categories', 'dailyTotals'));
+        return view('expenses.index', [
+            'officeExpenses' => $officeExpenses,
+            'projectExpenses' => $projectExpenses,
+            'officeTotal' => $officeTotal,
+            'projectTotal' => $projectTotal,
+        ]);
     }
 
     /**
@@ -174,7 +170,7 @@ class ExpenseController extends Controller
             'user_id'     => 'nullable|exists:users,id',
         ]);
     }
-    
+
     /**
      * Export expenses as CSV
      */
@@ -184,11 +180,11 @@ class ExpenseController extends Controller
         if (!Auth::user()->can('expenses.export')) {
             abort(403, 'You do not have permission to export expenses.');
         }
-        
+
         $filename = $request->get('filename', 'expenses');
-        
+
         $expenses = Expense::with(['project', 'client'])->latest()->get();
-        
+
         $headers = [
             'id' => 'ID',
             'category' => 'Category',
@@ -200,7 +196,7 @@ class ExpenseController extends Controller
             'status' => 'Status',
             'created_at' => 'Created Date'
         ];
-        
+
         // Transform data for CSV
         $csvData = $expenses->map(function ($expense) {
             return [
@@ -215,10 +211,10 @@ class ExpenseController extends Controller
                 'created_at' => $expense->created_at->format('Y-m-d H:i:s')
             ];
         });
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export expenses as PDF
      */
@@ -228,11 +224,11 @@ class ExpenseController extends Controller
         if (!Auth::user()->can('expenses.export')) {
             abort(403, 'You do not have permission to export expenses.');
         }
-        
+
         $filename = $request->get('filename', 'expenses');
-        
+
         $expenses = Expense::with(['project', 'client'])->latest()->get();
-        
+
         $html = $this->generatePdfHtml('exports.financial-pdf', [
             'data' => $expenses,
             'title' => 'Expenses Report',
@@ -240,7 +236,7 @@ class ExpenseController extends Controller
             'totalRecords' => $expenses->count(),
             'showProject' => true
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
 }

@@ -13,10 +13,20 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\RbacFilterService;
+use Inertia\Inertia;
 
 class ReportController extends Controller
 {
     use Downloadable;
+
+    protected RbacFilterService $rbacFilterService;
+
+    public function __construct(RbacFilterService $rbacFilterService)
+    {
+        $this->rbacFilterService = $rbacFilterService;
+    }
+
     /**
      * Helper function to check if table exists
      */
@@ -33,136 +43,7 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        // Date filter
-        $date = $request->input('date', now()->toDateString());
-        $reportDate = Carbon::createFromFormat('Y-m-d', $date);
-        $dateStart = $reportDate->startOfDay();
-        $dateEnd = $reportDate->endOfDay();
-
-        // Total workers
-        $totalWorkers = $this->has('workers') ? Worker::count() : 0;
-
-        // Income for the day
-        $incomeToday = $this->has('incomes', 'amount_received') && $this->has('incomes', 'received_at')
-            ? Income::whereBetween('received_at', [$dateStart, $dateEnd])->sum('amount_received')
-            : 0;
-
-        // Expenses for the day
-        $expensesToday = $this->has('expenses', 'amount') && $this->has('expenses', 'created_at')
-            ? Expense::whereBetween('created_at', [$dateStart, $dateEnd])->sum('amount')
-            : 0;
-
-        // Payments for the day
-        $paymentsToday = $this->has('payments', 'amount') && $this->has('payments', 'created_at')
-            ? Payment::whereBetween('created_at', [$dateStart, $dateEnd])->sum('amount')
-            : 0;
-
-        // Worker Payments (daily wages) for the day and month
-        $workerPaymentsToday = $this->has('worker_payments', 'amount') && $this->has('worker_payments', 'paid_on')
-            ? DB::table('worker_payments')->whereDate('paid_on', $reportDate->toDateString())->sum('amount')
-            : 0;
-
-        // Recent transactions for the day
-        $recentIncomes = $this->has('incomes')
-            ? Income::whereBetween('received_at', [$dateStart, $dateEnd])->latest()->limit(10)->get()
-            : collect();
-
-        $recentExpenses = $this->has('expenses')
-            ? Expense::whereBetween('created_at', [$dateStart, $dateEnd])->latest()->limit(10)->get()
-            : collect();
-
-        $recentPayments = $this->has('payments')
-            ? Payment::whereBetween('created_at', [$dateStart, $dateEnd])->latest()->limit(10)->get()
-            : collect();
-
-        // Recent Worker Payments (with worker name)
-        $recentWorkerPayments = $this->has('worker_payments')
-            ? DB::table('worker_payments as wp')
-                ->join('workers as w', 'w.id', '=', 'wp.worker_id')
-                ->whereDate('wp.paid_on', $reportDate->toDateString())
-                ->orderByDesc('wp.paid_on')
-                ->orderByDesc('wp.id')
-                ->limit(10)
-                ->get(['wp.paid_on', 'wp.amount', 'w.first_name', 'w.last_name', 'w.id as worker_id'])
-            : collect();
-
-        // Month summary
-        $monthStart = $reportDate->copy()->startOfMonth();
-        $monthEnd = $reportDate->copy()->endOfMonth();
-
-        $incomeThisMonth = $this->has('incomes', 'amount_received')
-            ? Income::whereBetween('received_at', [$monthStart, $monthEnd])->sum('amount_received')
-            : 0;
-
-        $expensesThisMonth = $this->has('expenses', 'amount')
-            ? Expense::whereBetween('created_at', [$monthStart, $monthEnd])->sum('amount')
-            : 0;
-
-        $paymentsThisMonth = $this->has('payments', 'amount')
-            ? Payment::whereBetween('created_at', [$monthStart, $monthEnd])->sum('amount')
-            : 0;
-
-        $workerPaymentsThisMonth = $this->has('worker_payments', 'amount') && $this->has('worker_payments', 'paid_on')
-            ? DB::table('worker_payments')->whereBetween('paid_on', [$monthStart->toDateString(), $monthEnd->toDateString()])->sum('amount')
-            : 0;
-
-        // Worker pay per position (today and this month)
-        $workerPayByPositionToday = $this->has('worker_payments') && $this->has('workers')
-            ? DB::table('worker_payments as wp')
-                ->join('workers as w', 'w.id', '=', 'wp.worker_id')
-                ->whereDate('wp.paid_on', $reportDate->toDateString())
-                ->groupBy('w.position')
-                ->select('w.position', DB::raw('SUM(wp.amount) as total'))
-                ->orderByDesc('total')
-                ->get()
-            : collect();
-
-        $workerPayByPositionMonth = $this->has('worker_payments') && $this->has('workers')
-            ? DB::table('worker_payments as wp')
-                ->join('workers as w', 'w.id', '=', 'wp.worker_id')
-                ->whereBetween('wp.paid_on', [$monthStart->toDateString(), $monthEnd->toDateString()])
-                ->groupBy('w.position')
-                ->select('w.position', DB::raw('SUM(wp.amount) as total'))
-                ->orderByDesc('total')
-                ->get()
-            : collect();
-
-        // Projects for the period
-        $projectsCount = $this->has('projects')
-            ? Project::count()
-            : 0;
-
-        $projectsThisMonth = $this->has('projects')
-            ? Project::whereBetween('created_at', [$monthStart, $monthEnd])->count()
-            : 0;
-
-        // Income by category
-        $incomeByCategory = $this->has('incomes') && Schema::hasColumn('incomes', 'category')
-            ? DB::table('incomes')
-                ->select('category', DB::raw('SUM(amount_received) as total'))
-                ->groupBy('category')
-                ->get()
-            : collect();
-
-        // Expense by category
-        $expenseByCategory = $this->has('expenses') && Schema::hasColumn('expenses', 'category')
-            ? DB::table('expenses')
-                ->select('category', DB::raw('SUM(amount) as total'))
-                ->groupBy('category')
-                ->get()
-            : collect();
-
-        return view('reports.index', compact(
-            'totalWorkers',
-            'incomeToday', 'expensesToday', 'paymentsToday',
-            'incomeThisMonth', 'expensesThisMonth', 'paymentsThisMonth',
-            'recentIncomes', 'recentExpenses', 'recentPayments',
-            'projectsCount', 'projectsThisMonth',
-            'incomeByCategory', 'expenseByCategory',
-            'workerPaymentsToday', 'workerPaymentsThisMonth', 'recentWorkerPayments',
-            'workerPayByPositionToday', 'workerPayByPositionMonth',
-            'date'
-        ));
+        return Inertia::render('Admin/Placeholder', ['page' => 'Reports', 'filterContext' => $this->rbacFilterService->getFilterContext()]);
     }
 
     /**
@@ -259,7 +140,7 @@ class ReportController extends Controller
 
         return redirect()->route('reports.index')->withSuccess('Report deleted successfully');
     }
-    
+
     /**
      * Export financial reports as CSV
      */
@@ -269,13 +150,13 @@ class ReportController extends Controller
         if (!Auth::user()->can('reports.export')) {
             abort(403, 'You do not have permission to export reports.');
         }
-        
+
         $filename = $request->get('filename', 'financial_reports');
         $date = $request->get('date', Carbon::today()->toDateString());
-        
+
         // Get comprehensive financial data for the report
         $reportData = $this->getFinancialReportData($date);
-        
+
         $headers = [
             'type' => 'Type',
             'description' => 'Description',
@@ -285,16 +166,16 @@ class ReportController extends Controller
             'category' => 'Category',
             'status' => 'Status'
         ];
-        
+
         // Combine all financial data into a single export
         $csvData = collect();
-        
+
         // Add income records
         if ($this->has('incomes')) {
             $incomes = Income::with('project')
                 ->whereDate('received_at', $date)
                 ->get();
-            
+
             foreach ($incomes as $income) {
                 $csvData->push([
                     'type' => 'Income',
@@ -307,13 +188,13 @@ class ReportController extends Controller
                 ]);
             }
         }
-        
+
         // Add expense records
         if ($this->has('expenses')) {
             $expenses = Expense::with('project')
                 ->whereDate('created_at', $date)
                 ->get();
-            
+
             foreach ($expenses as $expense) {
                 $csvData->push([
                     'type' => 'Expense',
@@ -326,13 +207,13 @@ class ReportController extends Controller
                 ]);
             }
         }
-        
+
         // Add payment records
         if ($this->has('payments')) {
             $payments = Payment::with('employee')
                 ->whereDate('created_at', $date)
                 ->get();
-            
+
             foreach ($payments as $payment) {
                 $csvData->push([
                     'type' => 'Payment',
@@ -345,10 +226,10 @@ class ReportController extends Controller
                 ]);
             }
         }
-        
+
         return $this->downloadCsv($csvData, $filename, array_keys($headers));
     }
-    
+
     /**
      * Export financial reports as PDF
      */
@@ -358,13 +239,13 @@ class ReportController extends Controller
         if (!Auth::user()->can('reports.export')) {
             abort(403, 'You do not have permission to export reports.');
         }
-        
+
         $filename = $request->get('filename', 'financial_reports');
         $date = $request->get('date', Carbon::today()->toDateString());
-        
+
         // Get comprehensive financial data for the report
         $reportData = $this->getFinancialReportData($date);
-        
+
         $html = $this->generatePdfHtml('exports.reports-pdf', [
             'data' => $reportData,
             'title' => 'Financial Reports',
@@ -372,10 +253,10 @@ class ReportController extends Controller
             'date' => $date,
             'totalRecords' => $reportData['totalTransactions'] ?? 0
         ]);
-        
+
         return $this->downloadPdf($html, $filename);
     }
-    
+
     /**
      * Get comprehensive financial report data
      */
@@ -391,7 +272,7 @@ class ReportController extends Controller
             'netAmount' => 0,
             'totalTransactions' => 0
         ];
-        
+
         // Get income data
         if ($this->has('incomes')) {
             $data['incomes'] = Income::with('project')
@@ -399,7 +280,7 @@ class ReportController extends Controller
                 ->get();
             $data['totalIncome'] = $data['incomes']->sum('amount_received');
         }
-        
+
         // Get expense data
         if ($this->has('expenses')) {
             $data['expenses'] = Expense::with('project')
@@ -407,7 +288,7 @@ class ReportController extends Controller
                 ->get();
             $data['totalExpenses'] = $data['expenses']->sum('amount');
         }
-        
+
         // Get payment data
         if ($this->has('payments')) {
             $data['payments'] = Payment::with('employee')
@@ -415,10 +296,10 @@ class ReportController extends Controller
                 ->get();
             $data['totalPayments'] = $data['payments']->sum('amount');
         }
-        
+
         $data['netAmount'] = $data['totalIncome'] - $data['totalExpenses'] - $data['totalPayments'];
         $data['totalTransactions'] = $data['incomes']->count() + $data['expenses']->count() + $data['payments']->count();
-        
+
         return $data;
     }
 }
