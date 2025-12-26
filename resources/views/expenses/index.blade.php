@@ -247,17 +247,17 @@
         @if($officeTotal > 0 || $projectTotal > 0)
             <!-- Summary Cards -->
             <div class="summary-cards">
-                <div class="summary-card">
-                    <h3>Office Expenses</h3>
-                    <div class="amount">RWF {{ number_format($officeTotal, 2) }}</div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                    <h3 style="color: white;">Office Expenses</h3>
+                    <div class="amount" style="color: white;">RWF {{ number_format($officeTotal, 2) }}</div>
                 </div>
-                <div class="summary-card">
-                    <h3>Project Expenses</h3>
-                    <div class="amount">RWF {{ number_format($projectTotal, 2) }}</div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                    <h3 style="color: white;">Project Expenses</h3>
+                    <div class="amount" style="color: white;">RWF {{ number_format($projectTotal, 2) }}</div>
                 </div>
-                <div class="summary-card">
-                    <h3>Total Expenses</h3>
-                    <div class="amount">RWF {{ number_format($officeTotal + $projectTotal, 2) }}</div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                    <h3 style="color: white;">Total Expenses</h3>
+                    <div class="amount" style="color: white;">RWF {{ number_format($officeTotal + $projectTotal, 2) }}</div>
                 </div>
             </div>
 
