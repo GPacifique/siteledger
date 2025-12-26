@@ -74,7 +74,7 @@
             background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
         }
         .stat-box.expense {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         }
         .stat-box.profit {
             background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
@@ -155,7 +155,7 @@
             border-left-color: #27ae60;
         }
         .financial-item.expense {
-            border-left-color: #e74c3c;
+            border-left-color: #dc3545;
         }
         .financial-item.profit {
             border-left-color: #f39c12;

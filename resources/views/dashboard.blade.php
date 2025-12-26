@@ -502,8 +502,8 @@
                     {
                         label: 'Expenses',
                         data: {!! json_encode($expensesMonthly ?? []) !!},
-                        borderColor: '#e74c3c',
-                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
                         borderWidth: 2,
                         tension: 0.4,
                         fill: true,
@@ -592,12 +592,12 @@
                     {
                         label: 'Daily Expenses',
                         data: {!! json_encode($dailyExpenses ?? []) !!},
-                        borderColor: '#e74c3c',
-                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
                         tension: 0.4,
                         fill: true,
                         pointRadius: 4,
-                        pointBackgroundColor: '#e74c3c',
+                        pointBackgroundColor: '#dc3545',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         borderWidth: 2,
@@ -637,7 +637,7 @@
                 labels: ['Office Expenses', 'Project Expenses'],
                 datasets: [{
                     data: [officeExpenses, projectExpenses],
-                    backgroundColor: ['#e74c3c', '#f39c12'],
+                    backgroundColor: ['#dc3545', '#f39c12'],
                     borderColor: '#fff',
                     borderWidth: 2
                 }]
