@@ -77,6 +77,11 @@ class DashboardController extends Controller
         $paymentStatusBreakdown = $this->statsService->getPaymentStatusBreakdown();
         $outstandingReceivables = $this->statsService->getOutstandingReceivables();
 
+        // Get card stats for different periods
+        $dailyCardStats = $this->statsService->getDailyCardStats();
+        $monthlyCardStats = $this->statsService->getMonthlyCardStats();
+        $yearlyCardStats = $this->statsService->getYearlyCardStats();
+
         // Additional stats for admin dashboard
         $dailyTotals = [];
         $categories = [];
@@ -237,6 +242,7 @@ class DashboardController extends Controller
             'financialSummary', 'quickStats', 'dailyStats', 'weeklyStats', 'cashFlowAnalysis',
             'incomeByCategory', 'expenseByCategory', 'expenseByMethod', 'topProjects',
             'paymentStatusBreakdown', 'outstandingReceivables', 'dailyTotals', 'categories',
+            'dailyCardStats', 'monthlyCardStats', 'yearlyCardStats',
             'totalWorkers', 'totalEmployees', 'totalWorkforce', 'activeWorkers', 'recentWorkers',
             'totalPayroll', 'workersAvgSalary', 'employeesAvgSalary',
             'workerPaymentsToday', 'workerPaymentsThisMonth', 'recentWorkerPayments',

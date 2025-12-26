@@ -558,4 +558,77 @@ class DashboardStatsService
             'diskUsage' => 65,
         ];
     }
+
+    /**
+     * Get Daily Card Statistics
+     */
+    public function getDailyCardStats()
+    {
+        $today = Carbon::today();
+
+        return [
+            'income' => $this->has('incomes', 'amount_received')
+                ? (float) Income::whereDate('received_at', $today)->sum('amount_received')
+                : 0,
+            'expense' => $this->has('expenses', 'amount')
+                ? (float) Expense::whereDate('date', $today)->sum('amount')
+                : 0,
+            'payment' => $this->has('payments', 'amount')
+                ? (float) Payment::whereDate('created_at', $today)->sum('amount')
+                : 0,
+            'transaction' => $this->has('transactions', 'amount')
+                ? (float) Transaction::whereDate('created_at', $today)->sum('amount')
+                : 0,
+        ];
+    }
+
+    /**
+     * Get Monthly Card Statistics
+     */
+    public function getMonthlyCardStats()
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        return [
+            'income' => $this->has('incomes', 'amount_received')
+                ? (float) Income::whereBetween('received_at', [$startOfMonth, $endOfToday])->sum('amount_received')
+                : 0,
+            'expense' => $this->has('expenses', 'amount')
+                ? (float) Expense::whereBetween('date', [$startOfMonth, $endOfToday])->sum('amount')
+                : 0,
+            'payment' => $this->has('payments', 'amount')
+                ? (float) Payment::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+                : 0,
+            'transaction' => $this->has('transactions', 'amount')
+                ? (float) Transaction::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+                : 0,
+        ];
+    }
+
+    /**
+     * Get Yearly Card Statistics
+     */
+    public function getYearlyCardStats()
+    {
+        $today = Carbon::today();
+        $startOfYear = $today->copy()->startOfYear();
+        $endOfToday = $today->endOfDay();
+
+        return [
+            'income' => $this->has('incomes', 'amount_received')
+                ? (float) Income::whereBetween('received_at', [$startOfYear, $endOfToday])->sum('amount_received')
+                : 0,
+            'expense' => $this->has('expenses', 'amount')
+                ? (float) Expense::whereBetween('date', [$startOfYear, $endOfToday])->sum('amount')
+                : 0,
+            'payment' => $this->has('payments', 'amount')
+                ? (float) Payment::whereBetween('created_at', [$startOfYear, $endOfToday])->sum('amount')
+                : 0,
+            'transaction' => $this->has('transactions', 'amount')
+                ? (float) Transaction::whereBetween('created_at', [$startOfYear, $endOfToday])->sum('amount')
+                : 0,
+        ];
+    }
 }

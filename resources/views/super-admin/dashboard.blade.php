@@ -359,6 +359,69 @@
             </div>
         </div>
 
+        <!-- Daily Card Stats -->
+        <h3 style="margin-top: 40px; margin-bottom: 20px; color: #667eea;">Daily Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <div class="stat-label">Today's Income</div>
+                <div class="stat-value">${{ number_format($dailyCardStats['income'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
+                <div class="stat-label">Today's Expense</div>
+                <div class="stat-value">${{ number_format($dailyCardStats['expense'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-label">Today's Payment</div>
+                <div class="stat-value">${{ number_format($dailyCardStats['payment'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-label">Today's Transaction</div>
+                <div class="stat-value">${{ number_format($dailyCardStats['transaction'] ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <!-- Monthly Card Stats -->
+        <h3 style="margin-top: 40px; margin-bottom: 20px; color: #667eea;">Monthly Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <div class="stat-label">This Month's Income</div>
+                <div class="stat-value">${{ number_format($monthlyCardStats['income'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
+                <div class="stat-label">This Month's Expense</div>
+                <div class="stat-value">${{ number_format($monthlyCardStats['expense'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-label">This Month's Payment</div>
+                <div class="stat-value">${{ number_format($monthlyCardStats['payment'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-label">This Month's Transaction</div>
+                <div class="stat-value">${{ number_format($monthlyCardStats['transaction'] ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <!-- Yearly Card Stats -->
+        <h3 style="margin-top: 40px; margin-bottom: 20px; color: #667eea;">Yearly Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <div class="stat-label">This Year's Income</div>
+                <div class="stat-value">${{ number_format($yearlyCardStats['income'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
+                <div class="stat-label">This Year's Expense</div>
+                <div class="stat-value">${{ number_format($yearlyCardStats['expense'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-label">This Year's Payment</div>
+                <div class="stat-value">${{ number_format($yearlyCardStats['payment'] ?? 0, 2) }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-label">This Year's Transaction</div>
+                <div class="stat-value">${{ number_format($yearlyCardStats['transaction'] ?? 0, 2) }}</div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="action-buttons">
             <a href="{{ route('super-admin.users.index') }}" class="btn btn-primary">Manage Users</a>
