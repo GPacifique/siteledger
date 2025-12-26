@@ -366,9 +366,9 @@
                 <div class="stat-label">Today's Income</div>
                 <div class="stat-value">${{ number_format($dailyCardStats['income'] ?? 0, 2) }}</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
-                <div class="stat-label">Today's Expense</div>
-                <div class="stat-value">${{ number_format($dailyCardStats['expense'] ?? 0, 2) }}</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <div class="stat-label" style="color: white;">Today's Expense</div>
+                <div class="stat-value" style="color: white;">${{ number_format($dailyCardStats['expense'] ?? 0, 2) }}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <div class="stat-label">Today's Payment</div>
@@ -387,9 +387,9 @@
                 <div class="stat-label">This Month's Income</div>
                 <div class="stat-value">${{ number_format($monthlyCardStats['income'] ?? 0, 2) }}</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
-                <div class="stat-label">This Month's Expense</div>
-                <div class="stat-value">${{ number_format($monthlyCardStats['expense'] ?? 0, 2) }}</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <div class="stat-label" style="color: white;">This Month's Expense</div>
+                <div class="stat-value" style="color: white;">${{ number_format($monthlyCardStats['expense'] ?? 0, 2) }}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <div class="stat-label">This Month's Payment</div>
@@ -408,9 +408,9 @@
                 <div class="stat-label">This Year's Income</div>
                 <div class="stat-value">${{ number_format($yearlyCardStats['income'] ?? 0, 2) }}</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
-                <div class="stat-label">This Year's Expense</div>
-                <div class="stat-value">${{ number_format($yearlyCardStats['expense'] ?? 0, 2) }}</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <div class="stat-label" style="color: white;">This Year's Expense</div>
+                <div class="stat-value" style="color: white;">${{ number_format($yearlyCardStats['expense'] ?? 0, 2) }}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <div class="stat-label">This Year's Payment</div>
