@@ -317,10 +317,10 @@
                 <div class="value">RWF {{ number_format($incomesTotal ?? 0, 2) }}</div>
                 <div class="change positive">+{{ $incomesThisMonth ?? 0 }} this month</div>
             </div>
-            <div class="stat-card">
-                <h3>Total Expenses</h3>
-                <div class="value">RWF {{ number_format($expensesTotal ?? 0, 2) }}</div>
-                <div class="change">{{ $expensesThisMonth ?? 0 }} this month</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <h3 style="color: white;">Total Expenses</h3>
+                <div class="value" style="color: white;">RWF {{ number_format($expensesTotal ?? 0, 2) }}</div>
+                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $expensesThisMonth ?? 0 }} this month</div>
             </div>
             <div class="stat-card">
                 <h3>Total Projects</h3>
@@ -346,15 +346,15 @@
 
         <!-- Expense Breakdown -->
         <div class="stats-grid">
-            <div class="stat-card" style="border-left-color: #e74c3c;">
-                <h3>Office Expenses</h3>
-                <div class="value" style="color: #e74c3c;">RWF {{ number_format($officeExpenses ?? 0, 2) }}</div>
-                <div class="change">{{ $officeExpensesThisMonth ?? 0 }} this month</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <h3 style="color: white;">Office Expenses</h3>
+                <div class="value" style="color: white;">RWF {{ number_format($officeExpenses ?? 0, 2) }}</div>
+                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $officeExpensesThisMonth ?? 0 }} this month</div>
             </div>
-            <div class="stat-card" style="border-left-color: #f39c12;">
-                <h3>Project Expenses</h3>
-                <div class="value" style="color: #f39c12;">RWF {{ number_format($projectExpenses ?? 0, 2) }}</div>
-                <div class="change">{{ $projectExpensesThisMonth ?? 0 }} this month</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <h3 style="color: white;">Project Expenses</h3>
+                <div class="value" style="color: white;">RWF {{ number_format($projectExpenses ?? 0, 2) }}</div>
+                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $projectExpensesThisMonth ?? 0 }} this month</div>
             </div>
         </div>
 
