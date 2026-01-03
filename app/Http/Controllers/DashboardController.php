@@ -28,7 +28,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Check if user has any meaningful permissions
-        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant']) &&
+        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant', 'user']) &&
             !$user->hasAnyPermission(['projects.create', 'expenses.create', 'users.view', 'payments.create', 'reports.generate'])) {
             // Redirect users with no permissions to welcome page
             return redirect('/')->with('error', 'You need proper permissions to access the dashboard.');

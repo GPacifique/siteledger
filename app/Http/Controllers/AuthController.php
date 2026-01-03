@@ -50,12 +50,12 @@ class AuthController extends Controller
         ]);
 
         // Ensure default role exists and assign it
-        $defaultRole = Role::firstOrCreate(['name' => 'manager']);
+        $defaultRole = Role::firstOrCreate(['name' => 'user']);
         $user->assignRole($defaultRole);
 
         // Attach user to default tenant with role
         try {
-            $user->addToTenant(1, 'manager', false);
+            $user->addToTenant(1, 'user', false);
         } catch (\Throwable $e) {
             // If tenant 1 doesn't exist, ignore silently
         }
