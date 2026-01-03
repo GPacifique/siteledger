@@ -64,6 +64,7 @@ unset($data['salary']);
 }
 
 $data = $this->ensureTenantId($data);
+$data['created_by'] = Auth::id();
 $worker = Worker::create($data);
 
 

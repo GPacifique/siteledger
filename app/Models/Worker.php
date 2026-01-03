@@ -14,7 +14,7 @@ class Worker extends Model
     protected $fillable = [
         'tenant_id',
         // base identity fields (actual controller uses these extensively)
-        'first_name','last_name','email','phone','position','status','notes',
+        'first_name','last_name','email','phone','position','status','notes','created_by',
         // monetary fields (stored as cents + currency)
         'salary_cents','currency',
         // metadata
@@ -42,6 +42,14 @@ class Worker extends Model
     public function payments()
     {
         return $this->hasMany(WorkerPayment::class);
+    }
+
+    /**
+     * The user who created this worker (attendant).
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
