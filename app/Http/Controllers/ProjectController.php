@@ -8,6 +8,7 @@ use App\Services\BusinessQueryService;
 use App\Services\RbacFilterService;
 use App\Traits\Downloadable;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -60,9 +61,10 @@ class ProjectController extends Controller
     // Store new project with tenant awareness
     public function store(Request $request)
     {
+        $tenantId = auth()->user()->current_tenant_id;
         $validated = $request->validate([
             'client_id'      => 'required|exists:clients,id',
-            'name'           => 'required|string|max:255',
+            'name'           => ['required','string','max:255', Rule::unique('projects')->where(function($q) use ($tenantId) { $q->where('tenant_id', $tenantId); })],
             'project_code'   => 'nullable|string|max:50|unique:projects,project_code',
             'description'    => 'nullable|string',
             'start_date'     => 'nullable|date',

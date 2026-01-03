@@ -56,12 +56,15 @@ class TaskController extends Controller
     /**
      * Show the form for creating a new task.
      */
-    public function create()
+    public function create(Project $project)
     {
-        $projects = Project::select('id', 'name')->get();
-        $users = User::select('id', 'name')->get();
+        // Workers scoped to current tenant and active status
+        $workers = Worker::where('tenant_id', auth()->user()->current_tenant_id)
+                         ->where('status', 'active')
+                         ->orderBy('first_name')
+                         ->get();
 
-        return view('tasks.create', compact('projects', 'users'));
+        return view('tasks.create', compact('project', 'workers'));
     }
 
     /**
