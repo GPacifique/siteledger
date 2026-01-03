@@ -7,6 +7,11 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f7fa; color: #333; }
         .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .brand { font-weight: 600; color: #1f2937; }
+        .user-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .logout-form button { background: #ef4444; color: white; border: none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+        .logout-form button:hover { background: #dc2626; }
         .header { margin-bottom: 1.5rem; }
         .header h1 { font-size: 1.5rem; color: #1f2937; }
         .header p { color: #6b7280; }
@@ -31,10 +36,39 @@
 </head>
 <body>
     <div class="container">
+        <div class="topbar">
+            <div class="brand">User Dashboard</div>
+            <div class="user-actions">
+                <span style="font-size:0.9rem; color:#4b5563;">{{ auth()->user()->name ?? 'User' }}</span>
+                <form class="logout-form" method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+
         <div class="header">
             <h1>Welcome</h1>
             <p>Here’s a quick overview of your projects.</p>
         </div>
+
+        @php($hasTenant = auth()->user()->tenants()->exists())
+        @if(!$hasTenant)
+            <div class="card" style="margin-bottom:1rem;">
+                <div class="label" style="font-weight:600; color:#b91c1c;">No tenant assigned</div>
+                <p style="margin-top:0.5rem; color:#6b7280;">You are not assigned to any tenant. Join a tenant to see your data.</p>
+                <form method="POST" action="{{ route('user.join-tenant') }}" style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
+                    @csrf
+                    <select name="tenant_id" required style="padding:0.4rem; border:1px solid #d1d5db; border-radius:6px;">
+                        <option value="" disabled selected>Select a tenant</option>
+                        @foreach($availableTenants as $t)
+                            <option value="{{ $t->id }}">{{ $t->name }} (ID: {{ $t->id }})</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn-primary">Join</button>
+                </form>
+            </div>
+        @endif
 
         <div class="grid">
             <div class="card">

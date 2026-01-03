@@ -40,6 +40,7 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     Route::get('/manager/dashboard', [DashboardController::class, 'adminDashboard'])->name('manager.dashboard');
     Route::get('/accountant/dashboard', [DashboardController::class, 'adminDashboard'])->name('accountant.dashboard');
     Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
+    Route::post('/user/join-tenant', [DashboardController::class, 'joinTenant'])->name('user.join-tenant');
 
     // Projects CRUD
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

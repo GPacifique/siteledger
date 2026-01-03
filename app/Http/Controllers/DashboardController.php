@@ -420,9 +420,36 @@ class DashboardController extends Controller
             : 0;
         $recentProjects = $has('projects') ? Project::latest()->limit(5)->get() : collect();
 
+        // Available tenants (for join action when user has none)
+        $availableTenants = class_exists('App\\Models\\Tenant')
+            ? \App\Models\Tenant::select('id','name')->orderBy('name')->get()
+            : collect();
+
         return view('dashboard.user', compact(
-            'projectsCount', 'projectsThisMonth', 'recentProjects'
+            'projectsCount', 'projectsThisMonth', 'recentProjects', 'availableTenants'
         ));
+    }
+
+    /**
+     * Allow a user to join a tenant (simple self-join)
+     */
+    public function joinTenant(): \Illuminate\Http\RedirectResponse
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        request()->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+        ]);
+
+        $tenantId = (int) request('tenant_id');
+        try {
+            $user->addToTenant($tenantId, 'user', false);
+            $user->current_tenant_id = $tenantId;
+            $user->save();
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Unable to join tenant: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'You have joined the tenant successfully.');
     }
 
     /**
