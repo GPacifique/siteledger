@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -47,6 +48,17 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'current_tenant_id' => 1, // Assign to default tenant
         ]);
+
+        // Ensure default role exists and assign it
+        $defaultRole = Role::firstOrCreate(['name' => 'manager']);
+        $user->assignRole($defaultRole);
+
+        // Attach user to default tenant with role
+        try {
+            $user->addToTenant(1, 'manager', false);
+        } catch (\Throwable $e) {
+            // If tenant 1 doesn't exist, ignore silently
+        }
 
         Auth::login($user);
 
