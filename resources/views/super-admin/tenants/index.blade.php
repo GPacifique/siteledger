@@ -256,7 +256,9 @@
             <a href="{{ route('super-admin.dashboard') }}">Super Admin</a> / Tenants
         </div>
 
-        <h2>🏢 Manage Tenants</h2>
+        <h2 style="display:flex;align-items:center;justify-content:space-between;gap:12px;">🏢 Manage Tenants
+            <a href="{{ route('super-admin.tenants.create') }}" class="btn btn-primary" style="padding:8px 12px;border-radius:8px;">➕ Create Tenant</a>
+        </h2>
 
         <div class="table-section">
             <table>

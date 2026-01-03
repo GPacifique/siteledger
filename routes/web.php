@@ -149,6 +149,8 @@ Route::middleware(['auth', 'tenant.data'])->prefix('super-admin')->name('super-a
     // Tenant Management
     Route::get('/tenants', [SuperAdminController::class, 'tenants'])->name('tenants.index');
     Route::get('/tenants/{tenant}', [SuperAdminController::class, 'showTenant'])->name('tenants.show');
+    Route::get('/tenants/create', [SuperAdminController::class, 'createTenant'])->name('tenants.create');
+    Route::post('/tenants', [SuperAdminController::class, 'storeTenant'])->name('tenants.store');
 
     // Role Management
     Route::get('/roles', [SuperAdminController::class, 'roles'])->name('roles.index');

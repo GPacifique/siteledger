@@ -140,6 +140,47 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Show create tenant form
+     */
+    public function createTenant()
+    {
+        return view('super-admin.tenants.create');
+    }
+
+    /**
+     * Store a new tenant
+     */
+    public function storeTenant(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'domain' => 'required|string|max:255|unique:tenants,domain',
+            'email' => 'nullable|email|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+            'business_type' => 'nullable|string|in:construction,consulting,manufacturing,retail,service,other',
+        ]);
+
+        $tenant = Tenant::create([
+            'name' => $validated['name'],
+            'domain' => $validated['domain'],
+            'email' => $validated['email'] ?? null,
+            'contact_email' => $validated['contact_email'] ?? null,
+            'contact_phone' => $validated['contact_phone'] ?? null,
+            'business_type' => $validated['business_type'] ?? 'other',
+            'status' => Tenant::STATUS_ACTIVE,
+            'subscription_plan' => 'basic',
+            'timezone' => 'Africa/Kigali',
+            'currency' => 'RWF',
+            'locale' => 'en',
+            'created_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('super-admin.tenants.show', $tenant)
+            ->with('success', 'Tenant created successfully');
+    }
+
+    /**
      * Show tenant details
      */
     public function showTenant(Tenant $tenant)
