@@ -273,7 +273,7 @@ class DashboardController extends Controller
     /**
      * Accountant sees only financial data with enhanced analytics
      */
-    private function accountantDashboard()
+    public function accountantDashboard()
     {
         // Get comprehensive financial summary
         $financialSummary = $this->statsService->getFinancialSummary();
