@@ -45,6 +45,14 @@ class Worker extends Model
     }
 
     /**
+     * Projects this worker participates in via tasks.
+     */
+    public function projects()
+    {
+        return Project::whereIn('id', $this->tasks()->pluck('project_id'))->distinct();
+    }
+
+    /**
      * The user who created this worker (attendant).
      */
     public function creator()

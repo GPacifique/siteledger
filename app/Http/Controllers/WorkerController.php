@@ -49,7 +49,7 @@ public function store(Request $request)
 $data = $request->validate([
 'first_name' => 'required|string|max:100',
 'last_name' => 'required|string|max:100',
-'email' => 'nullable|email|unique:workers,email',
+'email' => 'nullable|email',
 'phone' => 'nullable|string|max:30',
 'position' => 'nullable|string|max:100',
 'salary' => 'nullable|numeric|min:0',
@@ -157,7 +157,7 @@ public function update(Request $request, Worker $worker)
 $data = $request->validate([
 'first_name' => 'required|string|max:100',
 'last_name' => 'required|string|max:100',
-'email' => 'nullable|email|unique:workers,email,' . $worker->id,
+'email' => 'nullable|email',
 'phone' => 'nullable|string|max:30',
 'position' => 'nullable|string|max:100',
 'salary' => 'nullable|numeric|min:0',
