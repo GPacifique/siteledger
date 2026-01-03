@@ -236,8 +236,8 @@ class RbacFilterService
             });
         }
 
-        // Non-admin/accountant users see only themselves
-        return $query->where('user_id', $user->id);
+        // Non-admin/accountant users see only workers they created
+        return $query->where('created_by', $user->id);
     }
 
     /**
