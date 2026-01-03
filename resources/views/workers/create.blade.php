@@ -147,17 +147,17 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required>
-                        @error('name')
+                        <label for="first_name">First Name *</label>
+                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required>
+                        @error('first_name')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}">
-                        @error('email')
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required>
+                        @error('last_name')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
@@ -165,13 +165,23 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}">
+                        @error('email')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
                         <label for="phone">Phone</label>
                         <input type="text" name="phone" id="phone" value="{{ old('phone') }}">
                         @error('phone')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
+                </div>
 
+                <div class="form-row">
                     <div class="form-group">
                         <label for="position">Position</label>
                         <select name="position" id="position">
@@ -193,23 +203,46 @@
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <input type="text" name="status" id="status" value="{{ old('status') }}" placeholder="e.g., active">
+                        @error('status')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="daily_wage">Daily Wage (RWF) *</label>
-                        <input type="number" name="daily_wage" id="daily_wage" step="0.01" value="{{ old('daily_wage') }}" required>
-                        @error('daily_wage')
+                        <label for="salary">Monthly Salary (optional)</label>
+                        <input type="number" name="salary" id="salary" step="0.01" value="{{ old('salary') }}" placeholder="e.g., 50000">
+                        @error('salary')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
 
+                    <div class="form-group">
+                        <label for="currency">Currency (3-letter code)</label>
+                        <input type="text" name="currency" id="currency" value="{{ old('currency', 'RWF') }}" maxlength="3">
+                        @error('currency')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label for="hired_at">Hire Date</label>
                         <input type="date" name="hired_at" id="hired_at" value="{{ old('hired_at') }}">
                         @error('hired_at')
                             <div class="error">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone_alt">Alternate Contact (optional)</label>
+                        <input type="text" name="phone_alt" id="phone_alt" value="{{ old('phone_alt') }}" placeholder="Alternate phone or contact">
                     </div>
                 </div>
 
