@@ -559,7 +559,12 @@
                                     @foreach($user->tenants as $tenant)
                                         <div style="background:rgba(255,255,255,0.08);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:10px;">
                                             <span>{{ $tenant->name }}</span>
-                                            <span class="badge" style="background:#4c6ef5;color:#fff;">{{ $tenant->pivot->role ?? 'member' }}@if($tenant->pivot->is_admin) · admin@endif</span>
+                                            <span class="badge" style="background:#4c6ef5;color:#fff;">
+                                                {{ $tenant->pivot->role ?? 'member' }}
+                                                @if($tenant->pivot->is_admin)
+                                                    · admin
+                                                @endif
+                                            </span>
                                             <form method="POST" action="{{ route('super-admin.remove-tenant') }}" onsubmit="return confirm('Remove {{ $user->name }} from {{ $tenant->name }}?');">
                                                 @csrf
                                                 <input type="hidden" name="user_id" value="{{ $user->id }}" />
