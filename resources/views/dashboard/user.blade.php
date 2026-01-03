@@ -33,6 +33,16 @@
         .item-meta { font-size: 0.8rem; color: #6b7280; }
         .item-actions a { font-size: 0.85rem; color: #4f46e5; text-decoration: none; margin-left: 0.5rem; }
 
+        /* Informational styles */
+        .hero { background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+        .hero h1 { font-size: 1.25rem; color: #111827; }
+        .hero p { color: #6b7280; margin-top: 0.25rem; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+        .step { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; }
+        .step-title { font-weight: 600; color: #1f2937; }
+        .step-desc { font-size: 0.9rem; color: #6b7280; margin-top: 0.25rem; }
+        .alert { border: 1px solid #fde68a; background: #fffbeb; color: #92400e; border-radius: 8px; padding: 0.75rem; }
+
         /* Mobile tweaks */
         @media (max-width: 640px) {
             .container { padding: 1rem; }
@@ -61,71 +71,82 @@
             </div>
         </div>
 
-        <div class="header">
-            <h1>Welcome</h1>
-            <p>Here’s a quick overview of your projects.</p>
+        <div class="hero">
+            <h1>Welcome to SiteLedger</h1>
+            <p>SiteLedger helps your company track projects, payments, expenses, and workers with complete tenant-based data isolation.</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-title">1. Multi-tenant setup</div>
+                    <div class="step-desc">Each company is a tenant. Admins assign users to their company to enable access.</div>
+                </div>
+                <div class="step">
+                    <div class="step-title">2. Role-based access</div>
+                    <div class="step-desc">Admins and managers can create projects and manage finances; regular users see a read-only overview.</div>
+                </div>
+                <div class="step">
+                    <div class="step-title">3. Secure data</div>
+                    <div class="step-desc">All business data is isolated per tenant. You only see your company’s records.</div>
+                </div>
+            </div>
         </div>
 
         @php($hasTenant = auth()->user()->tenants()->exists())
         @if(!$hasTenant)
             <div class="card" style="margin-bottom:1rem;">
-                <div class="label" style="font-weight:600; color:#b91c1c;">No tenant assigned</div>
-                <p style="margin-top:0.5rem; color:#6b7280;">You are not assigned to any tenant. Join a tenant to see your data.</p>
-                <form method="POST" action="{{ route('user.join-tenant') }}" style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
-                    @csrf
-                    <select name="tenant_id" required style="padding:0.4rem; border:1px solid #d1d5db; border-radius:6px;">
-                        <option value="" disabled selected>Select a tenant</option>
-                        @foreach($availableTenants as $t)
-                            <option value="{{ $t->id }}">{{ $t->name }} (ID: {{ $t->id }})</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="btn-primary">Join</button>
-                </form>
+                <div class="label" style="font-weight:600; color:#b45309;">Pending approval</div>
+                <p style="margin-top:0.5rem; color:#6b7280;">Your account is created. A company administrator will assign you to a tenant and approve your access. Once approved, you will see your company’s projects and finances here.</p>
+                <div class="alert" style="margin-top:0.75rem;">
+                    Please wait for approval. If you believe this is taking too long, contact your administrator to be added to your company.
+                </div>
             </div>
         @endif
 
-        <div class="grid">
-            <div class="card">
-                <div class="label">Total Projects</div>
-                <div class="value">{{ number_format($projectsCount) }}</div>
-            </div>
-            <div class="card">
-                <div class="label">Projects This Month</div>
-                <div class="value">{{ number_format($projectsThisMonth) }}</div>
-            </div>
-            <div class="card">
-                <div class="label">Quick Actions</div>
-                <div class="actions">
-                    <a href="{{ route('projects.index') }}" class="btn-primary">View Projects</a>
-                    <a href="{{ route('notifications.index') }}" class="btn-secondary">Notifications</a>
+        @if($hasTenant)
+            <div class="grid">
+                <div class="card">
+                    <div class="label">Total Projects</div>
+                    <div class="value">{{ number_format($projectsCount) }}</div>
+                </div>
+                <div class="card">
+                    <div class="label">Projects This Month</div>
+                    <div class="value">{{ number_format($projectsThisMonth) }}</div>
+                </div>
+                <div class="card">
+                    <div class="label">Quick Actions</div>
+                    <div class="actions">
+                        <a href="{{ route('projects.index') }}" class="btn-primary">View Projects</a>
+                        <a href="{{ route('notifications.index') }}" class="btn-secondary">Notifications</a>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
 
-        <div class="list">
-            <div class="list-header">
-                <h2>Recent Projects</h2>
-                <a href="{{ route('projects.index') }}">View all</a>
-            </div>
-            <div class="list-content">
-                @if($recentProjects->isEmpty())
-                    <p class="item-meta">No recent projects found.</p>
-                @else
-                    @foreach($recentProjects as $project)
-                        <div class="list-item">
-                            <div>
-                                <div class="item-title">{{ $project->name }}</div>
-                                <div class="item-meta">Created {{ optional($project->created_at)->diffForHumans() }}</div>
+        @if($hasTenant)
+            <div class="list">
+                <div class="list-header">
+                    <h2>Recent Projects</h2>
+                    <a href="{{ route('projects.index') }}">View all</a>
+                </div>
+                <div class="list-content">
+                    @if($recentProjects->isEmpty())
+                        <p class="item-meta">No recent projects found.</p>
+                    @else
+                        @foreach($recentProjects as $project)
+                            <div class="list-item">
+                                <div>
+                                    <div class="item-title">{{ $project->name }}</div>
+                                    <div class="item-meta">Created {{ optional($project->created_at)->diffForHumans() }}</div>
+                                </div>
+                                <div class="item-actions">
+                                    <a href="{{ route('projects.show', $project) }}">Open</a>
+                                    <a href="{{ route('projects.edit', $project) }}">Edit</a>
+                                </div>
                             </div>
-                            <div class="item-actions">
-                                <a href="{{ route('projects.show', $project) }}">Open</a>
-                                <a href="{{ route('projects.edit', $project) }}">Edit</a>
-                            </div>
-                        </div>
-                    @endforeach
-                @endif
+                        @endforeach
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 </body>
 </html>
