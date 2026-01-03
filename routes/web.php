@@ -12,6 +12,7 @@ use App\Http\Controllers\WorkerPositionController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\SuperAdminController;
 
 Route::get('/', function () {
@@ -121,6 +122,12 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     // Calendar API endpoints
     Route::get('/api/calendar/daily-summary', [DashboardController::class, 'calendarDailySummary'])->name('api.calendar.daily-summary');
     Route::get('/api/calendar/month-data', [DashboardController::class, 'calendarMonthData'])->name('api.calendar.month-data');
+
+    // Notifications
+    Route::get('/notifications', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy'])->name('notifications.destroy');
 });
 
 // Super Admin Routes
