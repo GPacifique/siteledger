@@ -113,9 +113,10 @@ class RbacFilterService
         }
 
         if ($user->hasRole('site manager')) {
-            // Site managers see income from their projects
-            return $query->whereHas('project', function ($q) use ($user) {
-                $q->where('manager_id', $user->id);
+            // Site managers see income linked to projects where tasks are assigned to or created by them
+            return $query->whereHas('project.tasks', function ($q) use ($user) {
+                $q->where('assigned_to', $user->id)
+                  ->orWhere('created_by', $user->id);
             });
         }
 
@@ -142,9 +143,10 @@ class RbacFilterService
         }
 
         if ($user->hasRole('site manager')) {
-            // Site managers see expenses from their projects
-            return $query->whereHas('project', function ($q) use ($user) {
-                $q->where('manager_id', $user->id);
+            // Site managers see expenses linked to projects where tasks are assigned to or created by them
+            return $query->whereHas('project.tasks', function ($q) use ($user) {
+                $q->where('assigned_to', $user->id)
+                  ->orWhere('created_by', $user->id);
             });
         }
 
@@ -193,9 +195,10 @@ class RbacFilterService
         }
 
         if ($user->hasRole('site manager')) {
-            // Site managers see tasks from their projects
-            return $query->whereHas('project', function ($q) use ($user) {
-                $q->where('manager_id', $user->id);
+            // Site managers see tasks they created or are assigned to
+            return $query->where(function ($q) use ($user) {
+                $q->where('assigned_to', $user->id)
+                  ->orWhere('created_by', $user->id);
             });
         }
 
@@ -226,9 +229,10 @@ class RbacFilterService
         }
 
         if ($user->hasRole('site manager')) {
-            // Site managers see workers on their projects
-            return $query->whereHas('projects', function ($q) use ($user) {
-                $q->where('manager_id', $user->id);
+            // Site managers see workers who have tasks created by or assigned to the manager
+            return $query->whereHas('tasks', function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('assigned_to', $user->id);
             });
         }
 
@@ -254,15 +258,8 @@ class RbacFilterService
             return $query; // Full access
         }
 
-        if ($user->hasRole('site manager')) {
-            // Site managers see transactions from their projects
-            return $query->whereHas('project', function ($q) use ($user) {
-                $q->where('manager_id', $user->id);
-            });
-        }
-
-        // Limited view for others
-        return $query->where('user_id', $user->id);
+        // For other roles, rely on tenant scoping to restrict visibility
+        return $query;
     }
 
     /**
