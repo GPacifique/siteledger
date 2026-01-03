@@ -61,13 +61,42 @@ class IncomeController extends Controller
     {
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
-            'invoice_number' => 'required|string|max:255|unique:incomes,invoice_number',
+            'invoice_number' => 'nullable|string|max:255|unique:incomes,invoice_number',
             'amount_received' => 'required|numeric|min:0',
-            'payment_status' => 'required|in:Paid,Pending,partially paid,Overdue',
-            'amount_remaining' => 'required|numeric|min:0',
+            'payment_status' => 'nullable|in:Paid,Pending,partially paid,Overdue',
+            'amount_remaining' => 'nullable|numeric|min:0',
             'received_at' => 'required|date',
             'notes' => 'nullable|string|max:1000',
+            // Accept alternative form fields
+            'status' => 'nullable|in:received,pending',
+            'description' => 'nullable|string|max:1000',
         ]);
+
+        // Map alternative fields to model columns
+        $statusInput = $request->input('status') ?? $validated['payment_status'] ?? null;
+        if ($statusInput) {
+            $validated['payment_status'] = match($statusInput) {
+                'received' => 'Paid',
+                'pending' => 'Pending',
+                'Paid', 'Pending', 'partially paid', 'Overdue' => $statusInput,
+                default => $validated['payment_status'] ?? null,
+            };
+        }
+
+        if (empty($validated['notes']) && $request->filled('description')) {
+            $validated['notes'] = $request->input('description');
+        }
+
+        // Compute amount_remaining if not provided
+        if (!isset($validated['amount_remaining'])) {
+            $project = Project::find($validated['project_id']);
+            if ($project && $project->contract_value) {
+                $existingReceived = Income::where('project_id', $project->id)->sum('amount_received');
+                $validated['amount_remaining'] = max(0, ($project->contract_value - ($existingReceived + $validated['amount_received'])));
+            } else {
+                $validated['amount_remaining'] = 0;
+            }
+        }
 
         $validated = $this->ensureTenantId($validated);
         Income::create($validated);
@@ -96,10 +125,11 @@ class IncomeController extends Controller
             $projectExpenses = \App\Models\Expense::where('project_id', $project->id)->sum('amount');
 
             // Calculate stats
+            $receivedSum = $projectRevenues->where('payment_status', 'Paid')->sum('amount_received');
             $projectStats = [
                 'total_revenue' => $projectRevenues->sum('amount_received'),
-                'received_amount' => $projectRevenues->where('status', 'received')->sum('amount_received'),
-                'remaining_amount' => max(0, $project->contract_value - $projectRevenues->where('status', 'received')->sum('amount_received')),
+                'received_amount' => $receivedSum,
+                'remaining_amount' => max(0, ($project->contract_value ?? 0) - $receivedSum),
                 'total_expenses' => $projectExpenses,
                 'revenue_count' => $projectRevenues->count(),
             ];
@@ -118,13 +148,40 @@ class IncomeController extends Controller
     {
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
-            'invoice_number' => 'required|string|max:255|unique:incomes,invoice_number,' . $income->id,
+            'invoice_number' => 'nullable|string|max:255|unique:incomes,invoice_number,' . $income->id,
             'amount_received' => 'required|numeric|min:0',
-            'payment_status' => 'required|in:Paid,Pending,partially paid,Overdue',
-            'amount_remaining' => 'required|numeric|min:0',
+            'payment_status' => 'nullable|in:Paid,Pending,partially paid,Overdue',
+            'amount_remaining' => 'nullable|numeric|min:0',
             'received_at' => 'required|date',
             'notes' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:received,pending',
+            'description' => 'nullable|string|max:1000',
         ]);
+
+        // Map alternative fields
+        $statusInput = $request->input('status') ?? $validated['payment_status'] ?? null;
+        if ($statusInput) {
+            $validated['payment_status'] = match($statusInput) {
+                'received' => 'Paid',
+                'pending' => 'Pending',
+                'Paid', 'Pending', 'partially paid', 'Overdue' => $statusInput,
+                default => $validated['payment_status'] ?? null,
+            };
+        }
+        if (empty($validated['notes']) && $request->filled('description')) {
+            $validated['notes'] = $request->input('description');
+        }
+
+        // Compute amount_remaining if not provided
+        if (!isset($validated['amount_remaining'])) {
+            $project = Project::find($validated['project_id']);
+            if ($project && $project->contract_value) {
+                $existingReceived = Income::where('project_id', $project->id)->where('id', '!=', $income->id)->sum('amount_received');
+                $validated['amount_remaining'] = max(0, ($project->contract_value - ($existingReceived + $validated['amount_received'])));
+            } else {
+                $validated['amount_remaining'] = 0;
+            }
+        }
 
         $income->update($validated);
 
