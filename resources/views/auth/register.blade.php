@@ -117,7 +117,6 @@
     </style>
 </head>
 <body>
-    @include('components.navbar')
 
     <div class="container">
         <h1>Register</h1>
