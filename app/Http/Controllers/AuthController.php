@@ -12,6 +12,25 @@ use Spatie\Permission\Models\Role;
 class AuthController extends Controller
 {
     /**
+     * Redirect user to their role-specific dashboard
+     */
+    protected function redirectToRoleDashboard(User $user)
+    {
+        if ($user->is_super_admin) {
+            return redirect()->route('super-admin.dashboard');
+        }
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->hasRole('accountant')) {
+            return redirect()->route('accountant.dashboard');
+        }
+        if ($user->hasRole('manager')) {
+            return redirect()->route('manager.dashboard');
+        }
+        return redirect()->route('user.dashboard');
+    }
+    /**
      * Handle login request
      */
     public function login(Request $request)
@@ -23,7 +42,7 @@ class AuthController extends Controller
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return $this->redirectToRoleDashboard(Auth::user());
         }
 
         throw ValidationException::withMessages([
@@ -62,7 +81,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->intended('dashboard');
+        return $this->redirectToRoleDashboard($user);
     }
 
     /**
