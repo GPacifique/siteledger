@@ -177,6 +177,16 @@
             color: white;
             border-color: #667eea;
         }
+
+        /* Mobile tweaks */
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .page-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+            .btn { width: 100%; text-align: center; }
+            .stat-cards { grid-template-columns: 1fr; }
+            .table-section { padding: 1rem; }
+            table { font-size: 0.9rem; min-width: 700px; }
+        }
     </style>
 </head>
 <body>

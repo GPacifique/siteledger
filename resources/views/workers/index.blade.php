@@ -80,6 +80,15 @@
             padding: 3rem;
             color: #666;
         }
+
+        /* Responsive tables */
+        .table-wrap { width: 100%; overflow-x: auto; }
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            table { font-size: 0.9rem; min-width: 600px; }
+            th, td { padding: 0.6rem; }
+            .page-header h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -96,6 +105,7 @@
         </div>
 
         @if($workers->count() > 0)
+            <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
@@ -123,6 +133,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @else
             <div class="empty-message">
                 <p>No workers found. <a href="/admin/dashboard">Go to Dashboard</a></p>

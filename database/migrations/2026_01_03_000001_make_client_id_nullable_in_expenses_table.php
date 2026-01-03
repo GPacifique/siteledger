@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,12 +12,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            // Drop existing foreign key constraint
-            $table->dropForeign(['client_id']);
+        // Drop existing foreign key if it exists
+        $constraintName = $this->getForeignKeyName('expenses', 'client_id');
+        if ($constraintName) {
+            DB::statement("ALTER TABLE `expenses` DROP FOREIGN KEY `{$constraintName}`");
+        }
 
-            // Modify client_id to be nullable
-            $table->foreignId('client_id')->nullable()->change()->constrained('clients')->onDelete('cascade');
+        // Make the column nullable without requiring doctrine/dbal
+        DB::statement('ALTER TABLE `expenses` MODIFY `client_id` BIGINT UNSIGNED NULL');
+
+        // Re-add the foreign key (keep cascade behavior)
+        Schema::table('expenses', function (Blueprint $table) {
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
         });
     }
 
@@ -25,12 +32,41 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            // Drop the nullable foreign key
-            $table->dropForeign(['client_id']);
+        // Drop foreign key if exists
+        $constraintName = $this->getForeignKeyName('expenses', 'client_id');
+        if ($constraintName) {
+            DB::statement("ALTER TABLE `expenses` DROP FOREIGN KEY `{$constraintName}`");
+        }
 
-            // Restore client_id to be not nullable
-            $table->foreignId('client_id')->nullable(false)->change()->constrained('clients')->onDelete('cascade');
+        // Restore NOT NULL
+        DB::statement('ALTER TABLE `expenses` MODIFY `client_id` BIGINT UNSIGNED NOT NULL');
+
+        // Re-add the foreign key
+        Schema::table('expenses', function (Blueprint $table) {
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
         });
+    }
+
+    /**
+     * Resolve foreign key name for a table/column, if present.
+     */
+    private function getForeignKeyName(string $table, string $column): ?string
+    {
+        $dbName = DB::getDatabaseName();
+        $rows = DB::select(
+            'SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL LIMIT 1',
+            [$dbName, $table, $column]
+        );
+        if (!empty($rows)) {
+            return $rows[0]->CONSTRAINT_NAME ?? null;
+        }
+        // Fallback to Laravel convention
+        $conventional = $table . '_' . $column . '_foreign';
+        // Check if conventional name exists
+        $rows2 = DB::select(
+            'SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? AND CONSTRAINT_TYPE = "FOREIGN KEY" LIMIT 1',
+            [$dbName, $table, $conventional]
+        );
+        return !empty($rows2) ? $conventional : null;
     }
 };

@@ -154,6 +154,11 @@
             color: #666;
             margin-top: 0.25rem;
         }
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .button-group { flex-direction: column; }
+            .button-group .btn, .button-group button[type="submit"] { width: 100%; }
+        }
 
         /* Expense Type Cards */
         .expense-type-selector {

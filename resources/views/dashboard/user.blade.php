@@ -32,6 +32,20 @@
         .item-title { font-size: 0.95rem; color: #111827; }
         .item-meta { font-size: 0.8rem; color: #6b7280; }
         .item-actions a { font-size: 0.85rem; color: #4f46e5; text-decoration: none; margin-left: 0.5rem; }
+
+        /* Mobile tweaks */
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .topbar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .user-actions { width: 100%; justify-content: space-between; }
+            .grid { grid-template-columns: 1fr; }
+            .actions a { display: block; width: 100%; margin-right: 0; }
+            .list-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .item-actions { margin-top: 0.25rem; }
+            /* Join tenant form stacks */
+            .card form { flex-direction: column; align-items: stretch !important; }
+            .card form select, .card form .btn-primary { width: 100%; }
+        }
     </style>
 </head>
 <body>

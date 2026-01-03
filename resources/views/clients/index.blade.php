@@ -117,6 +117,17 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
+
+        /* Responsive tables */
+        .table-wrap { width: 100%; overflow-x: auto; }
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .page-header { padding: 1rem; }
+            .add-button-container { justify-content: stretch; }
+            .btn-primary { display: block; width: 100%; text-align: center; }
+            table { font-size: 0.9rem; min-width: 700px; }
+            th, td { padding: 0.6rem; }
+        }
     </style>
 </head>
 <body>
@@ -133,6 +144,7 @@
         </div>
 
         @if($clients->count() > 0)
+            <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
@@ -166,6 +178,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @else
             <div style="background: white; padding: 3rem; border-radius: 8px; text-align: center; color: #999;">
                 <p>No clients found. <a href="{{ route('clients.create') }}" style="color: #667eea; text-decoration: none;">Create one now</a></p>

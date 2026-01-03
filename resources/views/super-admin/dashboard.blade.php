@@ -300,6 +300,13 @@
             h2 {
                 font-size: 24px;
             }
+            .container { padding: 24px 14px; }
+            .action-buttons { grid-template-columns: 1fr; }
+            .user-item, .tenant-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .navbar { padding: 16px 20px; }
+            .navbar h1 { font-size: 20px; }
+            .btn { width: 100%; }
+            .form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
