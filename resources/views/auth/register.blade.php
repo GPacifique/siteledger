@@ -20,21 +20,24 @@
             padding: 20px;
         }
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 460px;
             width: 100%;
+            color: #fff;
         }
         h1 {
-            color: #333;
+            color: #fff;
             font-size: 2em;
             margin-bottom: 10px;
             text-align: center;
         }
         .subtitle {
-            color: #666;
+            color: #ccc;
             text-align: center;
             margin-bottom: 30px;
             font-size: 0.95em;
@@ -44,21 +47,29 @@
         }
         label {
             display: block;
-            color: #333;
+            color: #ddd;
             font-weight: 600;
             margin-bottom: 8px;
         }
         input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
             font-size: 1em;
             transition: border-color 0.3s;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
         }
         input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+        .error-text {
+            color: #ff6b6b;
+            font-size: 0.85em;
+            margin-top: 6px;
         }
         button {
             width: 100%;
@@ -66,7 +77,7 @@
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1em;
             font-weight: 600;
             cursor: pointer;
@@ -80,7 +91,7 @@
         .footer {
             text-align: center;
             margin-top: 20px;
-            color: #666;
+            color: #ccc;
         }
         .footer a {
             color: #667eea;
@@ -89,6 +100,19 @@
         }
         .footer a:hover {
             text-decoration: underline;
+        }
+        .alert {
+            background: rgba(255, 107, 107, 0.12);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #ffb3b3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .hint {
+            color: #aaa;
+            font-size: 0.85em;
+            margin-top: 6px;
         }
     </style>
 </head>
@@ -99,19 +123,37 @@
         <h1>Register</h1>
         <p class="subtitle">Create your CSMS account</p>
 
-        <form method="POST" action="/register">
+        @if($errors->any())
+            <div class="alert">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('register') }}">
             @csrf
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" required value="{{ old('name') }}">
+                @error('name')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" required value="{{ old('email') }}">
+                @error('email')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
+                <div class="hint">Use at least 8 characters with letters and numbers.</div>
+                @error('password')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label for="password_confirmation">Confirm Password</label>
@@ -121,7 +163,7 @@
         </form>
 
         <div class="footer">
-            Already have an account? <a href="/login">Login here</a>
+            Already have an account? <a href="{{ route('login') }}">Login here</a>
         </div>
     </div>
 </body>
