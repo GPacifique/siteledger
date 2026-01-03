@@ -120,8 +120,8 @@ class RbacFilterService
             });
         }
 
-        // Others see only their own income
-        return $query->where('user_id', $user->id);
+        // For other roles, rely on tenant scoping
+        return $query;
     }
 
     /**
