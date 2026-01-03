@@ -39,7 +39,7 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     // Map manager/accountant/user dashboards to adminDashboard for now
     Route::get('/manager/dashboard', [DashboardController::class, 'adminDashboard'])->name('manager.dashboard');
     Route::get('/accountant/dashboard', [DashboardController::class, 'adminDashboard'])->name('accountant.dashboard');
-    Route::get('/user/dashboard', [DashboardController::class, 'adminDashboard'])->name('user.dashboard');
+    Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
 
     // Projects CRUD
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

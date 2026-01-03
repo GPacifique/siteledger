@@ -400,7 +400,7 @@ class DashboardController extends Controller
     /**
      * Regular user sees limited overview
      */
-    private function userDashboard()
+    public function userDashboard()
     {
         $today = Carbon::today();
         $startOfMonth = $today->copy()->startOfMonth();
