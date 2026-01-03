@@ -250,6 +250,8 @@ class SuperAdminController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'tenant_id' => 'required|exists:tenants,id',
+            'role' => 'nullable|string|max:50',
+            'is_admin' => 'nullable|boolean',
         ]);
 
         $user = User::findOrFail($request->user_id);
@@ -260,15 +262,17 @@ class SuperAdminController extends Controller
             return redirect()->back()->with('error', 'User already assigned to this tenant');
         }
 
-        // Assign tenant to user
-        $user->tenants()->attach($tenant->id, ['role' => 'member']);
+        // Assign tenant to user with optional role and admin flag
+        $role = $request->input('role') ?: 'member';
+        $isAdmin = (bool) $request->input('is_admin', false);
+        $user->addToTenant($tenant->id, $role, $isAdmin);
 
         // Set as current tenant if user doesn't have one
         if (!$user->current_tenant_id) {
             $user->update(['current_tenant_id' => $tenant->id]);
         }
 
-        return redirect()->back()->with('success', "User {$user->name} assigned to tenant {$tenant->name}");
+        return redirect()->back()->with('success', "User {$user->name} assigned to tenant {$tenant->name} as {$role}" . ($isAdmin ? ' (admin)' : ''));
     }
 
     /**

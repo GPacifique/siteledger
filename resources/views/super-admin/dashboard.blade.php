@@ -503,6 +503,18 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="role">Role in Tenant</label>
+                        <select id="role" name="role">
+                            <option value="member">Member</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                        <label for="is_admin" style="margin:0;">Grant Admin</label>
+                        <input type="checkbox" id="is_admin" name="is_admin" value="1" />
+                    </div>
                 </div>
                 <button type="submit" class="btn-assign">Assign Tenant to User</button>
             </form>
@@ -526,6 +538,44 @@
                     {{ session('error') }}
                 </div>
             @endif
+        </div>
+
+        <!-- Current Assignments -->
+        <div class="section">
+            <h3>📋 Current Tenant Assignments</h3>
+            <div class="user-list">
+                @forelse($allUsers as $user)
+                    <div class="user-item">
+                        <div class="user-info">
+                            <h4>{{ $user->name }}</h4>
+                            <p>{{ $user->email }}</p>
+                            <p style="margin-top:6px;color:#ccc;font-size:12px;">Tenants: {{ $user->tenants->count() }}</p>
+                        </div>
+                        <div>
+                            @if($user->tenants->isEmpty())
+                                <span class="badge badge-user">No tenants</span>
+                            @else
+                                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                    @foreach($user->tenants as $tenant)
+                                        <div style="background:rgba(255,255,255,0.08);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:10px;">
+                                            <span>{{ $tenant->name }}</span>
+                                            <span class="badge" style="background:#4c6ef5;color:#fff;">{{ $tenant->pivot->role ?? 'member' }}@if($tenant->pivot->is_admin) · admin@endif</span>
+                                            <form method="POST" action="{{ route('super-admin.remove-tenant') }}" onsubmit="return confirm('Remove {{ $user->name }} from {{ $tenant->name }}?');">
+                                                @csrf
+                                                <input type="hidden" name="user_id" value="{{ $user->id }}" />
+                                                <input type="hidden" name="tenant_id" value="{{ $tenant->id }}" />
+                                                <button type="submit" class="btn btn-secondary" style="padding:6px 10px;">Remove</button>
+                                            </form>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <p style="color:#aaa;">No users found</p>
+                @endforelse
+            </div>
         </div>
     </div>
 </body>
