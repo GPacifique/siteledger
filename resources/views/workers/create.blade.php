@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Worker - SiteLedger</title>
+    <title>Add Worker - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -174,7 +174,21 @@
 
                     <div class="form-group">
                         <label for="position">Position</label>
-                        <input type="text" name="position" id="position" placeholder="e.g., Mason, Carpenter" value="{{ old('position') }}">
+                        <select name="position" id="position">
+                            <option value="">Select Position</option>
+                            <option value="Engineer" {{ old('position') == 'Engineer' ? 'selected' : '' }}>Engineer</option>
+                            <option value="Architect" {{ old('position') == 'Architect' ? 'selected' : '' }}>Architect</option>
+                            <option value="MEP" {{ old('position') == 'MEP' ? 'selected' : '' }}>MEP (Mechanical, Electrical, Plumbing)</option>
+                            <option value="Dealer" {{ old('position') == 'Dealer' ? 'selected' : '' }}>Dealer</option>
+                            <option value="Technician" {{ old('position') == 'Technician' ? 'selected' : '' }}>Technician</option>
+                            <option value="Casual Labor" {{ old('position') == 'Casual Labor' ? 'selected' : '' }}>Casual Labor</option>
+                            <option value="Mason" {{ old('position') == 'Mason' ? 'selected' : '' }}>Mason</option>
+                            <option value="Carpenter" {{ old('position') == 'Carpenter' ? 'selected' : '' }}>Carpenter</option>
+                            <option value="Electrician" {{ old('position') == 'Electrician' ? 'selected' : '' }}>Electrician</option>
+                            <option value="Plumber" {{ old('position') == 'Plumber' ? 'selected' : '' }}>Plumber</option>
+                            <option value="Foreman" {{ old('position') == 'Foreman' ? 'selected' : '' }}>Foreman</option>
+                            <option value="Other" {{ old('position') == 'Other' ? 'selected' : '' }}>Other</option>
+                        </select>
                         @error('position')
                             <div class="error">{{ $message }}</div>
                         @enderror

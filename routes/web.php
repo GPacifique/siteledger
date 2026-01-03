@@ -4,8 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectPhasePaymentController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\WorkerController;
+use App\Http\Controllers\WorkerPositionController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
@@ -42,6 +45,25 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
+    // Project Phase Payments
+    Route::get('/projects/{project}/phase-payments/{phase}/create', [ProjectPhasePaymentController::class, 'create'])->name('projects.phase-payments.create');
+    Route::post('/projects/{project}/phase-payments', [ProjectPhasePaymentController::class, 'store'])->name('projects.phase-payments.store');
+    Route::get('/projects/{project}/phase-payments/{payment}/edit', [ProjectPhasePaymentController::class, 'edit'])->name('projects.phase-payments.edit');
+    Route::put('/projects/{project}/phase-payments/{payment}', [ProjectPhasePaymentController::class, 'update'])->name('projects.phase-payments.update');
+    Route::delete('/projects/{project}/phase-payments/{payment}', [ProjectPhasePaymentController::class, 'destroy'])->name('projects.phase-payments.destroy');
+
+    // Tasks CRUD (Project-based tasks)
+    Route::get('/projects/{project}/tasks', [TaskController::class, 'index'])->name('projects.tasks.index');
+    Route::get('/projects/{project}/tasks/create', [TaskController::class, 'create'])->name('projects.tasks.create');
+    Route::post('/projects/{project}/tasks', [TaskController::class, 'store'])->name('projects.tasks.store');
+    Route::get('/projects/{project}/tasks/{task}/edit', [TaskController::class, 'edit'])->name('projects.tasks.edit');
+    Route::put('/projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
+    Route::delete('/projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
+
+    // Global Tasks (all tasks)
+    Route::get('/tasks', [TaskController::class, 'globalIndex'])->name('tasks.index');
+    Route::post('/tasks/store-from-global', [TaskController::class, 'storeFromGlobal'])->name('tasks.store-from-global');
+
     // Clients CRUD
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
     Route::get('/clients/create', [ClientController::class, 'create'])->name('clients.create');
@@ -59,6 +81,15 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     Route::get('/workers/{worker}/edit', [WorkerController::class, 'edit'])->name('workers.edit');
     Route::put('/workers/{worker}', [WorkerController::class, 'update'])->name('workers.update');
     Route::delete('/workers/{worker}', [WorkerController::class, 'destroy'])->name('workers.destroy');
+
+    // Worker Positions CRUD
+    Route::get('/positions', [WorkerPositionController::class, 'index'])->name('positions.index');
+    Route::get('/positions/create', [WorkerPositionController::class, 'create'])->name('positions.create');
+    Route::post('/positions', [WorkerPositionController::class, 'store'])->name('positions.store');
+    Route::get('/positions/{position}', [WorkerPositionController::class, 'show'])->name('positions.show');
+    Route::get('/positions/{position}/edit', [WorkerPositionController::class, 'edit'])->name('positions.edit');
+    Route::put('/positions/{position}', [WorkerPositionController::class, 'update'])->name('positions.update');
+    Route::delete('/positions/{position}', [WorkerPositionController::class, 'destroy'])->name('positions.destroy');
 
     // Payments CRUD
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -86,6 +117,10 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+    // Calendar API endpoints
+    Route::get('/api/calendar/daily-summary', [DashboardController::class, 'calendarDailySummary'])->name('api.calendar.daily-summary');
+    Route::get('/api/calendar/month-data', [DashboardController::class, 'calendarMonthData'])->name('api.calendar.month-data');
 });
 
 // Super Admin Routes

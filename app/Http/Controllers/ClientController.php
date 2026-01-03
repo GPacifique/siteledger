@@ -49,7 +49,8 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        return view('clients.show', compact('client'));
+        $projects = $client->projects()->with(['tasks'])->get();
+        return view('clients.show', compact('client', 'projects'));
     }
 
     /**

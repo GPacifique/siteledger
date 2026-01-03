@@ -25,7 +25,30 @@ class IncomeController extends Controller
     public function index()
     {
         $revenues = Income::with('project')->orderBy('created_at', 'desc')->paginate(15);
-        return view('revenues.index', compact('revenues'));
+
+        // Calculate stats
+        $today = \Carbon\Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        $totalRevenue = Income::sum('amount_received');
+        $revenueThisMonth = Income::whereBetween('received_at', [$startOfMonth, $endOfToday])->sum('amount_received');
+        $revenueToday = Income::whereDate('received_at', $today)->sum('amount_received');
+
+        // Get expenses for comparison
+        $expensesToday = \App\Models\Expense::whereDate('created_at', $today)->sum('amount');
+        $expensesThisMonth = \App\Models\Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount');
+
+        // Get worker payments for comparison
+        $workerPaymentsToday = \App\Models\Payment::whereDate('created_at', $today)->whereNotNull('employee_id')->sum('amount');
+
+        // Combined formula: Worker Payments + Office Expenses
+        $allExpensesToday = $workerPaymentsToday + $expensesToday;
+
+        return view('revenues.index', compact(
+            'revenues', 'totalRevenue', 'revenueThisMonth', 'revenueToday',
+            'expensesToday', 'expensesThisMonth', 'workerPaymentsToday', 'allExpensesToday'
+        ));
     }
 
     public function create()

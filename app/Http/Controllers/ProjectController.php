@@ -74,11 +74,22 @@ class ProjectController extends Controller
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',
             'notes'          => 'nullable|string',
+            // Phase fields
+            'current_phase'           => 'nullable|in:design,execution',
+            'design_phase_value'      => 'nullable|numeric|min:0',
+            'design_phase_status'     => 'nullable|in:pending,in_progress,completed',
+            'design_start_date'       => 'nullable|date',
+            'design_end_date'         => 'nullable|date',
+            'execution_phase_value'   => 'nullable|numeric|min:0',
+            'execution_phase_status'  => 'nullable|in:pending,in_progress,completed',
+            'execution_start_date'    => 'nullable|date',
+            'execution_end_date'      => 'nullable|date',
         ]);
 
         // Add tenant and creator information
         $validated['created_by'] = Auth::id();
         $validated['status'] = $validated['status'] ?? 'planning';
+        $validated['current_phase'] = $validated['current_phase'] ?? 'design';
 
         // Validate client exists
         if (!Client::where('id', $validated['client_id'])->exists()) {
@@ -112,11 +123,29 @@ class ProjectController extends Controller
 
         // Get project workers through tasks
         $workerIds = $project->tasks()->whereNotNull('assigned_to')->pluck('assigned_to')->unique();
-        $workers = \App\Models\Worker::whereIn('id', $workerIds)->with('payments')->get();
+        $workers = \App\Models\Worker::whereIn('id', $workerIds)->get();
+
+        // Load project-specific payments for each worker
+        $workers->each(function($worker) use ($project) {
+            $worker->projectPayments = \App\Models\WorkerPayment::where('worker_id', $worker->id)
+                ->where('project_id', $project->id)
+                ->get();
+        });
+
         $totalWorkers = $workers->count();
         $totalWorkerCost = $workers->sum(function($worker) {
-            return $worker->payments->sum('amount');
+            return $worker->projectPayments->sum('amount');
         });
+
+        // Calculate payments and worker counts by position (project-specific)
+        $paymentsByPosition = $workers->groupBy('position')->map(function($group) {
+            return [
+                'count' => $group->count(),
+                'total_paid' => $group->sum(function($worker) {
+                    return $worker->projectPayments->sum('amount');
+                }),
+            ];
+        })->sortByDesc('total_paid');
 
         // Get project revenues (incomes)
         $revenues = \App\Models\Income::where('project_id', $project->id)
@@ -137,6 +166,7 @@ class ProjectController extends Controller
 
         return view('projects.show', compact(
             'project', 'stats', 'workers', 'totalWorkers', 'totalWorkerCost',
+            'paymentsByPosition',
             'revenues', 'totalRevenue', 'receivedAmount', 'remainingAmount',
             'expenses', 'totalExpenses', 'profit'
         ));
@@ -196,6 +226,16 @@ class ProjectController extends Controller
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',
             'notes'          => 'nullable|string',
+            // Phase fields
+            'current_phase'           => 'nullable|in:design,execution',
+            'design_phase_value'      => 'nullable|numeric|min:0',
+            'design_phase_status'     => 'nullable|in:pending,in_progress,completed',
+            'design_start_date'       => 'nullable|date',
+            'design_end_date'         => 'nullable|date',
+            'execution_phase_value'   => 'nullable|numeric|min:0',
+            'execution_phase_status'  => 'nullable|in:pending,in_progress,completed',
+            'execution_start_date'    => 'nullable|date',
+            'execution_end_date'      => 'nullable|date',
         ]);
 
         $validated['updated_by'] = Auth::id();

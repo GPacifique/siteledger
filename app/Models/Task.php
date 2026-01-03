@@ -10,11 +10,12 @@ use Carbon\Carbon;
 class Task extends Model
 {
     use BelongsToTenant;
-    
+
     protected $fillable = [
         'tenant_id',
         'project_id',
         'assigned_to',
+        'worker_id',
         'created_by',
         'title',
         'description',
@@ -62,6 +63,14 @@ class Task extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Task is assigned to a worker
+     */
+    public function worker(): BelongsTo
+    {
+        return $this->belongsTo(Worker::class, 'worker_id');
     }
 
     /**
@@ -119,8 +128,8 @@ class Task extends Model
      */
     public function getIsOverdueAttribute(): bool
     {
-        return $this->due_date && 
-               $this->due_date < Carbon::today() && 
+        return $this->due_date &&
+               $this->due_date < Carbon::today() &&
                !in_array($this->status, ['completed', 'cancelled']);
     }
 

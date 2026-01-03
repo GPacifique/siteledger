@@ -118,7 +118,7 @@ class DashboardController extends Controller
         $paymentsThisMonth = $has('payments', 'amount')
             ? Payment::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
             : 0;
-        $recentPayments = $has('payments') ? Payment::latest()->limit(7)->get() : collect();
+        $recentPayments = $has('payments') ? Payment::with('employee')->latest()->limit(7)->get() : collect();
 
         // Transactions
         $recentTransactions = $has('transactions') ? Transaction::latest()->limit(7)->get() : collect();
@@ -131,6 +131,9 @@ class DashboardController extends Controller
         $incomesThisMonth = $has('incomes', 'amount_received')
             ? Income::whereBetween('received_at', [$startOfMonth, $endOfToday])->sum('amount_received')
             : 0;
+        $incomesToday = $has('incomes', 'amount_received')
+            ? Income::whereDate('received_at', $today)->sum('amount_received')
+            : 0;
         $recentIncomes = $has('incomes') ? Income::latest()->limit(7)->get() : collect();
 
         // Expenses
@@ -138,7 +141,15 @@ class DashboardController extends Controller
         $expensesThisMonth = $has('expenses', 'amount')
             ? Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
             : 0;
+        $expensesToday = $has('expenses', 'amount')
+            ? Expense::whereDate('created_at', $today)->sum('amount')
+            : 0;
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(7)->get() : collect();
+
+        // Combined Payments and Expenses (All Expenses)
+        $allExpensesTotal = $paymentsTotal + $expensesTotal;
+        $allExpensesThisMonth = $paymentsThisMonth + $expensesThisMonth;
+        $allExpensesToday = $workerPaymentsToday + $expensesToday;
 
         // Expenses by category (Office vs Project)
         $officeExpenses = $has('expenses') ? Expense::whereNull('project_id')->sum('amount') : 0;
@@ -248,8 +259,9 @@ class DashboardController extends Controller
             'workerPaymentsToday', 'workerPaymentsThisMonth', 'recentWorkerPayments',
             'paymentsTotal', 'paymentsThisMonth', 'recentPayments',
             'recentTransactions', 'transactionsThisMonth',
-            'incomesTotal', 'incomesThisMonth', 'recentIncomes',
-            'expensesTotal', 'expensesThisMonth', 'recentExpenses',
+            'incomesTotal', 'incomesThisMonth', 'incomesToday', 'recentIncomes',
+            'expensesTotal', 'expensesThisMonth', 'expensesToday', 'recentExpenses',
+            'allExpensesTotal', 'allExpensesThisMonth', 'allExpensesToday',
             'officeExpenses', 'projectExpenses', 'officeExpensesThisMonth', 'projectExpensesThisMonth',
             'projectsCount', 'projectsThisMonth', 'projectsTotal', 'recentProjects',
             'totalClients', 'activeClients', 'clientsThisMonth', 'totalOrders',
@@ -290,7 +302,7 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
-        $recentPayments = $has('payments') ? Payment::latest()->limit(10)->get() : collect();
+        $recentPayments = $has('payments') ? Payment::with('employee')->latest()->limit(10)->get() : collect();
         $recentIncomes = $has('incomes') ? Income::latest()->limit(10)->get() : collect();
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(10)->get() : collect();
 
@@ -443,5 +455,228 @@ class DashboardController extends Controller
         ];
 
         return view('dashboard.analytics', $analyticsData);
+    }
+
+    /**
+     * Get daily summary for calendar
+     */
+    public function calendarDailySummary()
+    {
+        $date = request('date');
+
+        if (!$date) {
+            return response()->json(['error' => 'Date is required'], 400);
+        }
+
+        $has = function (string $table, ?string $column = null): bool {
+            if (! Schema::hasTable($table)) {
+                return false;
+            }
+            return $column ? Schema::hasColumn($table, $column) : true;
+        };
+
+        // Get incomes for the date
+        $incomes = collect();
+        $totalIncome = 0;
+        $projectIncome = 0;
+
+        if ($has('incomes', 'amount_received')) {
+            $incomes = Income::with('project')
+                ->whereDate('received_at', $date)
+                ->get();
+            $totalIncome = $incomes->sum('amount_received');
+            $projectIncome = $incomes->whereNotNull('project_id')->sum('amount_received');
+        }
+
+        // Get expenses for the date
+        $expenses = collect();
+        $totalExpenses = 0;
+        $projectExpenses = 0;
+        $officeExpenses = 0;
+
+        if ($has('expenses', 'amount')) {
+            $expenses = Expense::with('project')
+                ->whereDate('date', $date)
+                ->get();
+            $totalExpenses = $expenses->sum('amount');
+            $projectExpenses = $expenses->whereNotNull('project_id')->sum('amount');
+            $officeExpenses = $expenses->whereNull('project_id')->sum('amount');
+        }
+
+        // Group by projects with detailed breakdown
+        $projectData = [];
+
+        // Get projects with income on this date
+        foreach ($incomes->whereNotNull('project_id')->groupBy('project_id') as $projectId => $projectIncomes) {
+            $project = $projectIncomes->first()->project;
+            if (!isset($projectData[$projectId])) {
+                $projectData[$projectId] = [
+                    'name' => $project ? $project->name : 'Unknown Project',
+                    'income' => 0,
+                    'expenses' => 0,
+                    'materials' => 0,
+                    'labor' => 0,
+                    'designLabor' => 0,
+                    'executionLabor' => 0,
+                    'otherExpenses' => 0,
+                    'incomeDetails' => [],
+                    'expenseDetails' => []
+                ];
+            }
+            $projectData[$projectId]['income'] = $projectIncomes->sum('amount_received');
+            $projectData[$projectId]['incomeDetails'] = $projectIncomes->map(function ($income) {
+                return [
+                    'description' => $income->description ?? 'Income',
+                    'amount' => $income->amount_received
+                ];
+            })->values()->toArray();
+        }
+
+        // Get projects with expenses on this date
+        foreach ($expenses->whereNotNull('project_id')->groupBy('project_id') as $projectId => $projectExps) {
+            $project = $projectExps->first()->project;
+            if (!isset($projectData[$projectId])) {
+                $projectData[$projectId] = [
+                    'name' => $project ? $project->name : 'Unknown Project',
+                    'income' => 0,
+                    'expenses' => 0,
+                    'materials' => 0,
+                    'labor' => 0,
+                    'designLabor' => 0,
+                    'executionLabor' => 0,
+                    'otherExpenses' => 0,
+                    'incomeDetails' => [],
+                    'expenseDetails' => []
+                ];
+            }
+            $projectData[$projectId]['expenses'] = $projectExps->sum('amount');
+
+            // Calculate materials, labor, and other expenses
+            $projectData[$projectId]['materials'] = $projectExps->where('expense_type', 'materials')->sum('amount');
+            $projectData[$projectId]['labor'] = $projectExps->where('expense_type', 'labor')->sum('amount');
+            $projectData[$projectId]['designLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'design')->sum('amount');
+            $projectData[$projectId]['executionLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'execution')->sum('amount');
+            $projectData[$projectId]['otherExpenses'] = $projectExps->whereNotIn('expense_type', ['materials', 'labor'])->sum('amount');
+
+            $projectData[$projectId]['expenseDetails'] = $projectExps->map(function ($expense) {
+                return [
+                    'description' => $expense->description ?? 'Expense',
+                    'category' => $expense->category ?? null,
+                    'expense_type' => $expense->expense_type ?? null,
+                    'phase' => $expense->phase ?? null,
+                    'item_name' => $expense->item_name ?? null,
+                    'quantity' => $expense->quantity ?? null,
+                    'unit' => $expense->unit ?? null,
+                    'amount' => $expense->amount
+                ];
+            })->values()->toArray();
+        }
+
+        // Calculate balance for each project
+        foreach ($projectData as $projectId => $pData) {
+            $projectData[$projectId]['balance'] = $pData['income'] - $pData['expenses'];
+        }
+
+        // Format income details (all incomes)
+        $incomeDetails = $incomes->map(function ($income) {
+            return [
+                'description' => $income->description ?? 'Income',
+                'project' => $income->project ? $income->project->name : null,
+                'amount' => $income->amount_received
+            ];
+        })->values()->toArray();
+
+        // Format expense details (all expenses)
+        $expenseDetails = $expenses->map(function ($expense) {
+            return [
+                'description' => $expense->description ?? 'Expense',
+                'category' => $expense->category ?? null,
+                'expense_type' => $expense->expense_type ?? null,
+                'project' => $expense->project ? $expense->project->name : 'Office',
+                'amount' => $expense->amount
+            ];
+        })->values()->toArray();
+
+        // Office expenses details
+        $officeExpenseDetails = $expenses->whereNull('project_id')->map(function ($expense) {
+            return [
+                'description' => $expense->description ?? 'Expense',
+                'category' => $expense->category ?? null,
+                'amount' => $expense->amount
+            ];
+        })->values()->toArray();
+
+        return response()->json([
+            'date' => $date,
+            'totalIncome' => $totalIncome,
+            'totalExpenses' => $totalExpenses,
+            'balance' => $totalIncome - $totalExpenses,
+            'projectIncome' => $projectIncome,
+            'projectExpenses' => $projectExpenses,
+            'officeExpenses' => $officeExpenses,
+            'projects' => array_values($projectData),
+            'incomeDetails' => $incomeDetails,
+            'expenseDetails' => $expenseDetails,
+            'officeExpenseDetails' => $officeExpenseDetails
+        ]);
+    }
+
+    /**
+     * Get month data for calendar indicators
+     */
+    public function calendarMonthData()
+    {
+        $year = request('year', date('Y'));
+        $month = request('month', date('m'));
+
+        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+
+        $has = function (string $table, ?string $column = null): bool {
+            if (! Schema::hasTable($table)) {
+                return false;
+            }
+            return $column ? Schema::hasColumn($table, $column) : true;
+        };
+
+        $dates = [];
+
+        // Get income data for the month
+        if ($has('incomes', 'amount_received')) {
+            $incomesByDate = Income::selectRaw('DATE(received_at) as date, SUM(amount_received) as total')
+                ->whereBetween('received_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->pluck('total', 'date')
+                ->toArray();
+
+            foreach ($incomesByDate as $date => $amount) {
+                if (!isset($dates[$date])) {
+                    $dates[$date] = ['income' => 0, 'expenses' => 0];
+                }
+                $dates[$date]['income'] = (float) $amount;
+            }
+        }
+
+        // Get expense data for the month
+        if ($has('expenses', 'amount')) {
+            $expensesByDate = Expense::selectRaw('DATE(date) as date, SUM(amount) as total')
+                ->whereBetween('date', [$startDate, $endDate])
+                ->groupBy('date')
+                ->pluck('total', 'date')
+                ->toArray();
+
+            foreach ($expensesByDate as $date => $amount) {
+                if (!isset($dates[$date])) {
+                    $dates[$date] = ['income' => 0, 'expenses' => 0];
+                }
+                $dates[$date]['expenses'] = (float) $amount;
+            }
+        }
+
+        return response()->json([
+            'year' => $year,
+            'month' => $month,
+            'dates' => $dates
+        ]);
     }
 }

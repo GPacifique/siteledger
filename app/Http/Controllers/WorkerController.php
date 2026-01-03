@@ -74,20 +74,28 @@ return redirect()->route('workers.show', $worker)->with('success', 'Worker creat
 // Display the specified worker
 public function show(Worker $worker)
 {
-	// eager load recent payments and tasks
-	$worker->load(['payments' => function($q){ $q->orderByDesc('created_at')->limit(10); }]);
-
-	// Get worker statistics - tasks are assigned via assigned_to field
+	// Get all tasks assigned to this worker
 	$tasks = \App\Models\Task::where('assigned_to', $worker->id)->get();
+	$projects = \App\Models\Project::whereIn('id', $tasks->pluck('project_id'))->distinct()->get();
+
+	// Get all payments made to this worker
+	$allPayments = $worker->payments()->with('project')->latest('paid_on')->get();
+	$recentPayments = $allPayments->take(10);
+
+	// Calculate statistics
 	$stats = [
 		'total_tasks' => $tasks->count(),
 		'completed_tasks' => $tasks->where('status', 'completed')->count(),
-		'total_wages' => $worker->payments()->sum('amount'),
+		'in_progress_tasks' => $tasks->where('status', 'in_progress')->count(),
+		'pending_tasks' => $tasks->where('status', 'pending')->count(),
+		'total_wages' => $allPayments->sum('amount'),
+		'total_projects' => $projects->count(),
+		'estimated_hours' => $tasks->sum('estimated_hours'),
+		'actual_hours' => $tasks->sum('actual_hours'),
+		'total_actual_cost' => $tasks->sum('actual_cost'),
 	];
 
-	$recentPayments = $worker->payments()->latest('created_at')->limit(10)->get();
-
-	return view('workers.show', compact('worker', 'stats', 'recentPayments'));
+	return view('workers.show', compact('worker', 'stats', 'recentPayments', 'allPayments', 'tasks', 'projects'));
 }
 
 

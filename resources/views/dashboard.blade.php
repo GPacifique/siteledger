@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - SiteLedger</title>
+    <title>Admin Dashboard - CSMS</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -113,6 +113,129 @@
         .stat-card .change.negative {
             color: #e74c3c;
         }
+        .stat-card .change.neutral {
+            color: #667eea;
+        }
+        /* Quick Actions Styles */
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        .quick-actions h2 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .action-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-link:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .action-link:hover .action-icon {
+            transform: scale(1.1);
+        }
+        .action-link:hover .action-count {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        .action-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        .action-count {
+            font-size: 0.85rem;
+            color: #666;
+            background: #f0f0f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        /* Color variations for action links */
+        .action-link.projects { border-left: 4px solid #667eea; }
+        .action-link.projects:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .action-link.clients { border-left: 4px solid #00b894; }
+        .action-link.clients:hover { background: linear-gradient(135deg, #00b894 0%, #00a382 100%); }
+        .action-link.workers { border-left: 4px solid #e17055; }
+        .action-link.workers:hover { background: linear-gradient(135deg, #e17055 0%, #d63031 100%); }
+        .action-link.revenues { border-left: 4px solid #27ae60; }
+        .action-link.revenues:hover { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        .action-link.expenses { border-left: 4px solid #dc3545; }
+        .action-link.expenses:hover { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .action-link.payments { border-left: 4px solid #f39c12; }
+        .action-link.payments:hover { background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); }
+        .action-link.tasks { border-left: 4px solid #9b59b6; }
+        .action-link.tasks:hover { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        /* Summary Section */
+        .summary-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        .summary-section h3 {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        .summary-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .summary-value.positive { color: #27ae60; }
+        .summary-value.negative { color: #dc3545; }
+        .summary-value.neutral { color: #667eea; }
         .chart-section {
             background: white;
             padding: 2rem;
@@ -219,6 +342,434 @@
         .empty-state p {
             font-size: 0.95rem;
         }
+
+        /* Calendar Section */
+        .calendar-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        .calendar-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .calendar-nav button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .calendar-nav button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .calendar-month-year {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .calendar-kpis {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 0 0 0.75rem 0;
+            align-items: center;
+        }
+        .calendar-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            background: #f3f4f6;
+            color: #333;
+            border: 1px solid #eee;
+        }
+        .calendar-chip.positive { background: #e9f7ef; color: #1e7e34; border-color: #d4edda; }
+        .calendar-chip.negative { background: #fdecea; color: #a71d2a; border-color: #f5c6cb; }
+        .calendar-chip.neutral { background: #eef2ff; color: #4f46e5; border-color: #e0e7ff; }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            position: relative;
+            min-height: 45px;
+        }
+        .calendar-day:hover:not(.empty):not(.other-month) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .calendar-day.today {
+            background: #e8f5e9;
+            font-weight: 700;
+            border: 2px solid #27ae60;
+        }
+        .calendar-day.today:hover {
+            background: #27ae60;
+            color: white;
+        }
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+        .calendar-day.empty {
+            cursor: default;
+        }
+        .calendar-day.has-data::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        .calendar-day.has-income::after {
+            background: #27ae60;
+        }
+        .calendar-day.has-expense::after {
+            background: #dc3545;
+        }
+        .calendar-day.has-both::after {
+            background: linear-gradient(90deg, #27ae60 50%, #dc3545 50%);
+            width: 12px;
+        }
+
+        /* Calendar Modal */
+        .calendar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .calendar-modal.active {
+            display: flex;
+        }
+        .calendar-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .calendar-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .calendar-modal-header h3 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .calendar-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .calendar-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+        .calendar-modal-body {
+            padding: 1.5rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .calendar-modal-loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .calendar-modal-loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .modal-summary-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .modal-summary-section h4 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .modal-summary-row:last-child {
+            border-bottom: none;
+        }
+        .modal-summary-label {
+            color: #666;
+        }
+        .modal-summary-value {
+            font-weight: 600;
+        }
+        .modal-summary-value.positive { color: #27ae60; }
+        .modal-summary-value.negative { color: #dc3545; }
+        .modal-summary-value.neutral { color: #667eea; }
+        .modal-project-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .modal-project-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+        .modal-project-name {
+            font-weight: 500;
+            color: #333;
+        }
+        .modal-project-amounts {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+        /* Project Card Styles for Calendar Modal */
+        .project-summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .project-summary-card.office-card {
+            border-color: #fd79a8;
+            background: linear-gradient(135deg, #fff 0%, #fff5f8 100%);
+        }
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .project-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .project-card-balance {
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        .project-card-balance.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        .project-card-balance.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .project-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .project-stat-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .project-stat-item.income {
+            background: #d4edda;
+        }
+        .project-stat-item.expense {
+            background: #f8d7da;
+        }
+        .project-stat-item.materials {
+            background: #fff3cd;
+        }
+        .project-stat-item.labor {
+            background: #cce5ff;
+        }
+        .project-stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .project-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #333;
+            margin-top: 0.25rem;
+        }
+        .project-details-toggle {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 0.5rem;
+            transition: background 0.3s ease;
+        }
+        .project-details-toggle:hover {
+            background: #5a6fd6;
+        }
+        .project-details-content {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #e0e0e0;
+        }
+        .project-details-content.visible {
+            display: block;
+        }
+        .expense-type-breakdown {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .expense-type-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .detail-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .detail-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .detail-item-desc {
+            font-weight: 500;
+            color: #333;
+        }
+        .detail-item-meta {
+            font-size: 0.75rem;
+            color: #999;
+        }
+        .modal-no-data {
+            text-align: center;
+            color: #999;
+            padding: 1rem;
+            font-style: italic;
+        }
     </style>
     <script>
         // Enhanced card interaction functionality
@@ -231,7 +782,10 @@
                 'Total Workforce': '/workers',
                 'Total Payments': '/payments',
                 'Office Expenses': '/expenses',
-                'Project Expenses': '/expenses'
+                'Project Expenses': '/expenses',
+                'Today\'s Income': '/revenues',
+                'Today\'s Expenses': '/expenses',
+                'Today\'s Net': '/admin/dashboard'
             };
 
             document.querySelectorAll('.stat-card').forEach(card => {
@@ -310,51 +864,315 @@
     @include('components.navbar')
 
     <div class="container">
-        <!-- Quick Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Income</h3>
-                <div class="value">RWF {{ number_format($incomesTotal ?? 0, 2) }}</div>
-                <div class="change positive">+{{ $incomesThisMonth ?? 0 }} this month</div>
+        <!-- Quick Actions -->
+        @php
+            $projects = \App\Models\Project::all();
+            $totalDesignValue = $projects->sum('design_phase_value');
+            $totalDesignPaid = $projects->sum('design_phase_paid');
+            $totalExecutionValue = $projects->sum('execution_phase_value');
+            $totalExecutionPaid = $projects->sum('execution_phase_paid');
+            $allWorkers = \App\Models\Worker::all();
+        @endphp
+
+        <!-- Combined Expenses & Payments Cards -->
+        <div class="two-column">
+            <div class="stats-grid">
+                <!-- Total All Expenses (Payments + Expenses) -->
+                <div class="stat-card">
+                    <h3>💰 Total All Expenses</h3>
+                    <div class="value">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</div>
+                    <div class="change positive">
+                        📊 Payments: RWF {{ number_format($paymentsTotal ?? 0, 2) }}
+                    </div>
+                    <div class="change negative">
+                        📊 Other Expenses: RWF {{ number_format($expensesTotal ?? 0, 2) }}
+                    </div>
+                </div>
+
+                <!-- This Month All Expenses -->
+                <div class="stat-card">
+                    <h3>📅 This Month Expenses</h3>
+                    <div class="value">RWF {{ number_format($allExpensesThisMonth ?? 0, 2) }}</div>
+                    <div class="change positive">
+                        💳 Payments: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}
+                    </div>
+                    <div class="change negative">
+                        💸 Other: RWF {{ number_format($expensesThisMonth ?? 0, 2) }}
+                    </div>
+                </div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
-                <h3 style="color: white;">Total Expenses</h3>
-                <div class="value" style="color: white;">RWF {{ number_format($expensesTotal ?? 0, 2) }}</div>
-                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $expensesThisMonth ?? 0 }} this month</div>
+            <div class="stats-grid">
+                <!-- Today's All Expenses -->
+                <div class="stat-card">
+                    <h3>📆 Today's Expenses</h3>
+                    <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
+                    <div class="change positive">
+                        💳 Worker Payments: RWF {{ number_format($workerPaymentsToday ?? 0, 2) }}
+                    </div>
+                    <div class="change negative">
+                        💸 Office Expenses: RWF {{ number_format($expensesToday ?? 0, 2) }}
+                    </div>
+                </div>
+
+                <!-- Worker Payments Summary -->
+                <div class="stat-card">
+                    <h3>👷 Worker Payments</h3>
+                    <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
+                    <div class="change positive">
+                        This Month: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}
+                    </div>
+                    <div class="change neutral">
+                        Today: RWF {{ number_format($workerPaymentsToday ?? 0, 2) }}
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Total Projects</h3>
-                <div class="value">{{ $projectsCount ?? 0 }}</div>
-                <div class="change">+{{ $projectsThisMonth ?? 0 }} this month</div>
+        </div>
+
+        <div class="quick-actions">
+            <h2>⚡ Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="{{ route('projects.index') }}" class="action-link projects">
+                    <span class="action-icon">📁</span>
+                    <span class="action-title">Projects</span>
+                    <span class="action-count">{{ $projectsCount ?? 0 }} total</span>
+                </a>
+                <a href="{{ route('clients.index') }}" class="action-link clients">
+                    <span class="action-icon">👥</span>
+                    <span class="action-title">Clients</span>
+                    <span class="action-count">{{ $totalClients ?? 0 }} total</span>
+                </a>
+                <a href="{{ route('workers.index') }}" class="action-link workers">
+                    <span class="action-icon">👷</span>
+                    <span class="action-title">Workers</span>
+                    <span class="action-count">{{ $totalWorkforce ?? 0 }} total</span>
+                </a>
+                <a href="{{ route('revenues.index') }}" class="action-link revenues">
+                    <span class="action-icon">💰</span>
+                    <span class="action-title">Revenues</span>
+                    <span class="action-count">RWF {{ number_format(($incomesTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
+                <a href="{{ route('expenses.index') }}" class="action-link expenses">
+                    <span class="action-icon">💸</span>
+                    <span class="action-title">All Expenses</span>
+                    <span class="action-count">RWF {{ number_format(($allExpensesTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
+                <a href="{{ route('payments.index') }}" class="action-link payments">
+                    <span class="action-icon">💳</span>
+                    <span class="action-title">Payments</span>
+                    <span class="action-count">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
             </div>
-            <div class="stat-card">
-                <h3>Active Clients</h3>
-                <div class="value">{{ $activeClients ?? 0 }}</div>
-                <div class="change">{{ $totalClients ?? 0 }} total</div>
+        </div>
+
+        <!-- Summary Sections Row -->
+        <div class="two-column">
+            <!-- Today's Summary -->
+            <div class="summary-section">
+                <h3>📊 Today's Summary ({{ \Carbon\Carbon::today()->format('M d, Y') }})</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Income</span>
+                    <span class="summary-value positive">RWF {{ number_format($incomesToday ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total All Expenses</span>
+                    <span class="summary-value negative">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</span>
+                    <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                        Payments: RWF {{ number_format($workerPaymentsToday ?? 0, 0) }} + Other: RWF {{ number_format($expensesToday ?? 0, 0) }}
+                    </small>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Net Profit/Loss</span>
+                    <span class="summary-value {{ ($incomesToday ?? 0) - ($allExpensesToday ?? 0) >= 0 ? 'positive' : 'negative' }}">
+                        RWF {{ number_format(($incomesToday ?? 0) - ($allExpensesToday ?? 0), 2) }}
+                    </span>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Total Workforce</h3>
-                <div class="value">{{ $totalWorkforce ?? 0 }}</div>
-                <div class="change">{{ $activeWorkers ?? 0 }} active</div>
+
+            <!-- Overall Financial Summary -->
+            <div class="summary-section">
+                <h3>💵 Overall Financial Summary</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total Income</span>
+                    <span class="summary-value positive">RWF {{ number_format($incomesTotal ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total All Expenses</span>
+                    <span class="summary-value negative">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</span>
+                    <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                        Payments: RWF {{ number_format($paymentsTotal ?? 0, 0) }} + Other: RWF {{ number_format($expensesTotal ?? 0, 0) }}
+                    </small>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Net Balance</span>
+                    <span class="summary-value {{ ($incomesTotal ?? 0) - ($allExpensesTotal ?? 0) >= 0 ? 'positive' : 'negative' }}">
+                        RWF {{ number_format(($incomesTotal ?? 0) - ($allExpensesTotal ?? 0), 2) }}
+                    </span>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Total Payments</h3>
-                <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
-                <div class="change">{{ $paymentsThisMonth ?? 0 }} this month</div>
+        </div>
+
+        <!-- Project Phases Summary -->
+        <div class="two-column">
+            <div class="summary-section">
+                <h3>📝 Design Phase</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total Value</span>
+                    <span class="summary-value neutral">RWF {{ number_format($totalDesignValue, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Amount Paid</span>
+                    <span class="summary-value positive">RWF {{ number_format($totalDesignPaid, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Remaining</span>
+                    <span class="summary-value negative">RWF {{ number_format($totalDesignValue - $totalDesignPaid, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Progress</span>
+                    <span class="summary-value neutral">{{ $totalDesignValue > 0 ? round(($totalDesignPaid / $totalDesignValue) * 100, 1) : 0 }}%</span>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <h3>🔨 Execution Phase</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total Value</span>
+                    <span class="summary-value neutral">RWF {{ number_format($totalExecutionValue, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Amount Paid</span>
+                    <span class="summary-value positive">RWF {{ number_format($totalExecutionPaid, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Remaining</span>
+                    <span class="summary-value negative">RWF {{ number_format($totalExecutionValue - $totalExecutionPaid, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Progress</span>
+                    <span class="summary-value neutral">{{ $totalExecutionValue > 0 ? round(($totalExecutionPaid / $totalExecutionValue) * 100, 1) : 0 }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workforce by Position -->
+        @php
+            $engineers = $allWorkers->where('position', 'Engineer')->count();
+            $architects = $allWorkers->where('position', 'Architect')->count();
+            $mep = $allWorkers->where('position', 'MEP')->count();
+            $dealers = $allWorkers->where('position', 'Dealer')->count();
+            $technicians = $allWorkers->where('position', 'Technician')->count();
+            $casualLabor = $allWorkers->where('position', 'Casual Labor')->count();
+        @endphp
+        <div class="summary-section">
+            <h3>👷 Workforce by Position</h3>
+            <div class="actions-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                <a href="{{ route('workers.index') }}?position=Engineer" class="action-link" style="border-left: 4px solid #6c5ce7; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">👷</span>
+                    <span class="action-title" style="font-size: 0.9rem;">Engineers</span>
+                    <span class="action-count">{{ $engineers }}</span>
+                </a>
+                <a href="{{ route('workers.index') }}?position=Architect" class="action-link" style="border-left: 4px solid #00b894; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">🏗️</span>
+                    <span class="action-title" style="font-size: 0.9rem;">Architects</span>
+                    <span class="action-count">{{ $architects }}</span>
+                </a>
+                <a href="{{ route('workers.index') }}?position=MEP" class="action-link" style="border-left: 4px solid #e17055; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">⚡</span>
+                    <span class="action-title" style="font-size: 0.9rem;">MEP</span>
+                    <span class="action-count">{{ $mep }}</span>
+                </a>
+                <a href="{{ route('workers.index') }}?position=Dealer" class="action-link" style="border-left: 4px solid #fdcb6e; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">🤝</span>
+                    <span class="action-title" style="font-size: 0.9rem;">Dealers</span>
+                    <span class="action-count">{{ $dealers }}</span>
+                </a>
+                <a href="{{ route('workers.index') }}?position=Technician" class="action-link" style="border-left: 4px solid #0984e3; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">🔧</span>
+                    <span class="action-title" style="font-size: 0.9rem;">Technicians</span>
+                    <span class="action-count">{{ $technicians }}</span>
+                </a>
+                <a href="{{ route('workers.index') }}?position=Casual Labor" class="action-link" style="border-left: 4px solid #636e72; padding: 1rem;">
+                    <span class="action-icon" style="font-size: 1.8rem;">👨‍🔧</span>
+                    <span class="action-title" style="font-size: 0.9rem;">Casual Labor</span>
+                    <span class="action-count">{{ $casualLabor }}</span>
+                </a>
             </div>
         </div>
 
         <!-- Expense Breakdown -->
-        <div class="stats-grid">
-            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
-                <h3 style="color: white;">Office Expenses</h3>
-                <div class="value" style="color: white;">RWF {{ number_format($officeExpenses ?? 0, 2) }}</div>
-                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $officeExpensesThisMonth ?? 0 }} this month</div>
+        <div class="two-column">
+            <div class="summary-section">
+                <h3>💳 Worker Payments</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total</span>
+                    <span class="summary-value negative">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">This Month</span>
+                    <span class="summary-value negative">RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}</span>
+                </div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
-                <h3 style="color: white;">Project Expenses</h3>
-                <div class="value" style="color: white;">RWF {{ number_format($projectExpenses ?? 0, 2) }}</div>
-                <div class="change" style="color: rgba(255, 255, 255, 0.8);">{{ $projectExpensesThisMonth ?? 0 }} this month</div>
+            <div class="summary-section">
+                <h3>📊 Office & Project Expenses</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total</span>
+                    <span class="summary-value negative">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</span>
+                    <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                        Payments: RWF {{ number_format($paymentsTotal ?? 0, 0) }} + Office: RWF {{ number_format($officeExpenses ?? 0, 0) }} + Project: RWF {{ number_format($projectExpenses ?? 0, 0) }}
+                    </small>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">This Month</span>
+                    <span class="summary-value negative">RWF {{ number_format($allExpensesThisMonth ?? 0, 2) }}</span>
+                    <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                        Payments: RWF {{ number_format($paymentsThisMonth ?? 0, 0) }} + Office: RWF {{ number_format($officeExpensesThisMonth ?? 0, 0) }} + Project: RWF {{ number_format($projectExpensesThisMonth ?? 0, 0) }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Calendar -->
+        <div class="calendar-section">
+            <h2>📅 Financial Calendar</h2>
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)" title="Previous Month">‹</button>
+                    <button onclick="changeMonth(1)" title="Next Month">›</button>
+                </div>
+                <span class="calendar-month-year" id="calendarMonthYear"></span>
+                <button onclick="goToToday()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;">Today</button>
+            </div>
+            <div class="calendar-kpis">
+                <div class="calendar-chip positive">💰 Income: RWF {{ number_format($incomesThisMonth ?? 0, 0) }}</div>
+                <div class="calendar-chip negative">💸 All Expenses: RWF {{ number_format($allExpensesThisMonth ?? 0, 0) }}</div>
+                <div class="calendar-chip {{ (($incomesThisMonth ?? 0) - ($allExpensesThisMonth ?? 0)) >= 0 ? 'positive' : 'negative' }}">
+                    ⚖️ Net: RWF {{ number_format(($incomesThisMonth ?? 0) - ($allExpensesThisMonth ?? 0), 0) }}
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <div class="calendar-day-header">Sun</div>
+                <div class="calendar-day-header">Mon</div>
+                <div class="calendar-day-header">Tue</div>
+                <div class="calendar-day-header">Wed</div>
+                <div class="calendar-day-header">Thu</div>
+                <div class="calendar-day-header">Fri</div>
+                <div class="calendar-day-header">Sat</div>
+            </div>
+        </div>
+
+        <!-- Calendar Modal -->
+        <div class="calendar-modal" id="calendarModal">
+            <div class="calendar-modal-content">
+                <div class="calendar-modal-header">
+                    <h3>📊 <span id="modalDate">Daily Summary</span></h3>
+                    <button class="calendar-modal-close" onclick="closeCalendarModal()">×</button>
+                </div>
+                <div class="calendar-modal-body" id="modalBody">
+                    <div class="calendar-modal-loading">
+                        <div class="spinner"></div>
+                        <p>Loading financial data...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -458,6 +1276,8 @@
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>Worker</th>
+                            <th>Position</th>
                             <th>Amount</th>
                             <th>Type</th>
                             <th>Status</th>
@@ -467,7 +1287,9 @@
                         @foreach($recentPayments as $payment)
                             <tr onclick="window.location.href='/payments/{{ $payment->id }}';" style="cursor: pointer;">
                                 <td>{{ $payment->created_at?->format('M d, Y') ?? 'N/A' }}</td>
-                                    <td>RWF {{ number_format($payment->amount ?? 0, 2) }}</td>
+                                <td>{{ $payment->employee?->full_name ?? 'N/A' }}</td>
+                                <td>{{ $payment->employee?->position ?? 'N/A' }}</td>
+                                <td>RWF {{ number_format($payment->amount ?? 0, 2) }}</td>
                                 <td>{{ $payment->type ?? 'Transfer' }}</td>
                                 <td><span class="badge success">Completed</span></td>
                             </tr>
@@ -680,6 +1502,384 @@
                 }
             });
         });
+
+        // ===============================
+        // Financial Calendar JavaScript
+        // ===============================
+        let currentDate = new Date();
+        let calendarData = {};
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Update header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+
+            // Get calendar grid and clear existing day cells (keep headers)
+            const grid = document.getElementById('calendarGrid');
+            const dayHeaders = grid.querySelectorAll('.calendar-day-header');
+            grid.innerHTML = '';
+            dayHeaders.forEach(header => grid.appendChild(header));
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day other-month';
+                dayEl.textContent = daysInPrevMonth - i;
+                grid.appendChild(dayEl);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = day;
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                if (isCurrentMonth && day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+
+                // Check for data indicators (use combined expenses = payments + other expenses)
+                if (calendarData[dateStr]) {
+                    const data = calendarData[dateStr];
+                    const dayPayments = (data.payments ?? data.totalPayments ?? 0);
+                    const combinedExpenses = (data.expenses || 0) + dayPayments;
+                    const hasIncome = (data.income || 0) > 0;
+                    if (hasIncome && combinedExpenses > 0) {
+                        dayEl.classList.add('has-both');
+                    } else if (hasIncome) {
+                        dayEl.classList.add('has-income');
+                    } else if (combinedExpenses > 0) {
+                        dayEl.classList.add('has-expense');
+                    }
+                }
+
+                dayEl.onclick = () => openCalendarModal(dateStr, day, monthNames[month], year);
+                grid.appendChild(dayEl);
+            }
+
+            // Next month days (fill remaining cells)
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells > 35 ? 42 - totalCells : 35 - totalCells;
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day other-month';
+                dayEl.textContent = i;
+                grid.appendChild(dayEl);
+            }
+
+            // Fetch month data for indicators
+            fetchMonthData(year, month + 1);
+        }
+
+        function fetchMonthData(year, month) {
+            fetch(`/api/calendar/month-data?year=${year}&month=${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    calendarData = data.dates || {};
+                    updateCalendarIndicators();
+                })
+                .catch(error => console.log('Calendar data not available'));
+        }
+
+        function updateCalendarIndicators() {
+            const grid = document.getElementById('calendarGrid');
+            const days = grid.querySelectorAll('.calendar-day:not(.other-month):not(.calendar-day-header)');
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            days.forEach(dayEl => {
+                const day = parseInt(dayEl.textContent);
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Remove existing indicators
+                dayEl.classList.remove('has-data', 'has-income', 'has-expense', 'has-both');
+
+                if (calendarData[dateStr]) {
+                    const data = calendarData[dateStr];
+                    const dayPayments = (data.payments ?? data.totalPayments ?? 0);
+                    const combinedExpenses = (data.expenses || 0) + dayPayments;
+                    const hasIncome = (data.income || 0) > 0;
+                    if (hasIncome && combinedExpenses > 0) {
+                        dayEl.classList.add('has-both');
+                    } else if (hasIncome) {
+                        dayEl.classList.add('has-income');
+                    } else if (combinedExpenses > 0) {
+                        dayEl.classList.add('has-expense');
+                    }
+                }
+            });
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        function openCalendarModal(dateStr, day, month, year) {
+            const modal = document.getElementById('calendarModal');
+            const modalDate = document.getElementById('modalDate');
+            const modalBody = document.getElementById('modalBody');
+
+            modalDate.textContent = `${month} ${day}, ${year}`;
+            modalBody.innerHTML = `
+                <div class="calendar-modal-loading">
+                    <div class="spinner"></div>
+                    <p>Loading financial data...</p>
+                </div>
+            `;
+
+            modal.classList.add('active');
+
+            // Fetch daily summary
+            fetch(`/api/calendar/daily-summary?date=${dateStr}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderModalContent(data, day, month, year);
+                })
+                .catch(error => {
+                    modalBody.innerHTML = `
+                        <div class="modal-no-data">
+                            <p>Unable to load data. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function renderModalContent(data, day, month, year) {
+            const modalBody = document.getElementById('modalBody');
+            const totalAllExpenses = (data.totalExpenses || 0) + (data.totalPayments || 0);
+            const balance = (data.totalIncome || 0) - totalAllExpenses;
+            const balanceClass = balance >= 0 ? 'positive' : 'negative';
+
+            // Build project cards HTML
+            let projectCardsHtml = '';
+            if (data.projects && data.projects.length > 0) {
+                projectCardsHtml = data.projects.map((p, index) => {
+                    const projectBalance = (p.income || 0) - (p.expenses || 0);
+                    const projectBalanceClass = projectBalance >= 0 ? 'positive' : 'negative';
+
+                    // Build expense details for this project
+                    let expenseDetailsHtml = '';
+                    if (p.expenseDetails && p.expenseDetails.length > 0) {
+                        expenseDetailsHtml = `
+                            <div style="margin-top: 0.75rem;">
+                                <h5 style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">💸 Expense Items</h5>
+                                <div class="detail-list">
+                                    ${p.expenseDetails.map(e => `
+                                        <div class="detail-item">
+                                            <div class="detail-item-info">
+                                                <span class="detail-item-desc">${e.item_name || e.description || 'Expense'}</span>
+                                                <span class="detail-item-meta">${e.expense_type || e.category || ''}${e.phase ? ' • ' + e.phase : ''}${e.quantity ? ' • ' + e.quantity + ' ' + (e.unit || '') : ''}</span>
+                                            </div>
+                                            <span class="negative">-RWF ${Number(e.amount).toLocaleString()}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // Build income details for this project
+                    let incomeDetailsHtml = '';
+                    if (p.incomeDetails && p.incomeDetails.length > 0) {
+                        incomeDetailsHtml = `
+                            <div style="margin-top: 0.75rem;">
+                                <h5 style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">💰 Income Items</h5>
+                                <div class="detail-list">
+                                    ${p.incomeDetails.map(i => `
+                                        <div class="detail-item">
+                                            <span class="detail-item-desc">${i.description || 'Income'}</span>
+                                            <span class="positive">+RWF ${Number(i.amount).toLocaleString()}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="project-summary-card">
+                            <div class="project-card-header">
+                                <span class="project-card-title">🏗️ ${p.name}</span>
+                                <span class="project-card-balance ${projectBalanceClass}">
+                                    ${projectBalance >= 0 ? '+' : ''}RWF ${Number(projectBalance).toLocaleString()}
+                                </span>
+                            </div>
+
+                            <div class="project-stats-grid">
+                                <div class="project-stat-item income">
+                                    <div class="project-stat-label">Income</div>
+                                    <div class="project-stat-value">RWF ${Number(p.income || 0).toLocaleString()}</div>
+                                </div>
+                                <div class="project-stat-item expense">
+                                    <div class="project-stat-label">Total Expenses</div>
+                                    <div class="project-stat-value">RWF ${Number(p.expenses || 0).toLocaleString()}</div>
+                                </div>
+                                ${p.materials > 0 ? `
+                                    <div class="project-stat-item materials">
+                                        <div class="project-stat-label">Materials</div>
+                                        <div class="project-stat-value">RWF ${Number(p.materials).toLocaleString()}</div>
+                                    </div>
+                                ` : ''}
+                                ${p.labor > 0 ? `
+                                    <div class="project-stat-item labor">
+                                        <div class="project-stat-label">Labor</div>
+                                        <div class="project-stat-value">RWF ${Number(p.labor).toLocaleString()}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            ${(p.labor > 0 || p.materials > 0 || p.otherExpenses > 0) ? `
+                                <div class="expense-type-breakdown">
+                                    ${p.designLabor > 0 ? `
+                                        <div class="expense-type-item">
+                                            <span>📝 Design Labor</span>
+                                            <span>RWF ${Number(p.designLabor).toLocaleString()}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${p.executionLabor > 0 ? `
+                                        <div class="expense-type-item">
+                                            <span>🔨 Execution Labor</span>
+                                            <span>RWF ${Number(p.executionLabor).toLocaleString()}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${p.otherExpenses > 0 ? `
+                                        <div class="expense-type-item">
+                                            <span>📦 Other</span>
+                                            <span>RWF ${Number(p.otherExpenses).toLocaleString()}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+
+                            ${(p.incomeDetails && p.incomeDetails.length > 0) || (p.expenseDetails && p.expenseDetails.length > 0) ? `
+                                <button class="project-details-toggle" onclick="toggleProjectDetails(${index})">
+                                    📋 View Details
+                                </button>
+                                <div class="project-details-content" id="projectDetails${index}">
+                                    ${incomeDetailsHtml}
+                                    ${expenseDetailsHtml}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Office Expenses Card
+            let officeCardHtml = '';
+            if (data.officeExpenses > 0) {
+                let officeDetailsHtml = '';
+                if (data.officeExpenseDetails && data.officeExpenseDetails.length > 0) {
+                    officeDetailsHtml = `
+                        <div class="detail-list" style="margin-top: 0.75rem;">
+                            ${data.officeExpenseDetails.map(e => `
+                                <div class="detail-item">
+                                    <div class="detail-item-info">
+                                        <span class="detail-item-desc">${e.description || 'Expense'}</span>
+                                        <span class="detail-item-meta">${e.category || ''}</span>
+                                    </div>
+                                    <span class="negative">-RWF ${Number(e.amount).toLocaleString()}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                officeCardHtml = `
+                    <div class="project-summary-card office-card">
+                        <div class="project-card-header">
+                            <span class="project-card-title">🏢 Office Expenses</span>
+                            <span class="project-card-balance negative">
+                                -RWF ${Number(data.officeExpenses).toLocaleString()}
+                            </span>
+                        </div>
+                        ${officeDetailsHtml}
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <!-- Daily Totals Summary -->
+                <div class="modal-summary-section">
+                    <h4>📊 Daily Summary</h4>
+                    <div class="modal-summary-row">
+                        <span class="modal-summary-label">Total Income</span>
+                        <span class="modal-summary-value positive">RWF ${Number(data.totalIncome || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="modal-summary-row">
+                        <span class="modal-summary-label">Total All Expenses</span>
+                        <span class="modal-summary-value negative">RWF ${Number(totalAllExpenses || 0).toLocaleString()}</span>
+                        <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                            Payments: RWF ${Number(data.totalPayments || 0).toLocaleString()} + Other: RWF ${Number(data.totalExpenses || 0).toLocaleString()}
+                        </small>
+                    </div>
+                    <div class="modal-summary-row" style="border-top: 2px solid #e0e0e0; padding-top: 0.75rem; margin-top: 0.5rem;">
+                        <span class="modal-summary-label"><strong>Net Balance</strong></span>
+                        <span class="modal-summary-value ${balanceClass}"><strong>RWF ${Number(balance).toLocaleString()}</strong></span>
+                    </div>
+                </div>
+
+                <!-- Project Cards -->
+                ${projectCardsHtml}
+
+                <!-- Office Card -->
+                ${officeCardHtml}
+
+                ${(!data.projects || data.projects.length === 0) && data.officeExpenses <= 0 && data.totalIncome <= 0 ? `
+                    <div class="modal-no-data">
+                        <p>No transactions recorded for this date.</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function toggleProjectDetails(index) {
+            const details = document.getElementById('projectDetails' + index);
+            if (details) {
+                details.classList.toggle('visible');
+            }
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('calendarModal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('calendarModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCalendarModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCalendarModal();
+            }
+        });
+
+        // Initialize calendar on page load
+        renderCalendar();
     </script>
 </body>
 </html>

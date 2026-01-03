@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SiteLedger</title>
+    <title>Login - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -106,7 +106,7 @@
 <body>
     <div class="container">
         <h1>Login</h1>
-        <p class="subtitle">Welcome back to SiteLedger</p>
+        <p class="subtitle">Welcome back to CSMS</p>
 
         <form method="POST" action="/login">
             @csrf

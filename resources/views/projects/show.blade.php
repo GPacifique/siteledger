@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Details - SiteLedger</title>
+    <title>Project Details - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -254,6 +254,184 @@
             </div>
         </div>
 
+        <!-- Project Phases -->
+        <div class="detail-card">
+            <h2>📐 Project Phases</h2>
+
+            <div class="detail-row">
+                <div class="detail-item">
+                    <span class="detail-label">Current Phase</span>
+                    <span class="badge {{ $project->current_phase === 'execution' ? 'badge-active' : 'badge-pending' }}">
+                        {{ $project->current_phase_label ?? 'Design Phase' }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Design Phase -->
+            <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                <h3 style="color: #667eea; margin-bottom: 1rem; font-size: 1.1rem;">📝 Design Phase</h3>
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Phase Value</span>
+                        <span class="detail-value">RWF {{ number_format($project->design_phase_value ?? 0, 2) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Amount Paid</span>
+                        <span class="detail-value" style="color: #27ae60;">RWF {{ number_format($project->design_phase_paid ?? 0, 2) }}</span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Remaining</span>
+                        <span class="detail-value" style="color: #dc3545;">RWF {{ number_format($project->design_phase_remaining ?? 0, 2) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="badge {{ $project->design_phase_status === 'completed' ? 'badge-completed' : ($project->design_phase_status === 'in_progress' ? 'badge-active' : 'badge-pending') }}">
+                            {{ ucfirst(str_replace('_', ' ', $project->design_phase_status ?? 'pending')) }}
+                        </span>
+                    </div>
+                </div>
+                @if($project->design_start_date || $project->design_end_date)
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Start Date</span>
+                        <span class="detail-value">{{ $project->design_start_date?->format('M d, Y') ?? 'N/A' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">End Date</span>
+                        <span class="detail-value">{{ $project->design_end_date?->format('M d, Y') ?? 'N/A' }}</span>
+                    </div>
+                </div>
+                @endif
+                <!-- Progress Bar -->
+                <div style="margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.85rem; color: #666;">Payment Progress</span>
+                        <span style="font-size: 0.85rem; font-weight: 600;">{{ $project->design_phase_progress ?? 0 }}%</span>
+                    </div>
+                    <div style="background: #e0e0e0; border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: {{ $project->design_phase_progress ?? 0 }}%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="{{ route('projects.phase-payments.create', [$project, 'design']) }}"
+                       style="display: inline-block; padding: 0.5rem 1rem; background: #667eea; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem;">
+                        + Add Design Payment
+                    </a>
+                </div>
+            </div>
+
+            <!-- Execution Phase -->
+            <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #27ae60;">
+                <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.1rem;">🔨 Execution Phase</h3>
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Phase Value</span>
+                        <span class="detail-value">RWF {{ number_format($project->execution_phase_value ?? 0, 2) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Amount Paid</span>
+                        <span class="detail-value" style="color: #27ae60;">RWF {{ number_format($project->execution_phase_paid ?? 0, 2) }}</span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Remaining</span>
+                        <span class="detail-value" style="color: #dc3545;">RWF {{ number_format($project->execution_phase_remaining ?? 0, 2) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="badge {{ $project->execution_phase_status === 'completed' ? 'badge-completed' : ($project->execution_phase_status === 'in_progress' ? 'badge-active' : 'badge-pending') }}">
+                            {{ ucfirst(str_replace('_', ' ', $project->execution_phase_status ?? 'pending')) }}
+                        </span>
+                    </div>
+                </div>
+                @if($project->execution_start_date || $project->execution_end_date)
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Start Date</span>
+                        <span class="detail-value">{{ $project->execution_start_date?->format('M d, Y') ?? 'N/A' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">End Date</span>
+                        <span class="detail-value">{{ $project->execution_end_date?->format('M d, Y') ?? 'N/A' }}</span>
+                    </div>
+                </div>
+                @endif
+                <!-- Progress Bar -->
+                <div style="margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.85rem; color: #666;">Payment Progress</span>
+                        <span style="font-size: 0.85rem; font-weight: 600;">{{ $project->execution_phase_progress ?? 0 }}%</span>
+                    </div>
+                    <div style="background: #e0e0e0; border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); height: 100%; width: {{ $project->execution_phase_progress ?? 0 }}%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="{{ route('projects.phase-payments.create', [$project, 'execution']) }}"
+                       style="display: inline-block; padding: 0.5rem 1rem; background: #27ae60; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem;">
+                        + Add Execution Payment
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase Payments History -->
+        @php
+            $phasePayments = $project->phasePayments()->with('receiver')->orderBy('payment_date', 'desc')->get();
+        @endphp
+        @if($phasePayments->count() > 0)
+        <div class="detail-card">
+            <h2>💳 Phase Payments History ({{ $phasePayments->count() }})</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Phase</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($phasePayments as $payment)
+                        <tr>
+                            <td>{{ $payment->payment_date?->format('M d, Y') }}</td>
+                            <td>
+                                <span class="badge {{ $payment->phase === 'design' ? 'badge-pending' : 'badge-active' }}">
+                                    {{ ucfirst($payment->phase) }}
+                                </span>
+                            </td>
+                            <td><strong>RWF {{ number_format($payment->amount, 2) }}</strong></td>
+                            <td>{{ $payment->payment_method_label }}</td>
+                            <td>{{ $payment->reference_number ?? 'N/A' }}</td>
+                            <td>
+                                <span class="badge {{ $payment->status === 'completed' ? 'badge-completed' : 'badge-pending' }}">
+                                    {{ ucfirst($payment->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ route('projects.phase-payments.edit', [$project, $payment]) }}"
+                                   style="color: #667eea; text-decoration: none; margin-right: 0.5rem;">Edit</a>
+                                <form action="{{ route('projects.phase-payments.destroy', [$project, $payment]) }}"
+                                      method="POST" style="display: inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this payment?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="color: #dc3545; background: none; border: none; cursor: pointer;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+
         <!-- Project Statistics -->
         <div class="detail-card">
             <h2>📊 Project Statistics</h2>
@@ -301,13 +479,47 @@
                                 <td><strong>{{ $worker->first_name ?? '' }} {{ $worker->last_name ?? '' }}</strong></td>
                                 <td>{{ $worker->position ?? 'N/A' }}</td>
                                 <td>{{ $worker->email ?? 'N/A' }}</td>
-                                <td>RWF {{ number_format($worker->payments->sum('amount') ?? 0, 2) }}</td>
+                                <td>RWF {{ number_format($worker->projectPayments->sum('amount') ?? 0, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             @else
                 <div class="empty-message">No workers assigned to this project yet</div>
+            @endif
+        </div>
+
+        <!-- Payments by Position -->
+        <div class="detail-card">
+            <h2>📊 Worker Costs by Position</h2>
+            @if(($paymentsByPosition ?? collect())->count() > 0)
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Worker Count</th>
+                            <th>Total Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($paymentsByPosition as $position => $data)
+                            <tr>
+                                <td><strong>{{ $position ?: 'Unspecified' }}</strong></td>
+                                <td>{{ $data['count'] }}</td>
+                                <td>RWF {{ number_format($data['total_paid'], 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot style="background: #f5f7fa; font-weight: bold;">
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td><strong>{{ $totalWorkers ?? 0 }}</strong></td>
+                            <td><strong>RWF {{ number_format($totalWorkerCost ?? 0, 2) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            @else
+                <div class="empty-message">No worker payments recorded for this project yet</div>
             @endif
         </div>
 

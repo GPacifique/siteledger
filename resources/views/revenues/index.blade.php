@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revenues - SiteLedger</title>
+    <title>Revenues - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -189,18 +189,26 @@
         </div>
 
         <!-- Stats -->
-        @php
-            $totalRevenue = $revenues->sum('amount_received');
-            $receivedCount = $revenues->where('status', 'received')->count();
-        @endphp
         <div class="stat-cards">
-            <div class="stat-card">
-                <h3>Total Revenue</h3>
-                <div class="value">RWF {{ number_format($totalRevenue, 2) }}</div>
+            <div class="stat-card" style="border-left-color: #27ae60;">
+                <h3>Today's Income</h3>
+                <div class="value" style="color: #27ae60;">RWF {{ number_format($revenueToday ?? 0, 2) }}</div>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">{{ \Carbon\Carbon::today()->format('M d, Y') }}</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #dc3545;">
+                <h3>Today's Expenses</h3>
+                <div class="value" style="color: #dc3545;">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">{{ \Carbon\Carbon::today()->format('M d, Y') }}</div>
+            </div>
+            <div class="stat-card" style="border-left-color: {{ ($revenueToday ?? 0) - ($expensesToday ?? 0) >= 0 ? '#27ae60' : '#dc3545' }};">
+                <h3>Today's Net</h3>
+                <div class="value" style="color: {{ ($revenueToday ?? 0) - ($expensesToday ?? 0) >= 0 ? '#27ae60' : '#dc3545' }};">RWF {{ number_format(($revenueToday ?? 0) - ($expensesToday ?? 0), 2) }}</div>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">{{ ($revenueToday ?? 0) - ($expensesToday ?? 0) >= 0 ? 'Profit' : 'Loss' }}</div>
             </div>
             <div class="stat-card">
-                <h3>Received Records</h3>
-                <div class="value">{{ $receivedCount }}</div>
+                <h3>Total Revenue</h3>
+                <div class="value">RWF {{ number_format($totalRevenue ?? 0, 2) }}</div>
+                <div style="font-size: 0.85rem; color: #27ae60; margin-top: 0.25rem;">+{{ number_format($revenueThisMonth ?? 0, 2) }} this month</div>
             </div>
         </div>
 

@@ -28,8 +28,39 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $payments = Payment::with('employee')->latest('created_at')->get();
-        return view('payments.index', ['payments' => $payments]);
+        $today = now()->startOfDay();
+        $endOfToday = now()->endOfDay();
+        $monthStart = now()->startOfMonth();
+        $yearStart = now()->startOfYear();
+
+        // Optional period filter
+        $period = request('period');
+        $query = Payment::with('employee')->latest('created_at');
+
+        if ($period === 'today') {
+            $query->whereBetween('created_at', [$today, $endOfToday]);
+        } elseif ($period === 'month') {
+            $query->whereBetween('created_at', [$monthStart, $endOfToday]);
+        } elseif ($period === 'year') {
+            $query->whereBetween('created_at', [$yearStart, $endOfToday]);
+        }
+
+        $payments = $query->get();
+
+        // History totals
+        $paymentsTotalAll = Payment::sum('amount');
+        $paymentsTotalToday = Payment::whereBetween('created_at', [$today, $endOfToday])->sum('amount');
+        $paymentsTotalMonth = Payment::whereBetween('created_at', [$monthStart, $endOfToday])->sum('amount');
+        $paymentsTotalYear = Payment::whereBetween('created_at', [$yearStart, $endOfToday])->sum('amount');
+
+        return view('payments.index', [
+            'payments' => $payments,
+            'period' => $period,
+            'paymentsTotalAll' => $paymentsTotalAll,
+            'paymentsTotalToday' => $paymentsTotalToday,
+            'paymentsTotalMonth' => $paymentsTotalMonth,
+            'paymentsTotalYear' => $paymentsTotalYear,
+        ]);
     }
 
     /**

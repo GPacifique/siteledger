@@ -21,12 +21,19 @@ class Worker extends Model
         'hired_at',
     ];
 
+    // Cast attributes to native types
+    protected $casts = [
+        'hired_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     /**
-     * A worker can have many tasks (assigned via assigned_to field).
+     * A worker can have many tasks (assigned via worker_id field).
      */
     public function tasks()
     {
-        return $this->hasMany(Task::class, 'assigned_to', 'id');
+        return $this->hasMany(Task::class, 'worker_id', 'id');
     }
 
     /**

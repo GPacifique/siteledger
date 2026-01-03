@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\Worker;
 use App\Traits\Downloadable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,17 +24,33 @@ class TaskController extends Controller
     }
 
     /**
-     * Display a listing of tasks.
+     * Display a listing of tasks for a specific project
      */
-    public function index(Request $request)
+    public function index(Project $project)
     {
-        $query = Task::with(['project', 'assignedTo']);
-        $filteredTasks = $this->rbacFilterService->filterTasks($query)->get();
+        $tasks = Task::where('project_id', $project->id)
+            ->with(['project', 'worker', 'assignedTo', 'createdBy'])
+            ->orderBy('priority', 'desc')
+            ->orderBy('due_date', 'asc')
+            ->paginate(20);
 
-        return Inertia::render('Admin/Tasks', [
-            'tasks' => $filteredTasks,
-            'filterContext' => $this->rbacFilterService->getFilterContext(),
-        ]);
+        return view('tasks.index', compact('project', 'tasks'));
+    }
+
+    /**
+     * Display all tasks globally
+     */
+    public function globalIndex(Request $request)
+    {
+        $tenantId = auth()->user()->current_tenant_id;
+
+        $tasks = Task::where('tenant_id', $tenantId)
+            ->with(['project', 'worker', 'assignedTo', 'createdBy'])
+            ->orderBy('priority', 'desc')
+            ->orderBy('due_date', 'asc')
+            ->paginate(20);
+
+        return view('tasks.global-index', compact('tasks'));
     }
 
     /**
@@ -50,10 +67,11 @@ class TaskController extends Controller
     /**
      * Store a newly created task.
      */
-    public function store(Request $request)
+    public function store(Request $request, Project $project = null)
     {
         $validated = $request->validate([
             'project_id' => 'nullable|exists:projects,id',
+            'worker_id' => 'nullable|exists:workers,id',
             'assigned_to' => 'nullable|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -66,13 +84,23 @@ class TaskController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Set project_id from route parameter if not provided in request
+        if ($project && !isset($validated['project_id'])) {
+            $validated['project_id'] = $project->id;
+        }
+
         $validated['created_by'] = Auth::id();
         $validated = $this->ensureTenantId($validated);
 
         Task::create($validated);
 
-        return redirect()->route('tasks.index')
-                        ->with('success', 'Task created successfully.');
+        // Return appropriate response based on request type
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Task created successfully.']);
+        }
+
+        $redirectRoute = ($project) ? route('projects.tasks.index', $project) : route('tasks.index');
+        return redirect($redirectRoute)->with('success', 'Task created successfully.');
     }
 
     /**
@@ -87,21 +115,22 @@ class TaskController extends Controller
     /**
      * Show the form for editing the specified task.
      */
-    public function edit(Task $task)
+    public function edit(Project $project, Task $task)
     {
         $projects = Project::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
+        $workers = Worker::where('tenant_id', auth()->user()->current_tenant_id)->where('status', 'active')->get();
 
-        return view('tasks.edit', compact('task', 'projects', 'users'));
+        return view('tasks.edit', compact('task', 'project', 'projects', 'users', 'workers'));
     }
 
     /**
      * Update the specified task.
      */
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Project $project, Task $task)
     {
         $validated = $request->validate([
-            'project_id' => 'nullable|exists:projects,id',
+            'worker_id' => 'nullable|exists:workers,id',
             'assigned_to' => 'nullable|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -124,19 +153,46 @@ class TaskController extends Controller
 
         $task->update($validated);
 
-        return redirect()->route('tasks.index')
+        return redirect()->route('projects.tasks.index', $project)
                         ->with('success', 'Task updated successfully.');
     }
 
     /**
      * Remove the specified task.
      */
-    public function destroy(Task $task)
+    public function destroy(Project $project, Task $task)
     {
         $task->delete();
 
-        return redirect()->route('tasks.index')
+        return redirect()->route('projects.tasks.index', $project)
                         ->with('success', 'Task deleted successfully.');
+    }
+
+    /**
+     * Store task from global tasks page
+     */
+    public function storeFromGlobal(Request $request)
+    {
+        $validated = $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'worker_id' => 'required|exists:workers,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'start_date' => 'nullable|date',
+            'due_date' => 'nullable|date',
+            'estimated_hours' => 'nullable|numeric|min:0',
+            'estimated_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        $validated['created_by'] = Auth::id();
+        $validated = $this->ensureTenantId($validated);
+
+        Task::create($validated);
+
+        return redirect()->route('tasks.index')
+                        ->with('success', 'Task created successfully.');
     }
 
     /**

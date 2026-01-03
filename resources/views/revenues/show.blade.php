@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revenue Details - SiteLedger</title>
+    <title>Revenue Details - CSMS</title>
     <style>
         * {
             margin: 0;

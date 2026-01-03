@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Tenants - Super Admin - SiteLedger</title>
+    <title>Manage Tenants - Super Admin - CSMS</title>
     <style>
         * {
             margin: 0;

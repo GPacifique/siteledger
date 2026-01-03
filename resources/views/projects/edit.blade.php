@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Project - SiteLedger</title>
+    <title>Edit Project - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -227,6 +227,93 @@
                         @error('status')
                             <div class="error">{{ $message }}</div>
                         @enderror
+                    </div>
+                </div>
+
+                <!-- Project Phases Section -->
+                <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1.5rem; color: #333; font-size: 1.2rem; border-bottom: 2px solid #667eea; padding-bottom: 0.5rem;">📐 Project Phases</h3>
+
+                    <div class="form-group">
+                        <label for="current_phase">Current Phase</label>
+                        <select name="current_phase" id="current_phase">
+                            <option value="design" {{ old('current_phase', $project->current_phase) == 'design' ? 'selected' : '' }}>Design Phase</option>
+                            <option value="execution" {{ old('current_phase', $project->current_phase) == 'execution' ? 'selected' : '' }}>Execution Phase</option>
+                        </select>
+                    </div>
+
+                    <!-- Design Phase -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #667eea;">
+                        <h4 style="color: #667eea; margin-bottom: 1rem;">📝 Design Phase</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="design_phase_value">Design Phase Value (RWF)</label>
+                                <input type="number" name="design_phase_value" id="design_phase_value" step="0.01" value="{{ old('design_phase_value', $project->design_phase_value) }}">
+                                @error('design_phase_value')
+                                    <div class="error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="design_phase_status">Design Phase Status</label>
+                                <select name="design_phase_status" id="design_phase_status">
+                                    <option value="pending" {{ old('design_phase_status', $project->design_phase_status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="in_progress" {{ old('design_phase_status', $project->design_phase_status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="completed" {{ old('design_phase_status', $project->design_phase_status) == 'completed' ? 'selected' : '' }}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="design_start_date">Design Start Date</label>
+                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date', $project->design_start_date?->format('Y-m-d')) }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="design_end_date">Design End Date</label>
+                                <input type="date" name="design_end_date" id="design_end_date" value="{{ old('design_end_date', $project->design_end_date?->format('Y-m-d')) }}">
+                            </div>
+                        </div>
+                        @if($project->design_phase_paid > 0)
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e9; border-radius: 4px;">
+                            <small style="color: #27ae60;"><strong>Paid:</strong> RWF {{ number_format($project->design_phase_paid, 2) }} | <strong>Remaining:</strong> RWF {{ number_format($project->design_phase_remaining, 2) }}</small>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Execution Phase -->
+                    <div style="padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #27ae60;">
+                        <h4 style="color: #27ae60; margin-bottom: 1rem;">🔨 Execution Phase</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="execution_phase_value">Execution Phase Value (RWF)</label>
+                                <input type="number" name="execution_phase_value" id="execution_phase_value" step="0.01" value="{{ old('execution_phase_value', $project->execution_phase_value) }}">
+                                @error('execution_phase_value')
+                                    <div class="error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="execution_phase_status">Execution Phase Status</label>
+                                <select name="execution_phase_status" id="execution_phase_status">
+                                    <option value="pending" {{ old('execution_phase_status', $project->execution_phase_status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="in_progress" {{ old('execution_phase_status', $project->execution_phase_status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="completed" {{ old('execution_phase_status', $project->execution_phase_status) == 'completed' ? 'selected' : '' }}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="execution_start_date">Execution Start Date</label>
+                                <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date', $project->execution_start_date?->format('Y-m-d')) }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="execution_end_date">Execution End Date</label>
+                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date', $project->execution_end_date?->format('Y-m-d')) }}">
+                            </div>
+                        </div>
+                        @if($project->execution_phase_paid > 0)
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e9; border-radius: 4px;">
+                            <small style="color: #27ae60;"><strong>Paid:</strong> RWF {{ number_format($project->execution_phase_paid, 2) }} | <strong>Remaining:</strong> RWF {{ number_format($project->execution_phase_remaining, 2) }}</small>
+                        </div>
+                        @endif
                     </div>
                 </div>
 

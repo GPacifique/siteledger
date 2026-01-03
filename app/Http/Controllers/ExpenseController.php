@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Models\Payment;
 use App\Models\Project;
 use App\Models\Client;
 use App\Traits\Downloadable;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Services\RbacFilterService;
+use Carbon\Carbon;
 use Inertia\Inertia;
 
 class ExpenseController extends Controller
@@ -50,11 +52,103 @@ class ExpenseController extends Controller
         $officeTotal = $officeExpenses->sum('amount');
         $projectTotal = $projectExpenses->sum('amount');
 
+        // Group project expenses by project
+        $expensesByProject = $projectExpenses->groupBy('project_id')->map(function($expenses, $projectId) {
+            $project = $expenses->first()->project;
+
+            // Group by expense type
+            $materials = $expenses->where('expense_type', 'materials');
+            $labor = $expenses->where('expense_type', 'labor');
+            $other = $expenses->whereNotIn('expense_type', ['materials', 'labor']);
+
+            // Group labor by phase
+            $designLabor = $labor->where('phase', 'design');
+            $executionLabor = $labor->where('phase', 'execution');
+
+            return [
+                'project' => $project,
+                'project_name' => $project ? $project->name : 'Unknown Project',
+                'total' => $expenses->sum('amount'),
+                'count' => $expenses->count(),
+                'materials' => [
+                    'expenses' => $materials,
+                    'total' => $materials->sum('amount'),
+                    'count' => $materials->count(),
+                ],
+                'labor' => [
+                    'expenses' => $labor,
+                    'total' => $labor->sum('amount'),
+                    'count' => $labor->count(),
+                    'design' => [
+                        'expenses' => $designLabor,
+                        'total' => $designLabor->sum('amount'),
+                        'count' => $designLabor->count(),
+                    ],
+                    'execution' => [
+                        'expenses' => $executionLabor,
+                        'total' => $executionLabor->sum('amount'),
+                        'count' => $executionLabor->count(),
+                    ],
+                ],
+                'other' => [
+                    'expenses' => $other,
+                    'total' => $other->sum('amount'),
+                    'count' => $other->count(),
+                ],
+                'all_expenses' => $expenses,
+            ];
+        })->sortByDesc('total');
+
+        // Calculate overall totals by type
+        $totalMaterials = $projectExpenses->where('expense_type', 'materials')->sum('amount');
+        $totalLabor = $projectExpenses->where('expense_type', 'labor')->sum('amount');
+        $totalDesignLabor = $projectExpenses->where('expense_type', 'labor')->where('phase', 'design')->sum('amount');
+        $totalExecutionLabor = $projectExpenses->where('expense_type', 'labor')->where('phase', 'execution')->sum('amount');
+
+        // Combined Payments and Expenses totals
+        $monthStart = Carbon::now()->startOfMonth();
+        $endOfToday = Carbon::now()->endOfDay();
+        $today = Carbon::today();
+
+        $paymentsTotal = Payment::sum('amount') ?? 0;
+        $paymentsThisMonth = Payment::whereBetween('created_at', [$monthStart, $endOfToday])->sum('amount') ?? 0;
+        $paymentsToday = Payment::whereDate('created_at', $today)->sum('amount') ?? 0;
+
+        // Use query-based sums for expenses to avoid collection date filters
+        $expensesThisMonthTotal = Expense::whereBetween('date', [$monthStart, $endOfToday])->sum('amount');
+        $expensesTodayTotal = Expense::whereDate('date', $today)->sum('amount');
+
+        $allExpensesTotal = $paymentsTotal + ($officeTotal + $projectTotal);
+        $allExpensesThisMonth = $paymentsThisMonth + $expensesThisMonthTotal;
+        $allExpensesToday = $paymentsToday + $expensesTodayTotal;
+
+        // Group expenses by category with totals and counts (for summary)
+        $expensesByCategory = $allExpenses->groupBy('category')->map(function($group, $category) {
+            return [
+                'category' => $category ?: 'Uncategorized',
+                'count' => $group->count(),
+                'total' => $group->sum('amount'),
+                'expenses' => $group,
+            ];
+        })->sortByDesc('total');
+
         return view('expenses.index', [
             'officeExpenses' => $officeExpenses,
             'projectExpenses' => $projectExpenses,
             'officeTotal' => $officeTotal,
             'projectTotal' => $projectTotal,
+            'expensesByProject' => $expensesByProject,
+            'expensesByCategory' => $expensesByCategory,
+            'totalMaterials' => $totalMaterials,
+            'totalLabor' => $totalLabor,
+            'totalDesignLabor' => $totalDesignLabor,
+            'totalExecutionLabor' => $totalExecutionLabor,
+            'paymentsTotal' => $paymentsTotal,
+            'paymentsThisMonth' => $paymentsThisMonth,
+            'paymentsToday' => $paymentsToday,
+            'allExpensesTotal' => $allExpensesTotal,
+            'allExpensesThisMonth' => $allExpensesThisMonth,
+            'allExpensesToday' => $allExpensesToday,
         ]);
     }
 
@@ -159,15 +253,21 @@ class ExpenseController extends Controller
     protected function validateExpense(Request $request): array
     {
         return $request->validate([
-            'date'        => 'required|date',
-            'category'    => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'project_id'  => 'nullable|exists:projects,id',
-            'client_id'   => 'nullable|exists:clients,id',
-            'amount'      => 'required|numeric',
-            'method'      => 'nullable|string|max:255',
-            'status'      => 'nullable|string|max:255',
-            'user_id'     => 'nullable|exists:users,id',
+            'date'         => 'required|date',
+            'category'     => 'required|string|max:255',
+            'expense_type' => 'nullable|string|max:255',
+            'phase'        => 'nullable|string|in:design,execution',
+            'item_name'    => 'nullable|string|max:255',
+            'quantity'     => 'nullable|numeric|min:0',
+            'unit'         => 'nullable|string|max:50',
+            'unit_price'   => 'nullable|numeric|min:0',
+            'description'  => 'nullable|string',
+            'project_id'   => 'nullable|exists:projects,id',
+            'client_id'    => 'nullable|exists:clients,id',
+            'amount'       => 'required|numeric',
+            'method'       => 'nullable|string|max:255',
+            'status'       => 'nullable|string|max:255',
+            'user_id'      => 'nullable|exists:users,id',
         ]);
     }
 

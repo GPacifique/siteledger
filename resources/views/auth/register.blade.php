@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - SiteLedger</title>
+    <title>Register - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -97,7 +97,7 @@
 
     <div class="container">
         <h1>Register</h1>
-        <p class="subtitle">Create your SiteLedger account</p>
+        <p class="subtitle">Create your CSMS account</p>
 
         <form method="POST" action="/register">
             @csrf

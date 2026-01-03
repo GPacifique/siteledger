@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Project - SiteLedger</title>
+    <title>Add Project - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -229,6 +229,83 @@
                     </div>
                 </div>
 
+                <!-- Project Phases Section -->
+                <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1.5rem; color: #333; font-size: 1.2rem; border-bottom: 2px solid #667eea; padding-bottom: 0.5rem;">📐 Project Phases</h3>
+
+                    <div class="form-group">
+                        <label for="current_phase">Current Phase</label>
+                        <select name="current_phase" id="current_phase">
+                            <option value="design" {{ old('current_phase') == 'design' ? 'selected' : '' }}>Design Phase</option>
+                            <option value="execution" {{ old('current_phase') == 'execution' ? 'selected' : '' }}>Execution Phase</option>
+                        </select>
+                    </div>
+
+                    <!-- Design Phase -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #667eea;">
+                        <h4 style="color: #667eea; margin-bottom: 1rem;">📝 Design Phase</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="design_phase_value">Design Phase Value (RWF)</label>
+                                <input type="number" name="design_phase_value" id="design_phase_value" step="0.01" value="{{ old('design_phase_value', 0) }}">
+                                @error('design_phase_value')
+                                    <div class="error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="design_phase_status">Design Phase Status</label>
+                                <select name="design_phase_status" id="design_phase_status">
+                                    <option value="pending" {{ old('design_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="in_progress" {{ old('design_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="completed" {{ old('design_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="design_start_date">Design Start Date</label>
+                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="design_end_date">Design End Date</label>
+                                <input type="date" name="design_end_date" id="design_end_date" value="{{ old('design_end_date') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Execution Phase -->
+                    <div style="padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #27ae60;">
+                        <h4 style="color: #27ae60; margin-bottom: 1rem;">🔨 Execution Phase</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="execution_phase_value">Execution Phase Value (RWF)</label>
+                                <input type="number" name="execution_phase_value" id="execution_phase_value" step="0.01" value="{{ old('execution_phase_value', 0) }}">
+                                @error('execution_phase_value')
+                                    <div class="error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="execution_phase_status">Execution Phase Status</label>
+                                <select name="execution_phase_status" id="execution_phase_status">
+                                    <option value="pending" {{ old('execution_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="in_progress" {{ old('execution_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="completed" {{ old('execution_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="execution_start_date">Execution Start Date</label>
+                                <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="execution_end_date">Execution End Date</label>
+                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 @if($managers && count($managers) > 0)
                     <div class="form-group">
                         <label for="manager_id">Project Manager</label>
@@ -275,6 +352,81 @@
             if (!codeField.value) {
                 generateProjectCode();
             }
+        });
+
+        // Auto-calculate design and execution phase values from contract value
+        const contractValueInput = document.getElementById('contract_value');
+        const designPhaseInput = document.getElementById('design_phase_value');
+        const executionPhaseInput = document.getElementById('execution_phase_value');
+
+        // Default split: 30% Design, 70% Execution
+        const DESIGN_PERCENTAGE = 0.30;
+        const EXECUTION_PERCENTAGE = 0.70;
+
+        function calculatePhaseValues() {
+            const contractValue = parseFloat(contractValueInput.value) || 0;
+
+            if (contractValue > 0) {
+                const designValue = contractValue * DESIGN_PERCENTAGE;
+                const executionValue = contractValue * EXECUTION_PERCENTAGE;
+
+                designPhaseInput.value = designValue.toFixed(2);
+                executionPhaseInput.value = executionValue.toFixed(2);
+
+                // Show calculation info
+                showCalculationInfo(contractValue, designValue, executionValue);
+            }
+        }
+
+        function showCalculationInfo(contract, design, execution) {
+            let infoDiv = document.getElementById('calculationInfo');
+
+            if (!infoDiv) {
+                infoDiv = document.createElement('div');
+                infoDiv.id = 'calculationInfo';
+                infoDiv.style.cssText = 'margin-top: 0.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 3px solid #3498db; border-radius: 4px; font-size: 0.9rem; color: #2c3e50;';
+                contractValueInput.parentElement.appendChild(infoDiv);
+            }
+
+            infoDiv.innerHTML = `
+                <strong>📊 Calculated Split:</strong><br>
+                Design Phase (30%): RWF ${design.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+                Execution Phase (70%): RWF ${execution.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            `;
+        }
+
+        // Listen for changes in contract value
+        contractValueInput.addEventListener('input', calculatePhaseValues);
+        contractValueInput.addEventListener('change', calculatePhaseValues);
+
+        // Allow manual editing of phase values by removing auto-calc when user manually changes them
+        let userEditedDesign = false;
+        let userEditedExecution = false;
+
+        designPhaseInput.addEventListener('focus', function() {
+            this.dataset.originalValue = this.value;
+        });
+
+        designPhaseInput.addEventListener('change', function() {
+            if (this.value !== this.dataset.originalValue) {
+                userEditedDesign = true;
+            }
+        });
+
+        executionPhaseInput.addEventListener('focus', function() {
+            this.dataset.originalValue = this.value;
+        });
+
+        executionPhaseInput.addEventListener('change', function() {
+            if (this.value !== this.dataset.originalValue) {
+                userEditedExecution = true;
+            }
+        });
+
+        // Reset user edit flags when contract value changes significantly
+        contractValueInput.addEventListener('input', function() {
+            userEditedDesign = false;
+            userEditedExecution = false;
         });
     </script>
 </body>

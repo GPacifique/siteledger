@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Worker - SiteLedger</title>
+    <title>Edit Worker - CSMS</title>
     <style>
         * {
             margin: 0;
@@ -175,7 +175,21 @@
 
                     <div class="form-group">
                         <label for="position">Position</label>
-                        <input type="text" name="position" id="position" placeholder="e.g., Mason, Carpenter" value="{{ old('position', $worker->position) }}">
+                        <select name="position" id="position">
+                            <option value="">Select Position</option>
+                            <option value="Engineer" {{ old('position', $worker->position) == 'Engineer' ? 'selected' : '' }}>Engineer</option>
+                            <option value="Architect" {{ old('position', $worker->position) == 'Architect' ? 'selected' : '' }}>Architect</option>
+                            <option value="MEP" {{ old('position', $worker->position) == 'MEP' ? 'selected' : '' }}>MEP (Mechanical, Electrical, Plumbing)</option>
+                            <option value="Dealer" {{ old('position', $worker->position) == 'Dealer' ? 'selected' : '' }}>Dealer</option>
+                            <option value="Technician" {{ old('position', $worker->position) == 'Technician' ? 'selected' : '' }}>Technician</option>
+                            <option value="Casual Labor" {{ old('position', $worker->position) == 'Casual Labor' ? 'selected' : '' }}>Casual Labor</option>
+                            <option value="Mason" {{ old('position', $worker->position) == 'Mason' ? 'selected' : '' }}>Mason</option>
+                            <option value="Carpenter" {{ old('position', $worker->position) == 'Carpenter' ? 'selected' : '' }}>Carpenter</option>
+                            <option value="Electrician" {{ old('position', $worker->position) == 'Electrician' ? 'selected' : '' }}>Electrician</option>
+                            <option value="Plumber" {{ old('position', $worker->position) == 'Plumber' ? 'selected' : '' }}>Plumber</option>
+                            <option value="Foreman" {{ old('position', $worker->position) == 'Foreman' ? 'selected' : '' }}>Foreman</option>
+                            <option value="Other" {{ old('position', $worker->position) == 'Other' ? 'selected' : '' }}>Other</option>
+                        </select>
                         @error('position')
                             <div class="error">{{ $message }}</div>
                         @enderror
