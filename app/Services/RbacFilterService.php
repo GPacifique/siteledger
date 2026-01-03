@@ -80,23 +80,18 @@ class RbacFilterService
             return $query->whereRaw('1=0');
         }
 
-        if ($user->hasRole('admin') || $user->hasRole('system administrator')) {
-            return $query; // Return all projects
+        // Admins, system administrators, and accountants can see all projects within their tenant
+        if ($user->hasRole('admin') || $user->hasRole('system administrator') || $user->hasRole('accountant')) {
+            return $query;
         }
 
-        if ($user->hasRole('accountant')) {
-            return $query; // Accountants can see all projects (read-only)
-        }
-
-        if ($user->hasRole('site manager')) {
-            // Site managers see projects they're assigned to
-            return $query->whereHas('workers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })->orWhere('manager_id', $user->id);
-        }
-
-        // Other roles see only their own projects
-        return $query->where('user_id', $user->id);
+        // Site managers and other roles: show projects tied to tasks they created or are assigned to
+        return $query->whereHas('tasks', function ($q) use ($user) {
+            $q->where(function ($q2) use ($user) {
+                $q2->where('assigned_to', $user->id)
+                   ->orWhere('created_by', $user->id);
+            });
+        });
     }
 
     /**
