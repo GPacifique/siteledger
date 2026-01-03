@@ -21,14 +21,19 @@ class TenantDataMiddleware
         if (auth()->check()) {
             $user = auth()->user();
 
-            // If user doesn't have a current_tenant_id, assign them to the first tenant
-            if (empty($user->current_tenant_id)) {
-                $user->current_tenant_id = $user->tenants()->first()?->id ?? 1;
-                $user->save();
+            // Ensure current_tenant_id references a tenant the user belongs to
+            $firstUserTenantId = $user->tenants()->first()?->id;
+
+            if (empty($user->current_tenant_id) || !$user->belongsToTenant($user->current_tenant_id)) {
+                // Only set current_tenant_id if the user actually has tenants
+                if ($firstUserTenantId) {
+                    $user->current_tenant_id = $firstUserTenantId;
+                    $user->save();
+                }
             }
 
-            // Bind the current tenant to the app container for use throughout the request
-            if ($user->current_tenant_id) {
+            // Bind the current tenant to the app container only if the user belongs to it
+            if (!empty($user->current_tenant_id) && $user->belongsToTenant($user->current_tenant_id)) {
                 $tenant = app('App\Models\Tenant')::find($user->current_tenant_id);
                 if ($tenant) {
                     app()->instance('currentTenant', $tenant);

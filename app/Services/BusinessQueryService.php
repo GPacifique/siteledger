@@ -19,14 +19,14 @@ class BusinessQueryService
     public function __construct()
     {
         $this->user = Auth::user();
-        
+
         // Safely get current tenant - may not exist in console commands or before middleware
         try {
             $this->tenantId = app()->bound('currentTenant') ? app('currentTenant')?->id : null;
         } catch (\Exception $e) {
             $this->tenantId = null;
         }
-        
+
         $this->userRole = $this->user?->getRoleNames()->first();
     }
 
@@ -38,8 +38,13 @@ class BusinessQueryService
         $query = DB::table($table);
 
         // Apply tenant isolation for non-super-admin users
-        if (!$this->isSuperAdmin() && $this->tenantId) {
-            $query->where('tenant_id', $this->tenantId);
+        if (!$this->isSuperAdmin()) {
+            if ($this->tenantId) {
+                $query->where('tenant_id', $this->tenantId);
+            } else {
+                // No tenant context for non-super-admin: return no rows
+                $query->whereRaw('1=0');
+            }
         }
 
         // Apply role-based conditions
@@ -498,7 +503,7 @@ class BusinessQueryService
                            ->sum('amount');
 
             case 'profit':
-                return $this->calculateFinancialMetric('revenue') - 
+                return $this->calculateFinancialMetric('revenue') -
                        $this->calculateFinancialMetric('expenses');
 
             default:
@@ -523,7 +528,7 @@ class BusinessQueryService
     {
         // Basic SQL injection protection
         $dangerousKeywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE'];
-        
+
         foreach ($dangerousKeywords as $keyword) {
             if (stripos($sql, $keyword) !== false) {
                 return false;
