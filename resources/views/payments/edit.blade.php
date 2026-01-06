@@ -147,17 +147,32 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="amount">Amount (RWF) *</label>
-                        <input type="number" name="amount" id="amount" step="0.01" value="{{ old('amount', $payment->amount) }}" required>
-                        @error('amount')
+                        <label for="project_id">Project *</label>
+                        <select name="project_id" id="project_id" required>
+                            <option value="">-- Select Project --</option>
+                            @if(isset($projects) && $projects->count() > 0)
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" {{ old('project_id', $payment->project_id) == $project->id ? 'selected' : '' }}>
+                                        {{ $project->name }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="">No projects available</option>
+                            @endif
+                        </select>
+                        @error('project_id')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="payment_date">Payment Date *</label>
-                        <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', $payment->payment_date) }}" required>
-                        @error('payment_date')
+                        <label for="phase">Phase *</label>
+                        <select name="phase" id="phase" required>
+                            <option value="">-- Select Phase --</option>
+                            <option value="design" {{ old('phase', $payment->phase) == 'design' ? 'selected' : '' }}>📝 Design Phase</option>
+                            <option value="execution" {{ old('phase', $payment->phase) == 'execution' ? 'selected' : '' }}>🔨 Execution Phase</option>
+                        </select>
+                        @error('phase')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
@@ -165,18 +180,63 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="payment_method">Payment Method</label>
-                        <select name="payment_method" id="payment_method">
-                            <option value="cash" {{ old('payment_method', $payment->payment_method) == 'cash' ? 'selected' : '' }}>Cash</option>
-                            <option value="bank_transfer" {{ old('payment_method', $payment->payment_method) == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                            <option value="check" {{ old('payment_method', $payment->payment_method) == 'check' ? 'selected' : '' }}>Check</option>
-                            <option value="mobile_money" {{ old('payment_method', $payment->payment_method) == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
+                        <label for="employee_id">Worker</label>
+                        <select name="employee_id" id="employee_id">
+                            <option value="">-- Select Worker --</option>
+                            @if(isset($employees) && $employees->count() > 0)
+                                @foreach($employees as $employee)
+                                    <option value="{{ $employee->id }}" {{ old('employee_id', $payment->employee_id) == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->first_name }} {{ $employee->last_name }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="">No workers available</option>
+                            @endif
                         </select>
-                        @error('payment_method')
+                        @error('employee_id')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
 
+                    <div class="form-group">
+                        <label for="amount">Amount (RWF) *</label>
+                        <input type="number" name="amount" id="amount" step="0.01" value="{{ old('amount', $payment->amount) }}" required>
+                        @error('amount')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="payment_date">Payment Date *</label>
+                        <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', $payment->payment_date) }}" required>
+                        @error('payment_date')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="method">Payment Method</label>
+                        <select name="method" id="method">
+                            <option value="cash" {{ old('method', $payment->method) == 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="bank_transfer" {{ old('method', $payment->method) == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                            <option value="check" {{ old('method', $payment->method) == 'check' ? 'selected' : '' }}>Check</option>
+                            <option value="mobile_money" {{ old('method', $payment->method) == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
+                            <option value="credit_card" {{ old('method', $payment->method) == 'credit_card' ? 'selected' : '' }}>Credit Card</option>
+                            <option value="debit_card" {{ old('method', $payment->method) == 'debit_card' ? 'selected' : '' }}>Debit Card</option>
+                            <option value="wire_transfer" {{ old('method', $payment->method) == 'wire_transfer' ? 'selected' : '' }}>Wire Transfer</option>
+                            <option value="paypal" {{ old('method', $payment->method) == 'paypal' ? 'selected' : '' }}>PayPal</option>
+                            <option value="crypto" {{ old('method', $payment->method) == 'crypto' ? 'selected' : '' }}>Cryptocurrency</option>
+                            <option value="other" {{ old('method', $payment->method) == 'other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                        @error('method')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select name="status" id="status">
@@ -188,14 +248,14 @@
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="reference">Reference Number</label>
-                    <input type="text" name="reference" id="reference" placeholder="e.g., PAY-2024-001" value="{{ old('reference', $payment->reference) }}">
-                    @error('reference')
-                        <div class="error">{{ $message }}</div>
-                    @enderror
+                    <div class="form-group">
+                        <label for="reference">Reference Number</label>
+                        <input type="text" name="reference" id="reference" placeholder="e.g., PAY-2024-001" value="{{ old('reference', $payment->reference) }}">
+                        @error('reference')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="form-group">

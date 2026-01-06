@@ -193,7 +193,15 @@
 
                 <div class="form-group">
                     <label for="payment_method">Payment Method</label>
-                    <input type="text" name="payment_method" id="payment_method" placeholder="e.g., Bank Transfer, Cash" value="{{ old('payment_method', $income->payment_method) }}">
+                    <select name="payment_method" id="payment_method">
+                        <option value="">Select Payment Method</option>
+                        <option value="Cash" {{ old('payment_method', $income->payment_method) == 'Cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="Bank Transfer" {{ old('payment_method', $income->payment_method) == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                        <option value="Mobile Money" {{ old('payment_method', $income->payment_method) == 'Mobile Money' ? 'selected' : '' }}>Mobile Money</option>
+                        <option value="Check" {{ old('payment_method', $income->payment_method) == 'Check' ? 'selected' : '' }}>Check</option>
+                        <option value="Credit Card" {{ old('payment_method', $income->payment_method) == 'Credit Card' ? 'selected' : '' }}>Credit Card</option>
+                        <option value="Other" {{ old('payment_method', $income->payment_method) == 'Other' ? 'selected' : '' }}>Other</option>
+                    </select>
                     @error('payment_method')
                         <div class="error">{{ $message }}</div>
                     @enderror

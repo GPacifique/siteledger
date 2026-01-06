@@ -15,8 +15,8 @@ class Worker extends Model
         'tenant_id',
         // base identity fields (actual controller uses these extensively)
         'first_name','last_name','email','phone','position','status','notes','created_by',
-        // monetary fields (stored as cents + currency)
-        'salary_cents','currency',
+        // monetary fields (stored in RWF)
+        'daily_wage','currency',
         // metadata
         'hired_at',
     ];
@@ -27,6 +27,8 @@ class Worker extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    // daily_wage is now stored directly in RWF, no conversion needed
 
     /**
      * A worker can have many tasks (assigned via worker_id field).

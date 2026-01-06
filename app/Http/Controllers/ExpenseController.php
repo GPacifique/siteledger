@@ -42,7 +42,7 @@ class ExpenseController extends Controller
     public function index()
     {
         // Get all expenses with relationships
-        $allExpenses = Expense::with('project')->latest('date')->get();
+        $allExpenses = Expense::with(['project', 'user'])->latest('date')->get();
 
         // Separate expenses into office and project categories
         $officeExpenses = $allExpenses->whereNull('project_id');

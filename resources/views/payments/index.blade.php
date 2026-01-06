@@ -269,10 +269,6 @@
         <!-- Statistics -->
         @php
             $totalPayments = $payments->sum('amount');
-            $completedPayments = $payments->where('status', 'completed')->sum('amount');
-            $pendingPayments = $payments->where('status', 'pending')->sum('amount');
-            $completedCount = $payments->where('status', 'completed')->count();
-            $pendingCount = $payments->where('status', 'pending')->count();
         @endphp
 
         <div class="stats-grid">
@@ -293,19 +289,9 @@
                 <div class="stat-value">RWF {{ number_format($paymentsTotalYear ?? 0, 0) }}</div>
                 <div class="stat-label">This Year</div>
             </a>
-
-            <!-- Existing Status Totals -->
             <div class="stat-card completed">
-                <div class="stat-value">RWF {{ number_format($completedPayments, 0) }}</div>
-                <div class="stat-label">Completed ({{ $completedCount }})</div>
-            </div>
-            <div class="stat-card pending">
-                <div class="stat-value">RWF {{ number_format($pendingPayments, 0) }}</div>
-                <div class="stat-label">Pending ({{ $pendingCount }})</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-value">{{ $payments->count() }}</div>
-                <div class="stat-label">Payments Listed {{ $period ? '(' . ucfirst($period) . ')' : '' }}</div>
+                <div class="stat-label">Payments {{ $period ? '(' . ucfirst($period) . ')' : '' }}</div>
             </div>
         </div>
 
@@ -335,8 +321,6 @@
                         @php
                             $categoryTotal = $categoryPayments->sum('amount');
                             $categoryCount = $categoryPayments->count();
-                            $categoryCompleted = $categoryPayments->where('status', 'completed')->sum('amount');
-                            $categoryPending = $categoryPayments->where('status', 'pending')->sum('amount');
                             $categoryWorkers = $categoryPayments->pluck('employee')->unique('id')->count();
                         @endphp
                         <div class="category-card">
@@ -348,14 +332,6 @@
                             <div class="category-stat">
                                 <span class="category-stat-label">Payments:</span>
                                 <span class="category-stat-value">{{ $categoryCount }}</span>
-                            </div>
-                            <div class="category-stat">
-                                <span class="category-stat-label">Completed:</span>
-                                <span class="category-stat-value" style="color: #27ae60;">RWF {{ number_format($categoryCompleted, 0) }}</span>
-                            </div>
-                            <div class="category-stat">
-                                <span class="category-stat-label">Pending:</span>
-                                <span class="category-stat-value" style="color: #f39c12;">RWF {{ number_format($categoryPending, 0) }}</span>
                             </div>
                             <div class="category-total">
                                 <div style="color: #999; font-size: 0.85rem; margin-bottom: 0.25rem;">Total Paid</div>
@@ -374,10 +350,12 @@
                     <thead>
                         <tr>
                             <th>Reference</th>
+                            <th>Project</th>
+                            <th>Phase</th>
                             <th>Worker</th>
                             <th>Amount</th>
                             <th>Method</th>
-                            <th>Status</th>
+                            <th>Recorded By</th>
                             <th>Date</th>
                             <th>Action</th>
                         </tr>
@@ -386,6 +364,24 @@
                         @foreach($payments as $payment)
                             <tr class="payment-row" data-id="{{ $payment->id }}">
                                 <td><strong>{{ $payment->reference ?? '#' . $payment->id }}</strong></td>
+                                <td>
+                                    @if($payment->project)
+                                        <span style="color: #27ae60; font-weight: 600;">🏗️ {{ $payment->project->name }}</span>
+                                    @else
+                                        <span style="color: #999;">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($payment->phase)
+                                        @if($payment->phase == 'design')
+                                            <span class="badge" style="background: #e8daef; color: #6c5ce7;">📝 Design</span>
+                                        @else
+                                            <span class="badge" style="background: #fef9e7; color: #d68910;">🔨 Execution</span>
+                                        @endif
+                                    @else
+                                        <span style="color: #999;">—</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($payment->employee)
                                         {{ $payment->employee->first_name }} {{ $payment->employee->last_name }}
@@ -401,15 +397,7 @@
                                         —
                                     @endif
                                 </td>
-                                <td>
-                                    @php
-                                        $statusClass = match($payment->status ?? 'pending') {
-                                            'completed' => 'badge-completed',
-                                            default => 'badge-pending'
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $statusClass }}">{{ ucfirst($payment->status ?? 'Pending') }}</span>
-                                </td>
+                                <td>{{ $payment->user->name ?? '—' }}</td>
                                 <td>{{ $payment->created_at?->format('M d, Y') ?? '—' }}</td>
                                 <td>
                                     <a href="{{ route('payments.show', $payment->id) }}" class="payment-link">View</a>

@@ -15,7 +15,7 @@ class ComprehensiveUserSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('👥 Creating Comprehensive User System with All Roles...');
-        
+
         // Clear permission cache
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -30,10 +30,20 @@ class ComprehensiveUserSeeder extends Seeder
                 'is_super_admin' => true,
                 'email_verified_at' => now(),
             ],
-            
-            // Administrators
+
+            // System Administrator (Platform Admin with super-admin dashboard access)
             [
                 'name' => 'System Administrator',
+                'email' => 'sysadmin@siteledger.com',
+                'password' => 'SysAdmin123!',
+                'role' => 'system administrator',
+                'is_super_admin' => true,
+                'email_verified_at' => now(),
+            ],
+
+            // Administrators
+            [
+                'name' => 'Admin User',
                 'email' => 'admin@siteledger.com',
                 'password' => 'SecureAdmin123!',
                 'role' => 'admin',
@@ -46,7 +56,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ],
-            
+
             // Project Managers
             [
                 'name' => 'Project Manager',
@@ -62,7 +72,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'manager',
                 'email_verified_at' => now(),
             ],
-            
+
             // Accountants
             [
                 'name' => 'Chief Accountant',
@@ -78,7 +88,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'accountant',
                 'email_verified_at' => now(),
             ],
-            
+
             // Employees
             [
                 'name' => 'John Employee',
@@ -101,7 +111,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'employee',
                 'email_verified_at' => now(),
             ],
-            
+
             // Clients
             [
                 'name' => 'ABC Corporation',
@@ -117,7 +127,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'client',
                 'email_verified_at' => now(),
             ],
-            
+
             // Viewers (for auditing/reporting)
             [
                 'name' => 'Audit Viewer',
@@ -133,7 +143,7 @@ class ComprehensiveUserSeeder extends Seeder
                 'role' => 'viewer',
                 'email_verified_at' => now(),
             ],
-            
+
             // Legacy user role (for backward compatibility)
             [
                 'name' => 'Regular User',
@@ -173,7 +183,8 @@ class ComprehensiveUserSeeder extends Seeder
                 ['Role', 'Name', 'Email', 'Password'],
                 [
                     ['Super Admin', 'Super Administrator', 'superadmin@siteledger.com', 'SuperSecure123!'],
-                    ['Admin', 'System Administrator', 'admin@siteledger.com', 'SecureAdmin123!'],
+                    ['System Admin', 'System Administrator', 'sysadmin@siteledger.com', 'SysAdmin123!'],
+                    ['Admin', 'Admin User', 'admin@siteledger.com', 'SecureAdmin123!'],
                     ['Admin', 'Gashumba Admin', 'gashumba@siteledger.com', 'password'],
                     ['Manager', 'Project Manager', 'manager@siteledger.com', 'SecureManager123!'],
                     ['Manager', 'Senior Project Manager', 'seniormanager@siteledger.com', 'SecureManager123!'],
@@ -190,6 +201,12 @@ class ComprehensiveUserSeeder extends Seeder
                 ]
             );
 
+            $this->command->info('');
+            $this->command->info('🛡️ Super Admin Dashboard Access:');
+            $this->command->info('   - superadmin@siteledger.com (Super Admin role + is_super_admin flag)');
+            $this->command->info('   - sysadmin@siteledger.com (System Administrator role + is_super_admin flag)');
+            $this->command->info('   URL: /super-admin/dashboard');
+
             // Show role distribution
             $this->command->info('');
             $this->command->info('👥 User Distribution by Role:');
@@ -197,7 +214,7 @@ class ComprehensiveUserSeeder extends Seeder
             foreach ($users as $userData) {
                 $roleCounts[$userData['role']] = ($roleCounts[$userData['role']] ?? 0) + 1;
             }
-            
+
             $roleTable = [];
             foreach ($roleCounts as $role => $count) {
                 $roleObj = Role::where('name', $role)->first();
@@ -207,7 +224,7 @@ class ComprehensiveUserSeeder extends Seeder
                     $count,
                 ];
             }
-            
+
             $this->command->table(
                 ['Role', 'Permissions', 'Users'],
                 $roleTable
@@ -216,7 +233,7 @@ class ComprehensiveUserSeeder extends Seeder
         } else {
             $this->command->info('🔒 Production environment detected.');
             $this->command->info('Creating only essential admin users...');
-            
+
             // In production, only create super admin and main admin
             $productionUsers = array_filter($users, function($user) {
                 return in_array($user['email'], [
@@ -225,7 +242,7 @@ class ComprehensiveUserSeeder extends Seeder
                     'gashumba@siteledger.com'
                 ]);
             });
-            
+
             foreach ($productionUsers as $userData) {
                 $user = User::firstOrCreate(
                     ['email' => $userData['email']],
@@ -245,7 +262,7 @@ class ComprehensiveUserSeeder extends Seeder
 
                 $this->command->info("✅ Created production user: {$userData['name']} ({$userData['role']})");
             }
-            
+
             $this->command->info('🛡️  Production users created with secure credentials.');
             $this->command->info('💡 Create additional users manually through the admin panel.');
         }
@@ -253,7 +270,7 @@ class ComprehensiveUserSeeder extends Seeder
         $this->command->info('');
         $this->command->info('✅ Comprehensive User System created successfully!');
         $this->command->info('📊 Total Users: ' . count($users));
-        
+
         if (!app()->environment('production')) {
             $this->command->info('');
             $this->command->info('🎯 Test the enhanced sidebar with different user roles:');

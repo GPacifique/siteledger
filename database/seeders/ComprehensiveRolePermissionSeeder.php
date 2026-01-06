@@ -14,7 +14,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('🔐 Creating Comprehensive Role & Permission System...');
-        
+
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -22,14 +22,14 @@ class ComprehensiveRolePermissionSeeder extends Seeder
         $permissions = [
             // Dashboard Access
             'dashboard.view',
-            
+
             // User Management
             'users.view',
             'users.create',
             'users.edit',
             'users.delete',
             'users.assign-roles',
-            
+
             // Role & Permission Management
             'roles.view',
             'roles.create',
@@ -39,14 +39,14 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'permissions.create',
             'permissions.edit',
             'permissions.delete',
-            
+
             // Client Management
             'clients.view',
             'clients.create',
             'clients.edit',
             'clients.delete',
             'clients.export',
-            
+
             // Project Management
             'projects.view',
             'projects.create',
@@ -54,7 +54,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'projects.delete',
             'projects.export',
             'projects.assign-workers',
-            
+
             // Worker Management
             'workers.view',
             'workers.create',
@@ -62,7 +62,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'workers.delete',
             'workers.export',
             'workers.payments',
-            
+
             // Employee Management
             'employees.view',
             'employees.create',
@@ -70,7 +70,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'employees.delete',
             'employees.export',
             'employees.payroll',
-            
+
             // Order Management
             'orders.view',
             'orders.create',
@@ -78,7 +78,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'orders.delete',
             'orders.fulfill',
             'orders.cancel',
-            
+
             // Product Management
             'products.view',
             'products.create',
@@ -86,7 +86,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'products.delete',
             'products.export',
             'products.inventory',
-            
+
             // Task Management
             'tasks.view',
             'tasks.create',
@@ -94,7 +94,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'tasks.delete',
             'tasks.assign',
             'tasks.complete',
-            
+
             // Income Management
             'incomes.view',
             'incomes.create',
@@ -102,7 +102,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'incomes.delete',
             'incomes.export',
             'incomes.approve',
-            
+
             // Expense Management
             'expenses.view',
             'expenses.create',
@@ -110,7 +110,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'expenses.delete',
             'expenses.export',
             'expenses.approve',
-            
+
             // Payment Management
             'payments.view',
             'payments.create',
@@ -119,13 +119,13 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'payments.process',
             'payments.approve',
             'payments.export',
-            
+
             // Financial Management
             'finance.view',
             'finance.overview',
             'finance.reports',
             'finance.analytics',
-            
+
             // Report Management
             'reports.view',
             'reports.create',
@@ -134,7 +134,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'reports.generate',
             'reports.export',
             'reports.schedule',
-            
+
             // Transaction Management
             'transactions.view',
             'transactions.create',
@@ -142,44 +142,44 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'transactions.delete',
             'transactions.export',
             'transactions.reconcile',
-            
+
             // Settings Management
             'settings.view',
             'settings.edit',
             'settings.system',
             'settings.email',
             'settings.backup',
-            
+
             // Tenant Management (Multi-tenant)
             'tenants.view',
             'tenants.create',
             'tenants.edit',
             'tenants.delete',
             'tenants.manage',
-            
+
             // Audit & Logs
             'audits.view',
             'audits.export',
             'logs.view',
             'logs.export',
-            
+
             // Notifications
             'notifications.view',
             'notifications.create',
             'notifications.send',
             'notifications.manage',
-            
+
             // Profile Management
             'profile.view',
             'profile.edit',
             'profile.delete',
-            
+
             // Import/Export
             'data.import',
             'data.export',
             'data.backup',
             'data.restore',
-            
+
             // Advanced Features
             'advanced.api-access',
             'advanced.integrations',
@@ -188,7 +188,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
         ];
 
         $this->command->info("Creating {" . count($permissions) . "} permissions...");
-        
+
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
@@ -203,7 +203,14 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'description' => 'System owner with complete access to all features including multi-tenant management',
                 'permissions' => $permissions, // Super Admin gets ALL permissions
             ],
-            
+
+            'system administrator' => [
+                'name' => 'system administrator',
+                'display_name' => 'System Administrator',
+                'description' => 'Platform-level administrator with access to super-admin dashboard and all system management features',
+                'permissions' => $permissions, // System Administrator gets ALL permissions
+            ],
+
             'admin' => [
                 'name' => 'admin',
                 'display_name' => 'Administrator',
@@ -219,14 +226,14 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     ]);
                 }),
             ],
-            
+
             'manager' => [
                 'name' => 'manager',
                 'display_name' => 'Project Manager',
                 'description' => 'Manages projects, workers, employees, and orders',
                 'permissions' => [
                     'dashboard.view',
-                    
+
                     // Core Features
                     'clients.view',
                     'reports.view',
@@ -238,7 +245,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'tasks.edit',
                     'tasks.assign',
                     'tasks.complete',
-                    
+
                     // Project Management
                     'projects.view',
                     'projects.create',
@@ -246,7 +253,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'projects.delete',
                     'projects.export',
                     'projects.assign-workers',
-                    
+
                     // Worker Management
                     'workers.view',
                     'workers.create',
@@ -254,37 +261,37 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'workers.delete',
                     'workers.export',
                     'workers.payments',
-                    
+
                     // Employee Management
                     'employees.view',
                     'employees.create',
                     'employees.edit',
                     'employees.delete',
                     'employees.export',
-                    
+
                     // Order Management
                     'orders.view',
                     'orders.create',
                     'orders.edit',
                     'orders.delete',
                     'orders.fulfill',
-                    
+
                     // Profile
                     'profile.view',
                     'profile.edit',
-                    
+
                     // Basic exports
                     'data.export',
                 ],
             ],
-            
+
             'accountant' => [
                 'name' => 'accountant',
                 'display_name' => 'Accountant',
                 'description' => 'Manages financial records, payments, and financial reporting',
                 'permissions' => [
                     'dashboard.view',
-                    
+
                     // Core Features (view only)
                     'clients.view',
                     'reports.view',
@@ -296,7 +303,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'transactions.reconcile',
                     'products.view',
                     'tasks.view',
-                    
+
                     // Financial Management (full access)
                     'incomes.view',
                     'incomes.create',
@@ -304,14 +311,14 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'incomes.delete',
                     'incomes.export',
                     'incomes.approve',
-                    
+
                     'expenses.view',
                     'expenses.create',
                     'expenses.edit',
                     'expenses.delete',
                     'expenses.export',
                     'expenses.approve',
-                    
+
                     'payments.view',
                     'payments.create',
                     'payments.edit',
@@ -319,31 +326,31 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'payments.process',
                     'payments.approve',
                     'payments.export',
-                    
+
                     'finance.view',
                     'finance.overview',
                     'finance.reports',
                     'finance.analytics',
-                    
+
                     // Limited project access
                     'projects.view',
-                    
+
                     // Profile
                     'profile.view',
                     'profile.edit',
-                    
+
                     // Financial exports
                     'data.export',
                 ],
             ],
-            
+
             'employee' => [
                 'name' => 'employee',
                 'display_name' => 'Employee',
                 'description' => 'Basic access to core features and personal tasks',
                 'permissions' => [
                     'dashboard.view',
-                    
+
                     // Core Features (limited access)
                     'clients.view',
                     'reports.view',
@@ -352,46 +359,46 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'tasks.view',
                     'tasks.edit', // Can edit their own tasks
                     'tasks.complete',
-                    
+
                     // Profile management
                     'profile.view',
                     'profile.edit',
-                    
+
                     // Notifications
                     'notifications.view',
                 ],
             ],
-            
+
             'client' => [
                 'name' => 'client',
                 'display_name' => 'Client',
                 'description' => 'Limited access for external clients to view their projects and invoices',
                 'permissions' => [
                     'dashboard.view',
-                    
+
                     // Limited project view (only their own)
                     'projects.view',
-                    
+
                     // View their own transactions/invoices
                     'transactions.view',
                     'incomes.view',
-                    
+
                     // Profile management
                     'profile.view',
                     'profile.edit',
-                    
+
                     // Notifications
                     'notifications.view',
                 ],
             ],
-            
+
             'viewer' => [
                 'name' => 'viewer',
                 'display_name' => 'Viewer',
                 'description' => 'Read-only access to most features for auditing or reporting purposes',
                 'permissions' => [
                     'dashboard.view',
-                    
+
                     // View-only access to most features
                     'clients.view',
                     'projects.view',
@@ -406,11 +413,11 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                     'finance.view',
                     'reports.view',
                     'transactions.view',
-                    
+
                     // Profile
                     'profile.view',
                     'profile.edit',
-                    
+
                     // Export capabilities
                     'data.export',
                 ],
@@ -418,7 +425,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
         ];
 
         $this->command->info('Creating roles and assigning permissions...');
-        
+
         foreach ($roles as $roleKey => $roleData) {
             $role = Role::firstOrCreate(
                 ['name' => $roleData['name']],
@@ -430,7 +437,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
 
             // Sync permissions for this role
             $role->syncPermissions($roleData['permissions']);
-            
+
             $permissionCount = count($roleData['permissions']);
             $this->command->info("✅ {$roleData['display_name']}: {$permissionCount} permissions assigned");
         }

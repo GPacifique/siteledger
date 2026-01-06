@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
 use App\Models\Employee;
+use App\Models\Project;
+use App\Models\Worker;
 use App\Traits\Downloadable;
 use App\Services\RbacFilterService;
 use Inertia\Inertia;
@@ -35,7 +37,7 @@ class PaymentController extends Controller
 
         // Optional period filter
         $period = request('period');
-        $query = Payment::with('employee')->latest('created_at');
+        $query = Payment::with(['employee', 'project', 'user'])->latest('created_at');
 
         if ($period === 'today') {
             $query->whereBetween('created_at', [$today, $endOfToday]);
@@ -68,8 +70,20 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        $employees = Employee::orderBy('first_name')->get();
-        return view('payments.create', compact('employees'));
+        $tenantId = auth()->user()->current_tenant_id;
+
+        // Get workers linked to current tenant
+        $employees = Worker::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->get();
+
+        // Get projects linked to current tenant
+        $projects = Project::where('tenant_id', $tenantId)
+            ->orderBy('name')
+            ->get();
+
+        return view('payments.create', compact('employees', 'projects'));
     }
 
     /**
@@ -89,7 +103,9 @@ class PaymentController extends Controller
     {
         // Custom validation for payment method
         $validatedData = $request->validate([
-            'employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:workers,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'phase' => 'nullable|in:design,execution',
             'amount' => 'required|numeric|min:0',
             'method' => 'required|string|max:50',
             'custom_method' => 'nullable|string|max:50',
@@ -104,7 +120,7 @@ class PaymentController extends Controller
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
-        $data = $request->only('employee_id', 'amount', 'method', 'reference', 'status');
+        $data = $request->only('employee_id', 'project_id', 'phase', 'amount', 'method', 'reference', 'status');
 
         // Use custom method if "other" was selected and custom_method is provided
         if ($validatedData['method'] === 'other') {
@@ -118,6 +134,12 @@ class PaymentController extends Controller
         if (empty($data['reference'])) {
             $data['reference'] = $this->generatePaymentReference();
         }
+
+        // Payments are ALWAYS recorded as "completed" (paid)
+        $data['status'] = 'completed';
+
+        // Track who created this payment
+        $data['user_id'] = Auth::id();
 
         $data = $this->ensureTenantId($data);
         Payment::create($data);
@@ -140,7 +162,20 @@ class PaymentController extends Controller
      */
     public function edit(Payment $payment)
     {
-        return view('payments.edit', compact('payment'));
+        $tenantId = auth()->user()->current_tenant_id;
+
+        // Get workers linked to current tenant
+        $employees = Worker::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->get();
+
+        // Get projects linked to current tenant
+        $projects = Project::where('tenant_id', $tenantId)
+            ->orderBy('name')
+            ->get();
+
+        return view('payments.edit', compact('payment', 'employees', 'projects'));
     }
 
     /**
@@ -150,7 +185,9 @@ class PaymentController extends Controller
     {
         // Custom validation for payment method
         $validatedData = $request->validate([
-            'employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:workers,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'phase' => 'nullable|in:design,execution',
             'amount' => 'required|numeric|min:0',
             'method' => 'required|string|max:50',
             'custom_method' => 'nullable|string|max:50',
@@ -165,7 +202,8 @@ class PaymentController extends Controller
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
-        $data = $request->only('employee_id', 'amount', 'method', 'reference', 'status');
+        // Exclude status from update - payments are always "completed" (paid)
+        $data = $request->only('employee_id', 'project_id', 'phase', 'amount', 'method', 'reference');
 
         // Use custom method if "other" was selected and custom_method is provided
         if ($validatedData['method'] === 'other') {
@@ -174,6 +212,9 @@ class PaymentController extends Controller
             }
             $data['method'] = $validatedData['custom_method'];
         }
+
+        // Ensure status stays "completed" (paid)
+        $data['status'] = 'completed';
 
         $payment->update($data);
 

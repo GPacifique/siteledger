@@ -44,13 +44,32 @@ class TaskController extends Controller
     {
         $tenantId = auth()->user()->current_tenant_id;
 
-        $tasks = Task::where('tenant_id', $tenantId)
-            ->with(['project', 'worker', 'assignedTo', 'createdBy'])
-            ->orderBy('priority', 'desc')
+        $query = Task::where('tenant_id', $tenantId)
+            ->with(['project', 'worker', 'assignedTo', 'createdBy']);
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        $tasks = $query->orderBy('priority', 'desc')
             ->orderBy('due_date', 'asc')
             ->paginate(20);
 
-        return view('tasks.global-index', compact('tasks'));
+        // Pass projects and workers for the create modal dropdown
+        $projects = Project::where('tenant_id', $tenantId)
+            ->orderBy('name')
+            ->get();
+
+        $workers = Worker::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->get();
+
+        return view('tasks.global-index', compact('tasks', 'projects', 'workers'));
     }
 
     /**
@@ -182,13 +201,15 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'required|in:low,medium,high,urgent',
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'status' => 'nullable|in:pending,in_progress,completed,cancelled',
             'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
             'estimated_hours' => 'nullable|numeric|min:0',
             'estimated_cost' => 'nullable|numeric|min:0',
         ]);
 
+        // Set default status if not provided
+        $validated['status'] = $validated['status'] ?? 'pending';
         $validated['created_by'] = Auth::id();
         $validated = $this->ensureTenantId($validated);
 

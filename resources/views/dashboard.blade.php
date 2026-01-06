@@ -207,6 +207,11 @@
             padding: 1.5rem;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             margin-bottom: 2rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .summary-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
         }
         .summary-section h3 {
             font-size: 1.1rem;
@@ -343,86 +348,162 @@
             font-size: 0.95rem;
         }
 
-        /* Calendar Section */
+        /* Calendar Section - Enhanced Styling */
         .calendar-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
             margin-bottom: 2rem;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .calendar-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #27ae60 100%);
         }
         .calendar-section h2 {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: #333;
+            font-size: 1.35rem;
+            margin-bottom: 1.25rem;
+            color: #1a1a2e;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid #eef2ff;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         .calendar-nav {
             display: flex;
             gap: 0.5rem;
+            align-items: center;
         }
         .calendar-nav button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
         .calendar-nav button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .calendar-nav button:active {
+            transform: translateY(0) scale(0.98);
         }
         .calendar-month-year {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 0.5rem 1rem;
+        }
+        .calendar-today-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .calendar-today-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
         }
         .calendar-kpis {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
-            margin: 0 0 0.75rem 0;
+            margin: 0 0 1.25rem 0;
             align-items: center;
         }
         .calendar-chip {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 16px;
-            font-size: 0.85rem;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
             background: #f3f4f6;
             color: #333;
-            border: 1px solid #eee;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-        .calendar-chip.positive { background: #e9f7ef; color: #1e7e34; border-color: #d4edda; }
-        .calendar-chip.negative { background: #fdecea; color: #a71d2a; border-color: #f5c6cb; }
-        .calendar-chip.neutral { background: #eef2ff; color: #4f46e5; border-color: #e0e7ff; }
+        .calendar-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .calendar-chip.positive {
+            background: linear-gradient(135deg, #e8f8f0 0%, #d4f5e4 100%);
+            color: #1a7f37;
+            border-color: #a8e6cf;
+        }
+        .calendar-chip.negative {
+            background: linear-gradient(135deg, #fef2f2 0%, #fde8e8 100%);
+            color: #b91c1c;
+            border-color: #fca5a5;
+        }
+        .calendar-chip.neutral {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            color: #4f46e5;
+            border-color: #a5b4fc;
+        }
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
         }
         .calendar-day-header {
             text-align: center;
-            font-weight: 600;
-            color: #666;
-            padding: 0.5rem;
+            font-weight: 700;
+            color: #64748b;
+            padding: 0.75rem 0.5rem;
             font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 0.5rem;
         }
         .calendar-day {
             aspect-ratio: 1;
@@ -430,55 +511,106 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            font-weight: 600;
             position: relative;
-            min-height: 45px;
+            min-height: 50px;
+            background: white;
+            border: 2px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .calendar-day:hover:not(.empty):not(.other-month) {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            z-index: 10;
+            border-color: transparent;
         }
         .calendar-day.today {
-            background: #e8f5e9;
-            font-weight: 700;
-            border: 2px solid #27ae60;
+            background: linear-gradient(135deg, #e8f8f0 0%, #d4f5e4 100%);
+            font-weight: 800;
+            border: 3px solid #27ae60;
+            color: #1a7f37;
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.15);
         }
         .calendar-day.today:hover {
-            background: #27ae60;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
+            border-color: #27ae60;
         }
         .calendar-day.other-month {
-            color: #ccc;
+            color: #cbd5e1;
+            background: #f8fafc;
+            opacity: 0.6;
         }
         .calendar-day.empty {
             cursor: default;
+            background: transparent;
+            box-shadow: none;
         }
         .calendar-day.has-data::after {
             content: '';
             position: absolute;
-            bottom: 4px;
-            width: 6px;
-            height: 6px;
+            bottom: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #667eea;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
         }
         .calendar-day.has-income::after {
             background: #27ae60;
+            box-shadow: 0 2px 4px rgba(39, 174, 96, 0.4);
         }
         .calendar-day.has-expense::after {
             background: #dc3545;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
         }
         .calendar-day.has-both::after {
             background: linear-gradient(90deg, #27ae60 50%, #dc3545 50%);
-            width: 12px;
+            width: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .calendar-day:hover:not(.empty):not(.other-month)::after {
+            background: white;
+            box-shadow: 0 2px 4px rgba(255,255,255,0.4);
+        }
+        .calendar-day:hover.has-both:not(.empty):not(.other-month)::after {
+            background: linear-gradient(90deg, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.8) 50%);
         }
 
-        /* Calendar Modal */
+        /* Calendar Legend */
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .calendar-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .calendar-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .calendar-legend-dot.income { background: #27ae60; }
+        .calendar-legend-dot.expense { background: #dc3545; }
+        .calendar-legend-dot.both { background: linear-gradient(90deg, #27ae60 50%, #dc3545 50%); width: 16px; }
+
+        /* Calendar Modal - Enhanced */
         .calendar-modal {
             display: none;
             position: fixed;
@@ -486,63 +618,90 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
         .calendar-modal.active {
             display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         .calendar-modal-content {
             background: white;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 600px;
+            border-radius: 20px;
+            width: 92%;
+            max-width: 650px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: modalSlideIn 0.3s ease;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-30px);
+                transform: translateY(-40px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
         .calendar-modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
-            border-radius: 16px 16px 0 0;
+            padding: 1.75rem;
+            border-radius: 20px 20px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .calendar-modal-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
         }
         .calendar-modal-header h3 {
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
         }
         .calendar-modal-close {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
+            font-size: 1.4rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
         }
         .calendar-modal-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
+            background: rgba(255, 255, 255, 0.35);
+            transform: rotate(90deg) scale(1.1);
+        }
         }
         .calendar-modal-body {
             padding: 1.5rem;
@@ -775,6 +934,7 @@
         // Enhanced card interaction functionality
         document.addEventListener('DOMContentLoaded', function() {
             const cardLinks = {
+                // Main stats cards
                 'Total Income': '/revenues',
                 'Total Expenses': '/expenses',
                 'Total Projects': '/projects',
@@ -785,12 +945,43 @@
                 'Project Expenses': '/expenses',
                 'Today\'s Income': '/revenues',
                 'Today\'s Expenses': '/expenses',
-                'Today\'s Net': '/admin/dashboard'
+                'Today\'s Net': '/admin/dashboard',
+                // Expense & Payment cards with emojis
+                '💰 Total All Expenses': '/expenses',
+                '📅 This Month Expenses': '/expenses',
+                '📆 Today\'s Expenses': '/expenses',
+                '👷 Worker Payments': '/payments',
+                // Summary cards
+                '💵 Overall Financial Summary': '/admin/dashboard',
+                '📝 Design Phase': '/projects',
+                '🔨 Execution Phase': '/projects',
+                '👷 Workforce by Position': '/workers',
+                '💳 Worker Payments': '/payments',
+                '📊 Office & Project Expenses': '/expenses'
             };
 
-            document.querySelectorAll('.stat-card').forEach(card => {
+            // Partial matches for dynamic titles
+            const partialCardLinks = {
+                '📊 Today\'s Summary': '/admin/dashboard'
+            };
+
+            function getCardLink(titleText) {
+                // First try exact match
+                if (cardLinks[titleText]) {
+                    return cardLinks[titleText];
+                }
+                // Then try partial match
+                for (const [key, url] of Object.entries(partialCardLinks)) {
+                    if (titleText.includes(key) || titleText.startsWith(key)) {
+                        return url;
+                    }
+                }
+                return null;
+            }
+
+            document.querySelectorAll('.stat-card, .summary-section').forEach(card => {
                 const title = card.querySelector('h3');
-                const href = title && cardLinks[title.textContent.trim()];
+                const href = title && getCardLink(title.textContent.trim());
 
                 if (href) {
                     // Add pointer cursor
@@ -798,6 +989,9 @@
 
                     // Click handler with ripple effect
                     card.addEventListener('click', function(e) {
+                        // Don't trigger if clicking on a link inside the card
+                        if (e.target.closest('a')) return;
+
                         // Create ripple effect
                         const ripple = document.createElement('span');
                         const rect = card.getBoundingClientRect();
@@ -1137,10 +1331,12 @@
             <div class="calendar-header">
                 <div class="calendar-nav">
                     <button onclick="changeMonth(-1)" title="Previous Month">‹</button>
+                    <span class="calendar-month-year" id="calendarMonthYear"></span>
                     <button onclick="changeMonth(1)" title="Next Month">›</button>
                 </div>
-                <span class="calendar-month-year" id="calendarMonthYear"></span>
-                <button onclick="goToToday()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;">Today</button>
+                <button class="calendar-today-btn" onclick="goToToday()">
+                    <span>📍</span> Today
+                </button>
             </div>
             <div class="calendar-kpis">
                 <div class="calendar-chip positive">💰 Income: RWF {{ number_format($incomesThisMonth ?? 0, 0) }}</div>
@@ -1157,6 +1353,20 @@
                 <div class="calendar-day-header">Thu</div>
                 <div class="calendar-day-header">Fri</div>
                 <div class="calendar-day-header">Sat</div>
+            </div>
+            <div class="calendar-legend">
+                <div class="calendar-legend-item">
+                    <div class="calendar-legend-dot income"></div>
+                    <span>Income</span>
+                </div>
+                <div class="calendar-legend-item">
+                    <div class="calendar-legend-dot expense"></div>
+                    <span>Expense</span>
+                </div>
+                <div class="calendar-legend-item">
+                    <div class="calendar-legend-dot both"></div>
+                    <span>Both</span>
+                </div>
             </div>
         </div>
 
@@ -1504,7 +1714,7 @@
         });
 
         // ===============================
-        // Financial Calendar JavaScript
+        // Financial Calendar JavaScript - Enhanced
         // ===============================
         let currentDate = new Date();
         let calendarData = {};
@@ -1513,76 +1723,109 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // Update header
+            // Update header with animation
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                                'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+            const monthYearEl = document.getElementById('calendarMonthYear');
+            monthYearEl.style.opacity = '0';
+            monthYearEl.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                monthYearEl.textContent = `${monthNames[month]} ${year}`;
+                monthYearEl.style.opacity = '1';
+                monthYearEl.style.transform = 'translateY(0)';
+            }, 150);
 
             // Get calendar grid and clear existing day cells (keep headers)
             const grid = document.getElementById('calendarGrid');
             const dayHeaders = grid.querySelectorAll('.calendar-day-header');
-            grid.innerHTML = '';
-            dayHeaders.forEach(header => grid.appendChild(header));
 
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            // Animate out old days
+            const oldDays = grid.querySelectorAll('.calendar-day');
+            oldDays.forEach((day, index) => {
+                day.style.opacity = '0';
+                day.style.transform = 'scale(0.8)';
+            });
 
-            const today = new Date();
-            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            setTimeout(() => {
+                grid.innerHTML = '';
+                dayHeaders.forEach(header => grid.appendChild(header));
 
-            // Previous month days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day other-month';
-                dayEl.textContent = daysInPrevMonth - i;
-                grid.appendChild(dayEl);
-            }
+                // Get first day of month and number of days
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-            // Current month days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day';
-                dayEl.textContent = day;
+                const today = new Date();
+                const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-                if (isCurrentMonth && day === today.getDate()) {
-                    dayEl.classList.add('today');
+                // Previous month days
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day other-month';
+                    dayEl.textContent = daysInPrevMonth - i;
+                    dayEl.style.opacity = '0';
+                    dayEl.style.transform = 'scale(0.8)';
+                    grid.appendChild(dayEl);
                 }
 
-                // Check for data indicators (use combined expenses = payments + other expenses)
-                if (calendarData[dateStr]) {
-                    const data = calendarData[dateStr];
-                    const dayPayments = (data.payments ?? data.totalPayments ?? 0);
-                    const combinedExpenses = (data.expenses || 0) + dayPayments;
-                    const hasIncome = (data.income || 0) > 0;
-                    if (hasIncome && combinedExpenses > 0) {
-                        dayEl.classList.add('has-both');
-                    } else if (hasIncome) {
-                        dayEl.classList.add('has-income');
-                    } else if (combinedExpenses > 0) {
-                        dayEl.classList.add('has-expense');
+                // Current month days
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    dayEl.textContent = day;
+                    dayEl.style.opacity = '0';
+                    dayEl.style.transform = 'scale(0.8)';
+
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                    if (isCurrentMonth && day === today.getDate()) {
+                        dayEl.classList.add('today');
                     }
+
+                    // Check for data indicators (use combined expenses = payments + other expenses)
+                    if (calendarData[dateStr]) {
+                        const data = calendarData[dateStr];
+                        const dayPayments = (data.payments ?? data.totalPayments ?? 0);
+                        const combinedExpenses = (data.expenses || 0) + dayPayments;
+                        const hasIncome = (data.income || 0) > 0;
+                        if (hasIncome && combinedExpenses > 0) {
+                            dayEl.classList.add('has-both');
+                        } else if (hasIncome) {
+                            dayEl.classList.add('has-income');
+                        } else if (combinedExpenses > 0) {
+                            dayEl.classList.add('has-expense');
+                        }
+                    }
+
+                    dayEl.onclick = () => openCalendarModal(dateStr, day, monthNames[month], year);
+                    grid.appendChild(dayEl);
                 }
 
-                dayEl.onclick = () => openCalendarModal(dateStr, day, monthNames[month], year);
-                grid.appendChild(dayEl);
-            }
+                // Next month days (fill remaining cells)
+                const totalCells = firstDay + daysInMonth;
+                const remainingCells = totalCells > 35 ? 42 - totalCells : 35 - totalCells;
+                for (let i = 1; i <= remainingCells; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day other-month';
+                    dayEl.textContent = i;
+                    dayEl.style.opacity = '0';
+                    dayEl.style.transform = 'scale(0.8)';
+                    grid.appendChild(dayEl);
+                }
 
-            // Next month days (fill remaining cells)
-            const totalCells = firstDay + daysInMonth;
-            const remainingCells = totalCells > 35 ? 42 - totalCells : 35 - totalCells;
-            for (let i = 1; i <= remainingCells; i++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day other-month';
-                dayEl.textContent = i;
-                grid.appendChild(dayEl);
-            }
+                // Animate in new days with stagger effect
+                const newDays = grid.querySelectorAll('.calendar-day');
+                newDays.forEach((day, index) => {
+                    setTimeout(() => {
+                        day.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                        day.style.opacity = '1';
+                        day.style.transform = 'scale(1)';
+                    }, index * 15);
+                });
 
-            // Fetch month data for indicators
-            fetchMonthData(year, month + 1);
+                // Fetch month data for indicators
+                fetchMonthData(year, month + 1);
+            }, 200);
         }
 
         function fetchMonthData(year, month) {
@@ -1632,7 +1875,32 @@
         function goToToday() {
             currentDate = new Date();
             renderCalendar();
+
+            // Highlight today with pulse animation
+            setTimeout(() => {
+                const todayEl = document.querySelector('.calendar-day.today');
+                if (todayEl) {
+                    todayEl.style.animation = 'todayPulse 0.6s ease';
+                    setTimeout(() => {
+                        todayEl.style.animation = '';
+                    }, 600);
+                }
+            }, 500);
         }
+
+        // Add pulse animation for today button
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes todayPulse {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.5); }
+                50% { transform: scale(1.15); box-shadow: 0 0 0 15px rgba(39, 174, 96, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.15); }
+            }
+            #calendarMonthYear {
+                transition: all 0.3s ease;
+            }
+        `;
+        document.head.appendChild(styleSheet);
 
         function openCalendarModal(dateStr, day, month, year) {
             const modal = document.getElementById('calendarModal');

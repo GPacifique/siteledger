@@ -13,6 +13,9 @@ class Payment extends Model
     protected $fillable = [
         'tenant_id',
         'employee_id',
+        'user_id',
+        'project_id',
+        'phase',
         'amount',
         'method',
         'reference',
@@ -24,11 +27,27 @@ class Payment extends Model
     ];
 
     /**
-     * Employee relationship
+     * Phase constants
+     */
+    public const PHASES = [
+        'design' => 'Design Phase',
+        'execution' => 'Execution Phase',
+    ];
+
+    /**
+     * Worker relationship (employee_id references workers table)
      */
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Worker::class, 'employee_id');
+    }
+
+    /**
+     * Project relationship
+     */
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     /**

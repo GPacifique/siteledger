@@ -114,15 +114,24 @@
                     <tr>
                         <th>Project Name</th>
                         <th>Client</th>
+                        <th>Manager</th>
                         <th>Status</th>
                         <th>Contract Value</th>
+                        <th>Amount Received</th>
+                        <th>Expenses + Payments</th>
+                        <th>Profit</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($projects as $project)
+                        @php
+                            $totalSpent = ($project->total_expenses ?? 0) + ($project->total_payments ?? 0);
+                            $profit = $project->profit ?? (($project->contract_value ?? 0) - $totalSpent);
+                        @endphp
                         <tr onclick="window.location.href='/projects/{{ $project->id }}';">
                             <td><strong>{{ $project->name }}</strong></td>
                             <td>{{ $project->client->name ?? 'N/A' }}</td>
+                            <td>{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'N/A' }}</td>
                             <td>
                                 @php
                                     $statusClass = match($project->status) {
@@ -133,7 +142,12 @@
                                 @endphp
                                 <span class="badge {{ $statusClass }}">{{ ucfirst($project->status) }}</span>
                             </td>
-                            <td>RWF {{ number_format($project->contract_value ?? 0, 2) }}</td>
+                            <td>RWF {{ number_format($project->contract_value ?? 0, 0) }}</td>
+                            <td style="color: #27ae60; font-weight: 600;">RWF {{ number_format($project->total_received ?? 0, 0) }}</td>
+                            <td style="color: #dc3545; font-weight: 600;">RWF {{ number_format($totalSpent, 0) }}</td>
+                            <td style="color: {{ $profit >= 0 ? '#27ae60' : '#dc3545' }}; font-weight: 700;">
+                                RWF {{ number_format($profit, 0) }}
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

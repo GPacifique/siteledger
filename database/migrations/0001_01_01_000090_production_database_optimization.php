@@ -9,10 +9,10 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * This migration optimizes the database structure for production by:
      * - Adding missing indexes for performance
-     * - Strengthening foreign key constraints  
+     * - Strengthening foreign key constraints
      * - Adding unique constraints for data integrity
      * - Optimizing multi-tenant query performance
      * - Adding production-ready business logic constraints
@@ -20,7 +20,7 @@ return new class extends Migration
     public function up(): void
     {
         echo "🚀 Starting Production Database Optimization...\n";
-        
+
         // =========================================
         // 1. OPTIMIZE CLIENTS TABLE
         // =========================================
@@ -41,7 +41,7 @@ return new class extends Migration
                     $table->index(['created_at'], 'clients_created_at_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped email
             $this->addUniqueConstraintSafely('clients', ['tenant_id', 'email'], 'clients_tenant_email_unique');
         }
@@ -69,7 +69,7 @@ return new class extends Migration
                     $table->index(['end_date'], 'projects_end_date_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped project names
             $this->addUniqueConstraintSafely('projects', ['tenant_id', 'name'], 'projects_tenant_name_unique');
         }
@@ -94,13 +94,13 @@ return new class extends Migration
                     $table->index(['received_at'], 'incomes_received_at_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped invoice numbers
             $this->addUniqueConstraintSafely('incomes', ['tenant_id', 'invoice_number'], 'incomes_tenant_invoice_unique');
         }
 
         // =========================================
-        // 4. OPTIMIZE EXPENSES TABLE  
+        // 4. OPTIMIZE EXPENSES TABLE
         // =========================================
         if (Schema::hasTable('expenses')) {
             echo "💸 Optimizing expenses table...\n";
@@ -141,7 +141,7 @@ return new class extends Migration
                     $table->index(['date_of_joining'], 'employees_date_of_joining_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped employee email
             $this->addUniqueConstraintSafely('employees', ['tenant_id', 'email'], 'employees_tenant_email_unique');
         }
@@ -156,7 +156,7 @@ return new class extends Migration
                 if (!Schema::hasColumn('workers', 'tenant_id')) {
                     $table->foreignId('tenant_id')->nullable()->after('id')->constrained('tenants')->onDelete('cascade');
                 }
-                
+
                 // Performance indexes
                 if (!$this->hasIndex('workers', 'workers_tenant_id_index')) {
                     $table->index(['tenant_id'], 'workers_tenant_id_index');
@@ -171,7 +171,7 @@ return new class extends Migration
                     $table->index(['hired_at'], 'workers_hired_at_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped worker email
             $this->addUniqueConstraintSafely('workers', ['tenant_id', 'email'], 'workers_tenant_email_unique');
         }
@@ -208,7 +208,7 @@ return new class extends Migration
                 if (!Schema::hasColumn('worker_payments', 'tenant_id')) {
                     $table->foreignId('tenant_id')->nullable()->after('id')->constrained('tenants')->onDelete('cascade');
                 }
-                
+
                 // Performance indexes
                 if (!$this->hasIndex('worker_payments', 'worker_payments_tenant_id_index')) {
                     $table->index(['tenant_id'], 'worker_payments_tenant_id_index');
@@ -251,28 +251,28 @@ return new class extends Migration
                 if (!$this->hasIndex('products', 'products_tenant_id_index')) {
                     $table->index(['tenant_id'], 'products_tenant_id_index');
                 }
-                
+
                 // Only add category index if category column exists
                 if (Schema::hasColumn('products', 'category') && !$this->hasIndex('products', 'products_tenant_id_category_index')) {
                     $table->index(['tenant_id', 'category'], 'products_tenant_id_category_index');
                 }
-                
-                // Only add status index if status column exists  
+
+                // Only add status index if status column exists
                 if (Schema::hasColumn('products', 'status') && !$this->hasIndex('products', 'products_tenant_id_status_index')) {
                     $table->index(['tenant_id', 'status'], 'products_tenant_id_status_index');
                 }
-                
+
                 // Only add sku index if sku column exists
                 if (Schema::hasColumn('products', 'sku') && !$this->hasIndex('products', 'products_sku_index')) {
                     $table->index(['sku'], 'products_sku_index');
                 }
-                
+
                 // Add name index for search performance
                 if (!$this->hasIndex('products', 'products_name_index')) {
                     $table->index(['name'], 'products_name_index');
                 }
             });
-            
+
             // Add unique constraint for tenant-scoped SKU only if sku column exists
             if (Schema::hasColumn('products', 'sku')) {
                 $this->addUniqueConstraintSafely('products', ['tenant_id', 'sku'], 'products_tenant_sku_unique');
@@ -319,7 +319,7 @@ return new class extends Migration
         // 14. ADD BUSINESS LOGIC CONSTRAINTS
         // =========================================
         echo "🔒 Adding business logic constraints...\n";
-        
+
         // Ensure positive amounts in financial tables
         $this->addCheckConstraintSafely('incomes', 'amount_received >= 0', 'incomes_positive_amount_check');
         $this->addCheckConstraintSafely('incomes', 'amount_remaining >= 0', 'incomes_positive_remaining_check');
@@ -327,15 +327,15 @@ return new class extends Migration
         $this->addCheckConstraintSafely('projects', 'contract_value >= 0', 'projects_positive_contract_check');
         $this->addCheckConstraintSafely('projects', 'amount_paid >= 0', 'projects_positive_paid_check');
         $this->addCheckConstraintSafely('projects', 'amount_remaining >= 0', 'projects_positive_remaining_check');
-        
+
         // Ensure logical date constraints
         $this->addCheckConstraintSafely('projects', 'end_date IS NULL OR start_date IS NULL OR end_date >= start_date', 'projects_logical_dates_check');
-        
+
         // =========================================
         // 15. OPTIMIZE CROSS-TABLE PERFORMANCE
         // =========================================
         echo "🔗 Optimizing cross-table performance...\n";
-        
+
         // Add composite indexes for common joins
         if (Schema::hasTable('incomes') && Schema::hasTable('projects')) {
             Schema::table('incomes', function (Blueprint $table) {
@@ -344,7 +344,7 @@ return new class extends Migration
                 }
             });
         }
-        
+
         if (Schema::hasTable('expenses') && Schema::hasTable('projects')) {
             Schema::table('expenses', function (Blueprint $table) {
                 if (!$this->hasIndex('expenses', 'expenses_project_category_index')) {
@@ -357,14 +357,14 @@ return new class extends Migration
         // 16. ANALYZE TABLES FOR QUERY OPTIMIZATION
         // =========================================
         echo "📊 Analyzing tables for query optimization...\n";
-        
+
         $tablesToAnalyze = [
-            'tenants', 'clients', 'projects', 'incomes', 'expenses', 
+            'tenants', 'clients', 'projects', 'incomes', 'expenses',
             'employees', 'workers', 'payments', 'worker_payments',
             'orders', 'order_items', 'products', 'transactions',
             'reports', 'settings', 'tasks', 'accounts'
         ];
-        
+
         foreach ($tablesToAnalyze as $table) {
             if (Schema::hasTable($table)) {
                 try {
@@ -391,13 +391,13 @@ return new class extends Migration
     public function down(): void
     {
         echo "⚠️ Rolling back production optimizations...\n";
-        
+
         // Note: Rolling back indexes is generally not recommended in production
         // as it can severely impact performance. This is mainly for development.
-        
+
         $indexesToDrop = [
             'clients' => [
-                'clients_tenant_id_index', 'clients_tenant_id_email_index', 
+                'clients_tenant_id_index', 'clients_tenant_id_email_index',
                 'clients_tenant_id_name_index', 'clients_created_at_index'
             ],
             'projects' => [
@@ -447,7 +447,7 @@ return new class extends Migration
                 'settings_tenant_id_index', 'settings_tenant_id_key_index'
             ]
         ];
-        
+
         foreach ($indexesToDrop as $table => $indexes) {
             if (Schema::hasTable($table)) {
                 Schema::table($table, function (Blueprint $table) use ($indexes) {
@@ -461,7 +461,7 @@ return new class extends Migration
                 });
             }
         }
-        
+
         echo "✅ Production optimizations rolled back\n";
     }
 
@@ -483,8 +483,23 @@ return new class extends Migration
     private function hasIndex(string $table, string $indexName): bool
     {
         try {
-            $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
-            return !empty($indexes);
+            $connection = Schema::getConnection();
+            $driver = $connection->getDriverName();
+
+            if ($driver === 'sqlite') {
+                // SQLite uses pragma to check indexes
+                $indexes = DB::select("PRAGMA index_list('{$table}')");
+                foreach ($indexes as $index) {
+                    if ($index->name === $indexName) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                // MySQL/MariaDB
+                $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
+                return !empty($indexes);
+            }
         } catch (\Exception $e) {
             return false;
         }
@@ -496,19 +511,37 @@ return new class extends Migration
     private function addUniqueConstraintSafely(string $table, array $columns, string $constraintName): void
     {
         try {
-            $exists = DB::select("
-                SELECT CONSTRAINT_NAME 
-                FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-                WHERE TABLE_SCHEMA = DATABASE() 
-                AND TABLE_NAME = ? 
-                AND CONSTRAINT_NAME = ?
-                AND CONSTRAINT_TYPE = 'UNIQUE'
-            ", [$table, $constraintName]);
-            
-            if (empty($exists)) {
-                $columnList = implode('`, `', $columns);
-                DB::statement("ALTER TABLE `{$table}` ADD CONSTRAINT `{$constraintName}` UNIQUE (`{$columnList}`)");
+            $connection = Schema::getConnection();
+            $driver = $connection->getDriverName();
+
+            if ($driver === 'sqlite') {
+                // SQLite: Check if index already exists
+                $indexes = DB::select("PRAGMA index_list('{$table}')");
+                foreach ($indexes as $index) {
+                    if ($index->name === $constraintName) {
+                        return; // Already exists
+                    }
+                }
+                // Create unique index for SQLite
+                $columnList = implode('", "', $columns);
+                DB::statement("CREATE UNIQUE INDEX \"{$constraintName}\" ON \"{$table}\" (\"{$columnList}\")");
                 echo "   ✅ Added unique constraint: {$constraintName}\n";
+            } else {
+                // MySQL/MariaDB
+                $exists = DB::select("
+                    SELECT CONSTRAINT_NAME
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = ?
+                    AND CONSTRAINT_NAME = ?
+                    AND CONSTRAINT_TYPE = 'UNIQUE'
+                ", [$table, $constraintName]);
+
+                if (empty($exists)) {
+                    $columnList = implode('`, `', $columns);
+                    DB::statement("ALTER TABLE `{$table}` ADD CONSTRAINT `{$constraintName}` UNIQUE (`{$columnList}`)");
+                    echo "   ✅ Added unique constraint: {$constraintName}\n";
+                }
             }
         } catch (\Exception $e) {
             echo "   ⚠️ Could not add unique constraint {$constraintName}: " . $e->getMessage() . "\n";
@@ -521,20 +554,30 @@ return new class extends Migration
     private function addCheckConstraintSafely(string $table, string $condition, string $constraintName): void
     {
         try {
+            $connection = Schema::getConnection();
+            $driver = $connection->getDriverName();
+
+            // SQLite doesn't support ALTER TABLE ADD CONSTRAINT for CHECK constraints
+            // They must be defined at table creation time
+            if ($driver === 'sqlite') {
+                echo "   ⚠️ SQLite: Check constraint {$constraintName} skipped (not supported via ALTER TABLE)\n";
+                return;
+            }
+
             // MySQL 8.0+ supports check constraints
             $version = DB::select("SELECT VERSION() as version")[0]->version;
             $majorVersion = intval(explode('.', $version)[0]);
-            
+
             if ($majorVersion >= 8) {
                 $exists = DB::select("
-                    SELECT CONSTRAINT_NAME 
-                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-                    WHERE TABLE_SCHEMA = DATABASE() 
-                    AND TABLE_NAME = ? 
+                    SELECT CONSTRAINT_NAME
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = ?
                     AND CONSTRAINT_NAME = ?
                     AND CONSTRAINT_TYPE = 'CHECK'
                 ", [$table, $constraintName]);
-                
+
                 if (empty($exists)) {
                     DB::statement("ALTER TABLE `{$table}` ADD CONSTRAINT `{$constraintName}` CHECK ({$condition})");
                     echo "   ✅ Added check constraint: {$constraintName}\n";

@@ -120,6 +120,43 @@
             border: 1px solid #f0f0f0;
             margin: 2rem 0;
         }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
         @media (max-width: 768px) {
             .detail-row {
                 grid-template-columns: 1fr;
@@ -161,6 +198,39 @@
                 <div class="detail-item">
                     <span class="detail-label">Payment Date</span>
                     <span class="detail-value">{{ $payment->created_at?->format('M d, Y H:i') ?? 'N/A' }}</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-item">
+                    <span class="detail-label">🏗️ Project</span>
+                    <span class="detail-value">
+                        @if($payment->project)
+                            <a href="{{ route('projects.show', $payment->project) }}" style="color: #27ae60; text-decoration: none; font-weight: 600;">
+                                {{ $payment->project->name }}
+                            </a>
+                        @else
+                            <span style="color: #999;">No project assigned</span>
+                        @endif
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📋 Phase</span>
+                    <span class="detail-value">
+                        @if($payment->phase)
+                            @if($payment->phase === 'design')
+                                <span style="background: #9b59b6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                                    📝 Design Phase
+                                </span>
+                            @else
+                                <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                                    🔨 Execution Phase
+                                </span>
+                            @endif
+                        @else
+                            <span style="color: #999;">No phase specified</span>
+                        @endif
+                    </span>
                 </div>
             </div>
 
@@ -209,6 +279,16 @@
                     <span class="detail-label">Last Updated</span>
                     <span class="detail-value">{{ $payment->updated_at?->format('M d, Y H:i:s') ?? 'N/A' }}</span>
                 </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ route('payments.index') }}" class="btn btn-secondary">← Back to Payments</a>
+                <a href="{{ route('payments.edit', $payment->id) }}" class="btn btn-primary">✏️ Edit</a>
+                <form action="{{ route('payments.destroy', $payment->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this payment?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                </form>
             </div>
         </div>
     </div>

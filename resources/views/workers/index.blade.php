@@ -128,7 +128,7 @@
                                 @endphp
                                 <span class="badge {{ $statusClass }}">{{ ucfirst($worker->status) }}</span>
                             </td>
-                            <td>RWF {{ number_format($worker->monthly_salary ?? 0, 2) }}</td>
+                            <td>RWF {{ number_format($worker->daily_wage ?? 0, 0) }}</td>
                         </tr>
                     @endforeach
                 </tbody>

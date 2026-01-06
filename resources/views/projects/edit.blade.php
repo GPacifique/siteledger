@@ -317,22 +317,20 @@
                     </div>
                 </div>
 
-                @if($managers && count($managers) > 0)
-                    <div class="form-group">
-                        <label for="manager_id">Project Manager</label>
-                        <select name="manager_id" id="manager_id">
-                            <option value="">Select a manager</option>
-                            @foreach($managers as $manager)
-                                <option value="{{ $manager->id }}" {{ old('manager_id', $project->manager_id) == $manager->id ? 'selected' : '' }}>
-                                    {{ $manager->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('manager_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                @endif
+                <div class="form-group">
+                    <label for="manager_id">Project Manager (Worker)</label>
+                    <select name="manager_id" id="manager_id">
+                        <option value="">Select a manager</option>
+                        @foreach($workers as $worker)
+                            <option value="{{ $worker->id }}" {{ old('manager_id', $project->manager_id) == $worker->id ? 'selected' : '' }}>
+                                {{ $worker->first_name }} {{ $worker->last_name }} ({{ $worker->position ?? 'N/A' }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('manager_id')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
+                </div>
 
                 <div class="button-group">
                     <button type="submit">Update Project</button>

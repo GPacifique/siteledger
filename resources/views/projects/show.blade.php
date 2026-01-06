@@ -171,6 +171,44 @@
             font-weight: 700;
             color: #333;
         }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
         @media (max-width: 768px) {
             .detail-row {
                 grid-template-columns: 1fr;
@@ -190,9 +228,20 @@
     <div class="container">
         <!-- Project Information -->
         <div class="detail-card">
-            <h2>📁 Project Information</h2>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="margin-bottom: 0;">📁 Project Information</h2>
+                <div class="action-buttons" style="margin-top: 0;">
+                    <a href="{{ route('projects.index') }}" class="btn btn-secondary">← Back</a>
+                    <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-primary">✏️ Edit</a>
+                    <form action="{{ route('projects.destroy', $project->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this project? This will also delete all associated tasks and data.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                    </form>
+                </div>
+            </div>
 
-            <div class="detail-row">
+            <div class="detail-row" style="margin-top: 1.5rem;">
                 <div class="detail-item">
                     <span class="detail-label">Project Name</span>
                     <span class="detail-value">{{ $project->name ?? 'N/A' }}</span>
@@ -211,6 +260,17 @@
                 <div class="detail-item">
                     <span class="detail-label">Client</span>
                     <span class="detail-value">{{ $project->client->name ?? 'N/A' }}</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-item">
+                    <span class="detail-label">Project Manager</span>
+                    <span class="detail-value">{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status</span>
+                    <span class="badge badge-active">{{ ucfirst($project->status ?? 'Active') }}</span>
                 </div>
             </div>
 
@@ -239,17 +299,38 @@
         <div class="detail-card">
             <h2>💰 Financial Summary</h2>
             <div class="financial-summary">
-                <div class="financial-item revenue">
-                    <h4>Received Amount</h4>
-                    <div class="amount">RWF {{ number_format($receivedAmount ?? 0, 2) }}</div>
+                <div class="financial-item">
+                    <h4>💼 Agreed Budget</h4>
+                    <div class="amount">RWF {{ number_format($agreedBudget ?? $project->contract_value ?? 0, 0) }}</div>
                 </div>
+                <div class="financial-item revenue">
+                    <h4>💵 Amount Received</h4>
+                    <div class="amount" style="color: #27ae60;">RWF {{ number_format($amountReceived ?? $receivedAmount ?? 0, 0) }}</div>
+                </div>
+                <div class="financial-item" style="border-left-color: #3498db;">
+                    <h4>📊 Budget Remaining</h4>
+                    <div class="amount" style="color: #3498db;">RWF {{ number_format($budgetRemaining ?? 0, 0) }}</div>
+                    <small style="color: #666; display: block; margin-top: 0.3rem;">
+                        (Budget - Received)
+                    </small>
+                </div>
+            </div>
+            <div class="financial-summary" style="margin-top: 1rem;">
                 <div class="financial-item expense">
-                    <h4>Remaining Amount</h4>
-                    <div class="amount">RWF {{ number_format($remainingAmount ?? 0, 2) }}</div>
+                    <h4>💸 Total Spent</h4>
+                    <div class="amount" style="color: #dc3545;">RWF {{ number_format($amountSpent ?? 0, 0) }}</div>
+                    <small style="color: #666; display: block; margin-top: 0.3rem;">
+                        (Expenses: RWF {{ number_format($totalExpenses ?? 0, 0) }} + Payments: RWF {{ number_format($totalPayments ?? 0, 0) }})
+                    </small>
                 </div>
                 <div class="financial-item profit">
-                    <h4>Net Profit</h4>
-                    <div class="amount">RWF {{ number_format($profit ?? 0, 2) }}</div>
+                    <h4>📈 Profit</h4>
+                    <div class="amount" style="color: {{ ($profit ?? 0) >= 0 ? '#27ae60' : '#dc3545' }};">
+                        RWF {{ number_format($profit ?? 0, 0) }}
+                    </div>
+                    <small style="color: #666; display: block; margin-top: 0.3rem;">
+                        (Budget - Spent)
+                    </small>
                 </div>
             </div>
         </div>
@@ -428,6 +509,76 @@
                         </tr>
                     @endforeach
                 </tbody>
+            </table>
+        </div>
+        @endif
+
+        <!-- Worker Payments History -->
+        @if(isset($projectPayments) && $projectPayments->count() > 0)
+        <div class="detail-card">
+            <h2>💳 Worker Payments History ({{ $projectPayments->count() }})</h2>
+
+            <!-- Payment Summary by Phase -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h4 style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">📝 Design Phase</h4>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #667eea;">RWF {{ number_format($designPayments ?? 0, 0) }}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #27ae60;">
+                    <h4 style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">🔨 Execution Phase</h4>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">RWF {{ number_format($executionPayments ?? 0, 0) }}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #dc3545;">
+                    <h4 style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">💰 Total Payments</h4>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #dc3545;">RWF {{ number_format($totalPayments ?? 0, 0) }}</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Worker</th>
+                        <th>Phase</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($projectPayments as $payment)
+                        <tr onclick="window.location.href='{{ route('payments.show', $payment->id) }}'" style="cursor: pointer;">
+                            <td>{{ $payment->created_at?->format('M d, Y') }}</td>
+                            <td>
+                                @if($payment->employee)
+                                    <strong>{{ $payment->employee->first_name }} {{ $payment->employee->last_name }}</strong>
+                                @else
+                                    <span style="color: #999;">—</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($payment->phase)
+                                    @if($payment->phase == 'design')
+                                        <span class="badge" style="background: #e8daef; color: #6c5ce7;">📝 Design</span>
+                                    @else
+                                        <span class="badge" style="background: #d4edda; color: #155724;">🔨 Execution</span>
+                                    @endif
+                                @else
+                                    <span style="color: #999;">—</span>
+                                @endif
+                            </td>
+                            <td><strong style="color: #dc3545;">RWF {{ number_format($payment->amount, 0) }}</strong></td>
+                            <td>{{ ucfirst($payment->method ?? 'N/A') }}</td>
+                            <td>{{ $payment->reference ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot style="background: #f5f7fa; font-weight: bold;">
+                    <tr>
+                        <td colspan="3"><strong>Total Worker Payments</strong></td>
+                        <td colspan="3"><strong style="color: #dc3545;">RWF {{ number_format($totalPayments ?? 0, 0) }}</strong></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         @endif

@@ -181,57 +181,37 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="position">Position</label>
-                        <select name="position" id="position">
-                            <option value="">Select Position</option>
-                            <option value="Engineer" {{ old('position') == 'Engineer' ? 'selected' : '' }}>Engineer</option>
-                            <option value="Architect" {{ old('position') == 'Architect' ? 'selected' : '' }}>Architect</option>
-                            <option value="MEP" {{ old('position') == 'MEP' ? 'selected' : '' }}>MEP (Mechanical, Electrical, Plumbing)</option>
-                            <option value="Dealer" {{ old('position') == 'Dealer' ? 'selected' : '' }}>Dealer</option>
-                            <option value="Technician" {{ old('position') == 'Technician' ? 'selected' : '' }}>Technician</option>
-                            <option value="Casual Labor" {{ old('position') == 'Casual Labor' ? 'selected' : '' }}>Casual Labor</option>
-                            <option value="Mason" {{ old('position') == 'Mason' ? 'selected' : '' }}>Mason</option>
-                            <option value="Carpenter" {{ old('position') == 'Carpenter' ? 'selected' : '' }}>Carpenter</option>
-                            <option value="Electrician" {{ old('position') == 'Electrician' ? 'selected' : '' }}>Electrician</option>
-                            <option value="Plumber" {{ old('position') == 'Plumber' ? 'selected' : '' }}>Plumber</option>
-                            <option value="Foreman" {{ old('position') == 'Foreman' ? 'selected' : '' }}>Foreman</option>
-                            <option value="Other" {{ old('position') == 'Other' ? 'selected' : '' }}>Other</option>
-                        </select>
-                        @error('position')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <input type="text" name="status" id="status" value="{{ old('status') }}" placeholder="e.g., active">
-                        @error('status')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
+                <div class="form-group">
+                    <label for="position">Position</label>
+                    <select name="position" id="position">
+                        <option value="">Select Position</option>
+                        <option value="Engineer" {{ old('position') == 'Engineer' ? 'selected' : '' }}>Engineer</option>
+                        <option value="Architect" {{ old('position') == 'Architect' ? 'selected' : '' }}>Architect</option>
+                        <option value="MEP" {{ old('position') == 'MEP' ? 'selected' : '' }}>MEP (Mechanical, Electrical, Plumbing)</option>
+                        <option value="Dealer" {{ old('position') == 'Dealer' ? 'selected' : '' }}>Dealer</option>
+                        <option value="Technician" {{ old('position') == 'Technician' ? 'selected' : '' }}>Technician</option>
+                        <option value="Casual Labor" {{ old('position') == 'Casual Labor' ? 'selected' : '' }}>Casual Labor</option>
+                        <option value="Mason" {{ old('position') == 'Mason' ? 'selected' : '' }}>Mason</option>
+                        <option value="Carpenter" {{ old('position') == 'Carpenter' ? 'selected' : '' }}>Carpenter</option>
+                        <option value="Electrician" {{ old('position') == 'Electrician' ? 'selected' : '' }}>Electrician</option>
+                        <option value="Plumber" {{ old('position') == 'Plumber' ? 'selected' : '' }}>Plumber</option>
+                        <option value="Foreman" {{ old('position') == 'Foreman' ? 'selected' : '' }}>Foreman</option>
+                        <option value="Other" {{ old('position') == 'Other' ? 'selected' : '' }}>Other</option>
+                    </select>
+                    @error('position')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="salary">Monthly Salary (optional)</label>
-                        <input type="number" name="salary" id="salary" step="0.01" value="{{ old('salary') }}" placeholder="e.g., 50000">
-                        @error('salary')
+                        <label for="daily_wage">Daily Wage (RWF) *</label>
+                        <input type="number" name="daily_wage" id="daily_wage" step="0.01" value="{{ old('daily_wage') }}" placeholder="e.g., 5000" required>
+                        @error('daily_wage')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label for="currency">Currency (3-letter code)</label>
-                        <input type="text" name="currency" id="currency" value="{{ old('currency', 'RWF') }}" maxlength="3">
-                        @error('currency')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-row">
                     <div class="form-group">
                         <label for="hired_at">Hire Date</label>
                         <input type="date" name="hired_at" id="hired_at" value="{{ old('hired_at') }}">
@@ -239,10 +219,23 @@
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
+                </div>
 
+                <div class="form-row">
                     <div class="form-group">
                         <label for="phone_alt">Alternate Contact (optional)</label>
                         <input type="text" name="phone_alt" id="phone_alt" value="{{ old('phone_alt') }}" placeholder="Alternate phone or contact">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status">
+                            <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                        @error('status')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 

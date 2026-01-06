@@ -456,7 +456,7 @@
                                         <div class="material-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
                                             <div>
                                                 <div class="material-name">{{ $expense->item_name ?? $expense->description ?? 'Material' }}</div>
-                                                <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }}</div>
+                                                <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
                                             </div>
                                             <div class="material-qty">
                                                 @if($expense->quantity && $expense->unit)
@@ -495,7 +495,7 @@
                                                 <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
                                                     <div class="expense-info">
                                                         <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }}</div>
+                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
                                                     </div>
                                                     <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
                                                 </div>
@@ -514,7 +514,7 @@
                                                 <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
                                                     <div class="expense-info">
                                                         <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }}</div>
+                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
                                                     </div>
                                                     <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
                                                 </div>
@@ -538,7 +538,7 @@
                                                 <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
                                                     <div class="expense-info">
                                                         <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }}</div>
+                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
                                                     </div>
                                                     <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
                                                 </div>
@@ -569,6 +569,7 @@
                                                         @if($expense->expense_type)
                                                             • {{ ucfirst($expense->expense_type) }}
                                                         @endif
+                                                        • {{ $expense->user->name ?? 'Unknown' }}
                                                     </div>
                                                 </div>
                                                 <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
@@ -597,6 +598,7 @@
                             <th>Description</th>
                             <th>Category</th>
                             <th>Amount</th>
+                            <th>Recorded By</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -607,6 +609,7 @@
                                 <td>{{ $expense->description ?? 'N/A' }}</td>
                                 <td>{{ $expense->category ?? 'General' }}</td>
                                 <td><strong style="color: #d63031;">RWF {{ number_format($expense->amount ?? 0, 0) }}</strong></td>
+                                <td>{{ $expense->user->name ?? '—' }}</td>
                                 <td>
                                     <span class="badge badge-{{ $expense->status ?? 'pending' }}">
                                         {{ ucfirst($expense->status ?? 'Pending') }}

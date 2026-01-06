@@ -404,9 +404,13 @@
                     <label for="projectSelect" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Select Project <span style="color: #d63031;">*</span></label>
                     <select id="projectSelect" name="project_id" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;">
                         <option value="">-- Select a Project --</option>
-                        @foreach(\App\Models\Project::where('tenant_id', auth()->user()->current_tenant_id)->get() as $project)
-                            <option value="{{ $project->id }}">{{ $project->name }}</option>
-                        @endforeach
+                        @if(isset($projects) && $projects->count() > 0)
+                            @foreach($projects as $project)
+                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="" disabled>No projects available</option>
+                        @endif
                     </select>
                 </div>
 
@@ -424,9 +428,13 @@
                     <label for="workerSelect" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Assign to Worker <span style="color: #d63031;">*</span></label>
                     <select id="workerSelect" name="worker_id" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
                         <option value="">-- Select a Worker --</option>
-                        @foreach(\App\Models\Worker::where('tenant_id', auth()->user()->current_tenant_id)->where('status', 'active')->orderBy('first_name')->get() as $worker)
-                            <option value="{{ $worker->id }}">{{ $worker->first_name }} {{ $worker->last_name }} ({{ $worker->position ?? 'N/A' }})</option>
-                        @endforeach
+                        @if(isset($workers) && $workers->count() > 0)
+                            @foreach($workers as $worker)
+                                <option value="{{ $worker->id }}">{{ $worker->first_name }} {{ $worker->last_name }} ({{ $worker->position ?? 'N/A' }})</option>
+                            @endforeach
+                        @else
+                            <option value="" disabled>No workers available</option>
+                        @endif
                     </select>
                 </div>
 
@@ -441,23 +449,31 @@
                         </select>
                     </div>
                     <div>
-                        <label for="startDate" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Start Date</label>
-                        <input type="date" id="startDate" name="start_date" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                        <label for="taskStatus" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Status</label>
+                        <select id="taskStatus" name="status" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                            <option value="pending" selected>⏳ Pending</option>
+                            <option value="in_progress">⏱️ In Progress</option>
+                            <option value="completed">✅ Completed</option>
+                        </select>
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div>
+                        <label for="startDate" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Start Date</label>
+                        <input type="date" id="startDate" name="start_date" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div>
                         <label for="dueDate" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Due Date</label>
                         <input type="date" id="dueDate" name="due_date" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
                     </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div>
                         <label for="estimatedHours" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Estimated Hours <span style="color: #667eea; font-size: 0.85rem;">(Auto: 8hrs/day)</span></label>
                         <input type="number" id="estimatedHours" name="estimated_hours" step="0.5" placeholder="Auto-calculated" readonly style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; background-color: #f8f9fa; cursor: not-allowed;">
                     </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div>
                         <label for="estimatedCost" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">Estimated Cost (RWF)</label>
                         <input type="number" id="estimatedCost" name="estimated_cost" step="0.01" placeholder="0.00" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">

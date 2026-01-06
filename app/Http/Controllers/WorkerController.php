@@ -52,17 +52,13 @@ $data = $request->validate([
 'email' => 'nullable|email',
 'phone' => 'nullable|string|max:30',
 'position' => 'nullable|string|max:100',
-'salary' => 'nullable|numeric|min:0',
-'currency' => 'nullable|string|size:3',
+'daily_wage' => 'required|numeric|min:0',
 'hired_at' => 'nullable|date',
 'status' => 'nullable|string|max:50',
 'notes' => 'nullable|string',
 ]);
-if (isset($data['salary'])) {
-$data['salary_cents'] = (int) round($data['salary'] * 100);
-unset($data['salary']);
-}
 
+$data['currency'] = 'RWF';
 $data = $this->ensureTenantId($data);
 $data['created_by'] = Auth::id();
 $worker = Worker::create($data);
@@ -160,20 +156,13 @@ $data = $request->validate([
 'email' => 'nullable|email',
 'phone' => 'nullable|string|max:30',
 'position' => 'nullable|string|max:100',
-'salary' => 'nullable|numeric|min:0',
-'currency' => 'nullable|string|size:3',
+'daily_wage' => 'required|numeric|min:0',
 'hired_at' => 'nullable|date',
 'status' => 'nullable|string|max:50',
 'notes' => 'nullable|string',
 ]);
 
-
-if (isset($data['salary'])) {
-$data['salary_cents'] = (int) round($data['salary'] * 100);
-unset($data['salary']);
-}
-
-
+$data['currency'] = 'RWF';
 $worker->update($data);
 
 

@@ -14,6 +14,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\CompanyStaffController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -133,10 +134,22 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
     Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
     Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy'])->name('notifications.destroy');
+
+    // Company Staff Management (for tenant/company admins)
+    Route::prefix('company')->name('company.')->group(function () {
+        Route::get('/staff', [CompanyStaffController::class, 'index'])->name('staff.index');
+        Route::get('/staff/create', [CompanyStaffController::class, 'create'])->name('staff.create');
+        Route::post('/staff', [CompanyStaffController::class, 'store'])->name('staff.store');
+        Route::get('/staff/{staff}', [CompanyStaffController::class, 'show'])->name('staff.show');
+        Route::get('/staff/{staff}/edit', [CompanyStaffController::class, 'edit'])->name('staff.edit');
+        Route::put('/staff/{staff}', [CompanyStaffController::class, 'update'])->name('staff.update');
+        Route::delete('/staff/{staff}', [CompanyStaffController::class, 'destroy'])->name('staff.destroy');
+        Route::post('/staff/{staff}/toggle-admin', [CompanyStaffController::class, 'toggleAdmin'])->name('staff.toggle-admin');
+    });
 });
 
-// Super Admin Routes
-Route::middleware(['auth', 'tenant.data'])->prefix('super-admin')->name('super-admin.')->group(function () {
+// Super Admin Routes - Restricted to System Administrator role
+Route::middleware(['auth', 'role:system administrator'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
 
     // User Management

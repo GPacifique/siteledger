@@ -4,8 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 use App\Models\Tenant;
+use App\Models\Project;
+use App\Models\Client;
+use App\Models\Income;
+use App\Models\Expense;
+use App\Models\Employee;
+use App\Models\Worker;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Carbon\Carbon;
@@ -13,66 +21,161 @@ use Carbon\Carbon;
 class SuperAdminController extends Controller
 {
     /**
-     * Ensure only super admin can access these routes
+     * Ensure only system administrator role can access these routes
      */
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!Auth::check() || !Auth::user()->is_super_admin) {
-                abort(403, 'Unauthorized. Super Admin access required.');
+            $user = Auth::user();
+
+            if (!Auth::check()) {
+                abort(403, 'Unauthorized. Authentication required.');
             }
+
+            // Allow access if user has system administrator role OR is_super_admin flag
+            if (!$user->hasRole('system administrator') && !$user->is_super_admin) {
+                abort(403, 'Unauthorized. System Administrator access required.');
+            }
+
             return $next($request);
         });
     }
 
     /**
-     * Super Admin Dashboard
+     * Super Admin Dashboard - Platform Overview
      */
     public function dashboard()
     {
-        // System-wide statistics
+        // =============================================
+        // PLATFORM STATISTICS
+        // =============================================
         $totalUsers = User::count();
         $totalTenants = Tenant::count();
+        $activeTenants = Tenant::where('status', 'active')->count();
         $totalRoles = Role::count();
         $totalPermissions = Permission::count();
         $superAdmins = User::where('is_super_admin', true)->count();
+
+        // Users with admin role
         $adminUsers = User::whereHas('roles', function ($query) {
             $query->where('name', 'admin');
         })->count();
 
-        // All users for assignment form
-        $allUsers = User::orderBy('name')->get();
+        // Recent activity - users created this month
+        $newUsersThisMonth = User::where('created_at', '>=', Carbon::now()->startOfMonth())->count();
+        $newTenantsThisMonth = Tenant::where('created_at', '>=', Carbon::now()->startOfMonth())->count();
 
-        // All tenants for assignment form and overview
+        // =============================================
+        // TENANT ANALYTICS
+        // =============================================
+        $tenantStats = [];
+        $tenants = Tenant::with('users')->withCount('users')->orderBy('created_at', 'desc')->get();
+
+        foreach ($tenants as $tenant) {
+            $tenantId = $tenant->id;
+
+            // Count business entities per tenant
+            $projectCount = Schema::hasTable('projects') ? Project::where('tenant_id', $tenantId)->count() : 0;
+            $clientCount = Schema::hasTable('clients') ? Client::where('tenant_id', $tenantId)->count() : 0;
+            $employeeCount = Schema::hasTable('employees') ? Employee::where('tenant_id', $tenantId)->count() : 0;
+            $workerCount = Schema::hasTable('workers') ? Worker::where('tenant_id', $tenantId)->count() : 0;
+
+            // Financial metrics per tenant
+            $totalIncome = Schema::hasTable('incomes') ? Income::where('tenant_id', $tenantId)->sum('amount') : 0;
+            $totalExpense = Schema::hasTable('expenses') ? Expense::where('tenant_id', $tenantId)->sum('amount') : 0;
+
+            $tenantStats[$tenantId] = [
+                'tenant' => $tenant,
+                'projects' => $projectCount,
+                'clients' => $clientCount,
+                'employees' => $employeeCount,
+                'workers' => $workerCount,
+                'total_income' => $totalIncome,
+                'total_expense' => $totalExpense,
+                'net_revenue' => $totalIncome - $totalExpense,
+            ];
+        }
+
+        // =============================================
+        // PLATFORM-WIDE BUSINESS METRICS
+        // =============================================
+        $platformTotalIncome = Schema::hasTable('incomes') ? Income::sum('amount') : 0;
+        $platformTotalExpense = Schema::hasTable('expenses') ? Expense::sum('amount') : 0;
+        $platformTotalProjects = Schema::hasTable('projects') ? Project::count() : 0;
+        $platformTotalClients = Schema::hasTable('clients') ? Client::count() : 0;
+        $platformTotalEmployees = Schema::hasTable('employees') ? Employee::count() : 0;
+        $platformTotalWorkers = Schema::hasTable('workers') ? Worker::count() : 0;
+
+        // Active projects across all tenants
+        $activeProjects = Schema::hasTable('projects')
+            ? Project::whereIn('status', ['active', 'in_progress', 'ongoing'])->count()
+            : 0;
+
+        // =============================================
+        // SUBSCRIPTION & PLAN DISTRIBUTION
+        // =============================================
+        $planDistribution = Tenant::select('subscription_plan', DB::raw('count(*) as count'))
+            ->groupBy('subscription_plan')
+            ->pluck('count', 'subscription_plan')
+            ->toArray();
+
+        $statusDistribution = Tenant::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        // =============================================
+        // USER DISTRIBUTION BY ROLE
+        // =============================================
+        $roleDistribution = [];
+        $roles = Role::withCount('users')->get();
+        foreach ($roles as $role) {
+            $roleDistribution[$role->name] = $role->users_count;
+        }
+
+        // =============================================
+        // RECENT ACTIVITY
+        // =============================================
+        $recentUsers = User::with('tenants')->latest('created_at')->limit(5)->get();
+        $recentTenants = Tenant::withCount('users')->latest('created_at')->limit(5)->get();
+
+        // All users and tenants for assignment forms
+        $allUsers = User::with('tenants')->orderBy('name')->get();
         $allTenants = Tenant::with('users')->orderBy('name')->get();
 
-        // Recent users for display
-        $recentUsers = User::latest('created_at')->limit(10)->get();
-
-        // Tenants overview
-        $tenants = Tenant::with('users')->latest('created_at')->limit(10)->get();
-
-        // System health
+        // System health checks
         $systemHealth = [
-            'total_users' => $totalUsers,
-            'total_tenants' => $totalTenants,
-            'total_roles' => $totalRoles,
-            'total_permissions' => $totalPermissions,
-            'super_admins' => $superAdmins,
-            'admin_users' => $adminUsers,
+            'database' => true, // Could add actual health checks
+            'cache' => true,
+            'queue' => true,
         ];
 
         return view('super-admin.dashboard', compact(
             'totalUsers',
             'totalTenants',
+            'activeTenants',
             'totalRoles',
             'totalPermissions',
             'superAdmins',
             'adminUsers',
+            'newUsersThisMonth',
+            'newTenantsThisMonth',
+            'tenantStats',
+            'platformTotalIncome',
+            'platformTotalExpense',
+            'platformTotalProjects',
+            'platformTotalClients',
+            'platformTotalEmployees',
+            'platformTotalWorkers',
+            'activeProjects',
+            'planDistribution',
+            'statusDistribution',
+            'roleDistribution',
             'recentUsers',
-            'tenants',
+            'recentTenants',
             'allUsers',
             'allTenants',
+            'tenants',
             'systemHealth'
         ));
     }

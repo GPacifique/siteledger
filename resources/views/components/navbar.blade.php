@@ -2,7 +2,7 @@
 <nav class="navbar">
     <div class="navbar-container">
         <div class="navbar-brand">
-            <a href="/" class="logo">📊 CSMS</a>
+            <a href="/" class="logo">🌿 Green Core Engineering</a>
         </div>
 
         <ul class="navbar-menu">
@@ -25,13 +25,30 @@
 
         <div class="navbar-right">
             @auth
+                @php
+                    $nameParts = explode(' ', Auth::user()->name);
+                    $initials = strtoupper(substr($nameParts[0], 0, 1));
+                    if (count($nameParts) > 1) {
+                        $initials .= strtoupper(substr(end($nameParts), 0, 1));
+                    }
+                @endphp
                 <div class="user-dropdown">
-                    <button class="user-menu-trigger" id="userMenuTrigger">
-                        <span class="user-avatar">👤</span>
-                        <span class="user-name">{{ Auth::user()->name }}</span>
+                    <button class="user-menu-trigger" id="userMenuTrigger" title="{{ Auth::user()->name }}">
+                        <div class="avatar-circle">
+                            <span class="avatar-initials">{{ $initials }}</span>
+                        </div>
                         <span class="dropdown-arrow">▼</span>
                     </button>
                     <div class="dropdown-menu" id="dropdownMenu">
+                        <div class="dropdown-header">
+                            <div class="dropdown-avatar-circle">
+                                <span class="dropdown-avatar-initials">{{ $initials }}</span>
+                            </div>
+                            <div class="dropdown-user-info">
+                                <span class="dropdown-user-name">{{ Auth::user()->name }}</span>
+                                <span class="dropdown-user-email">{{ Auth::user()->email }}</span>
+                            </div>
+                        </div>
                         <form action="/logout" method="POST">
                             @csrf
                             <button type="submit" class="dropdown-item logout-item">
@@ -48,10 +65,10 @@
 
 <style>
     .navbar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
         color: white;
         padding: 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(39, 174, 96, 0.25), 0 2px 8px rgba(0, 0, 0, 0.08);
         position: sticky;
         top: 0;
         z-index: 1000;
@@ -177,6 +194,63 @@
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
 
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .user-menu-trigger:hover .avatar-circle {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+    }
+
+    .avatar-initials {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1e8449;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
+    }
+
+    .dropdown-avatar-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #e8f5e9;
+        box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
+        flex-shrink: 0;
+    }
+
+    .dropdown-avatar-initials {
+        font-size: 18px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
+    }
+
+    .user-avatar-svg {
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .user-menu-trigger:hover .user-avatar-svg {
+        transform: scale(1.05);
+    }
+
     .user-avatar {
         font-size: 1.1rem;
     }
@@ -186,6 +260,34 @@
         font-weight: 700;
         font-size: 0.9rem;
         letter-spacing: 0.3px;
+    }
+
+    .dropdown-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .dropdown-user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dropdown-user-name {
+        display: block;
+        font-weight: 700;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .dropdown-user-email {
+        display: block;
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
     }
 
     .dropdown-arrow {

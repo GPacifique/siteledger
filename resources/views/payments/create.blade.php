@@ -168,6 +168,39 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="project_id">Project *</label>
+                        <select name="project_id" id="project_id" required>
+                            <option value="">-- Select Project --</option>
+                            @if(isset($projects) && $projects->count() > 0)
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                        {{ $project->name }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="">No projects available</option>
+                            @endif
+                        </select>
+                        @error('project_id')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phase">Phase *</label>
+                        <select name="phase" id="phase" required>
+                            <option value="">-- Select Phase --</option>
+                            <option value="design" {{ old('phase') == 'design' ? 'selected' : '' }}>📝 Design Phase</option>
+                            <option value="execution" {{ old('phase') == 'execution' ? 'selected' : '' }}>🔨 Execution Phase</option>
+                        </select>
+                        @error('phase')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="employee_id">Worker</label>
                         <select name="employee_id" id="employee_id">
                             <option value="">-- Select Worker --</option>

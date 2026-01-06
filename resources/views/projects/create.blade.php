@@ -188,10 +188,14 @@
                     @enderror
                 </div>
 
+                @php
+                    $defaultStartDate = now()->addMonth()->format('Y-m-d');
+                    $defaultEndDate = now()->addMonth()->format('Y-m-d');
+                @endphp
                 <div class="form-row">
                     <div class="form-group">
                         <label for="start_date">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}">
+                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $defaultStartDate) }}">
                         @error('start_date')
                             <div class="error">{{ $message }}</div>
                         @enderror
@@ -199,7 +203,7 @@
 
                     <div class="form-group">
                         <label for="end_date">End Date</label>
-                        <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}">
+                        <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $defaultEndDate) }}">
                         @error('end_date')
                             <div class="error">{{ $message }}</div>
                         @enderror
@@ -264,7 +268,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="design_start_date">Design Start Date</label>
-                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date') }}">
+                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date', $defaultStartDate) }}">
                             </div>
                             <div class="form-group">
                                 <label for="design_end_date">Design End Date</label>
@@ -297,31 +301,31 @@
                             <div class="form-group">
                                 <label for="execution_start_date">Execution Start Date</label>
                                 <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date') }}">
+                                <small style="color: #666; font-size: 0.8rem;">Auto-fills when Design End Date is set</small>
                             </div>
                             <div class="form-group">
                                 <label for="execution_end_date">Execution End Date</label>
-                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date') }}">
+                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date', $defaultEndDate) }}">
+                                <small style="color: #666; font-size: 0.8rem;">Defaults to Project End Date</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                @if($managers && count($managers) > 0)
-                    <div class="form-group">
-                        <label for="manager_id">Project Manager</label>
-                        <select name="manager_id" id="manager_id">
-                            <option value="">Select a manager</option>
-                            @foreach($managers as $manager)
-                                <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                    {{ $manager->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('manager_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                @endif
+                <div class="form-group">
+                    <label for="manager_id">Project Manager (Worker)</label>
+                    <select name="manager_id" id="manager_id">
+                        <option value="">Select a manager</option>
+                        @foreach($workers as $worker)
+                            <option value="{{ $worker->id }}" {{ old('manager_id') == $worker->id ? 'selected' : '' }}>
+                                {{ $worker->first_name }} {{ $worker->last_name }} ({{ $worker->position ?? 'N/A' }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('manager_id')
+                        <div class="error">{{ $message }}</div>
+                    @enderror
+                </div>
 
                 <div class="button-group">
                     <button type="submit">Save Project</button>
@@ -427,6 +431,26 @@
         contractValueInput.addEventListener('input', function() {
             userEditedDesign = false;
             userEditedExecution = false;
+        });
+
+        // Auto-sync dates between phases
+        const designEndDateInput = document.getElementById('design_end_date');
+        const executionStartDateInput = document.getElementById('execution_start_date');
+        const executionEndDateInput = document.getElementById('execution_end_date');
+        const projectEndDateInput = document.getElementById('end_date');
+
+        // When Design End Date changes, set Execution Start Date to match
+        designEndDateInput.addEventListener('change', function() {
+            if (this.value && !executionStartDateInput.value) {
+                executionStartDateInput.value = this.value;
+            }
+        });
+
+        // When Project End Date changes, update Execution End Date
+        projectEndDateInput.addEventListener('change', function() {
+            if (this.value) {
+                executionEndDateInput.value = this.value;
+            }
         });
     </script>
 </body>

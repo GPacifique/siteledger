@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\Worker;
 use App\Services\BusinessQueryService;
 use App\Services\RbacFilterService;
 use App\Traits\Downloadable;
@@ -30,8 +31,29 @@ class ProjectController extends Controller
     // List projects with role-based filtering
     public function index(Request $request)
     {
-        $query = Project::query();
+        $query = Project::with(['client', 'manager']);
         $filteredProjects = $this->rbacFilterService->filterProjects($query)->get();
+
+        // Calculate financial data for each project
+        $filteredProjects->each(function($project) {
+            // Get revenues (amount received from client) - payment_status = 'Paid'
+            $project->total_received = \App\Models\Income::where('project_id', $project->id)
+                ->where('payment_status', 'Paid')
+                ->sum('amount_received');
+
+            // Get expenses
+            $project->total_expenses = \App\Models\Expense::where('project_id', $project->id)
+                ->sum('amount');
+
+            // Get worker payments for this project
+            $project->total_payments = \App\Models\Payment::where('project_id', $project->id)
+                ->sum('amount');
+
+            // Calculate profit: Budget - (Expenses + Payments)
+            $budget = $project->contract_value ?? 0;
+            $totalSpent = $project->total_expenses + $project->total_payments;
+            $project->profit = $budget - $totalSpent;
+        });
 
         return view('projects.index', [
             'projects' => $filteredProjects,
@@ -41,21 +63,18 @@ class ProjectController extends Controller
     // Show create form
     public function create()
     {
+        $tenantId = auth()->user()->current_tenant_id;
+
         // Get all clients from database
-        $clients = Client::orderBy('name')->get();
+        $clients = Client::where('tenant_id', $tenantId)->orderBy('name')->get();
 
-        // Get potential managers (if user has access)
-        $managers = [];
-        if ($this->queryService->canAccessUserData()) {
-            $managers = $this->queryService->buildRoleBasedQuery('users')
-                             ->whereHas('roles', function($q) {
-                                 $q->whereIn('name', ['manager', 'admin']);
-                             })
-                             ->orderBy('name')
-                             ->get();
-        }
+        // Get workers to select as project manager
+        $workers = Worker::where('tenant_id', $tenantId)
+                         ->where('status', 'active')
+                         ->orderBy('first_name')
+                         ->get();
 
-        return view('projects.create', compact('clients', 'managers'));
+        return view('projects.create', compact('clients', 'workers'));
     }
 
     // Store new project with tenant awareness
@@ -71,7 +90,7 @@ class ProjectController extends Controller
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'budget'         => 'nullable|numeric|min:0',
             'contract_value' => 'nullable|numeric|min:0',
-            'manager_id'     => 'nullable|exists:users,id',
+            'manager_id'     => 'nullable|exists:workers,id',
             'status'         => 'nullable|string|in:planning,active,completed,on_hold',
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',
@@ -154,7 +173,7 @@ class ProjectController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         $totalRevenue = $revenues->sum('amount_received');
-        $receivedAmount = $revenues->where('status', 'received')->sum('amount_received');
+        $receivedAmount = $revenues->where('payment_status', 'Paid')->sum('amount_received');
         $remainingAmount = max(0, $project->contract_value - $receivedAmount);
 
         // Get project expenses
@@ -163,14 +182,33 @@ class ProjectController extends Controller
             ->get();
         $totalExpenses = $expenses->sum('amount');
 
-        // Calculate profit/loss
-        $profit = $totalRevenue - $totalExpenses - $totalWorkerCost;
+        // Get project worker payments (from payments table)
+        $projectPayments = \App\Models\Payment::where('project_id', $project->id)
+            ->with('employee')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $totalPayments = $projectPayments->sum('amount');
+
+        // Calculate totals by phase
+        $designPayments = $projectPayments->where('phase', 'design')->sum('amount');
+        $executionPayments = $projectPayments->where('phase', 'execution')->sum('amount');
+
+        // Budget calculations
+        $agreedBudget = $project->contract_value ?? 0;
+        $amountReceived = $receivedAmount; // From incomes (client payments)
+        $amountSpent = $totalExpenses + $totalPayments; // Expenses + Worker Payments
+        $budgetRemaining = max(0, $agreedBudget - $amountReceived); // Budget minus what client has paid
+
+        // Calculate profit: Budget - (Expenses + Payments)
+        $profit = $agreedBudget - $amountSpent;
 
         return view('projects.show', compact(
             'project', 'stats', 'workers', 'totalWorkers', 'totalWorkerCost',
             'paymentsByPosition',
             'revenues', 'totalRevenue', 'receivedAmount', 'remainingAmount',
-            'expenses', 'totalExpenses', 'profit'
+            'expenses', 'totalExpenses', 'profit',
+            'projectPayments', 'totalPayments', 'designPayments', 'executionPayments',
+            'agreedBudget', 'amountReceived', 'amountSpent', 'budgetRemaining'
         ));
     }
 
@@ -186,20 +224,16 @@ class ProjectController extends Controller
             abort(404, 'Project not found or access denied.');
         }
 
-        $clients = Client::orderBy('name')->get();
+        $tenantId = auth()->user()->current_tenant_id;
+        $clients = Client::where('tenant_id', $tenantId)->orderBy('name')->get();
 
-        // Get managers if user has access
-        $managers = [];
-        if ($this->queryService->canAccessUserData()) {
-            $managers = $this->queryService->buildRoleBasedQuery('users')
-                             ->whereHas('roles', function($q) {
-                                 $q->whereIn('name', ['manager', 'admin']);
-                             })
-                             ->orderBy('name')
-                             ->get();
-        }
+        // Get workers to select as project manager
+        $workers = Worker::where('tenant_id', $tenantId)
+                         ->where('status', 'active')
+                         ->orderBy('first_name')
+                         ->get();
 
-        return view('projects.edit', compact('project', 'clients', 'managers'));
+        return view('projects.edit', compact('project', 'clients', 'workers'));
     }
 
     // Update the specified project with role-based validation
@@ -223,7 +257,7 @@ class ProjectController extends Controller
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'budget'         => 'nullable|numeric|min:0',
             'contract_value' => 'nullable|numeric|min:0',
-            'manager_id'     => 'nullable|exists:users,id',
+            'manager_id'     => 'nullable|exists:workers,id',
             'status'         => 'nullable|string|in:planning,active,completed,on_hold',
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',

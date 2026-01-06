@@ -38,6 +38,7 @@ class Project extends Model
         'amount_paid',
         'amount_remaining',
         'notes',
+        'manager_id',
         // Phase fields
         'current_phase',
         'design_phase_value',
@@ -96,6 +97,22 @@ public function client()
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the manager (worker) who manages this project
+     */
+    public function manager()
+    {
+        return $this->belongsTo(Worker::class, 'manager_id');
+    }
+
+    /**
+     * Get worker payments for this project (from payments table)
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /**
@@ -216,6 +233,123 @@ public function client()
         $this->amount_remaining = $this->contract_value - $this->amount_paid;
 
         $this->save();
+    }
+
+    /**
+     * Automatically update project status based on timeline and payments
+     * Status flow: planned -> active -> completed
+     */
+    public function updateStatusAutomatically()
+    {
+        $today = now()->startOfDay();
+        $hasRevenue = $this->amount_paid > 0 || $this->design_phase_paid > 0 || $this->execution_phase_paid > 0;
+        $hasIncome = $this->incomes()->exists();
+
+        // Determine new status based on conditions
+        $newStatus = $this->determineStatus($today, $hasRevenue || $hasIncome);
+
+        if ($this->status !== $newStatus) {
+            $this->status = $newStatus;
+            $this->save();
+        }
+
+        // Also update phase statuses
+        $this->updatePhaseStatuses($today);
+
+        return $this->status;
+    }
+
+    /**
+     * Determine project status based on timeline and payments
+     */
+    protected function determineStatus($today, $hasRevenue)
+    {
+        // If project end date has passed and fully paid, mark as completed
+        if ($this->end_date && $today->greaterThan($this->end_date)) {
+            // Check if execution phase is complete or project is fully paid
+            if ($this->execution_phase_status === 'completed' ||
+                ($this->amount_paid >= $this->contract_value && $this->contract_value > 0)) {
+                return 'completed';
+            }
+            // Past end date but not complete - could be overdue/active
+            return 'active';
+        }
+
+        // If first revenue is received, project is active
+        if ($hasRevenue) {
+            return 'active';
+        }
+
+        // If project start date has passed but no revenue yet
+        if ($this->start_date && $today->greaterThanOrEqualTo($this->start_date)) {
+            return 'in_progress';
+        }
+
+        // Project hasn't started yet
+        return 'planned';
+    }
+
+    /**
+     * Update phase statuses based on dates
+     */
+    protected function updatePhaseStatuses($today)
+    {
+        $changed = false;
+
+        // Design phase status
+        if ($this->design_start_date && $this->design_end_date) {
+            if ($today->lessThan($this->design_start_date)) {
+                if ($this->design_phase_status !== 'pending') {
+                    $this->design_phase_status = 'pending';
+                    $changed = true;
+                }
+            } elseif ($today->greaterThan($this->design_end_date)) {
+                if ($this->design_phase_status !== 'completed') {
+                    $this->design_phase_status = 'completed';
+                    $changed = true;
+                }
+            } else {
+                if ($this->design_phase_status !== 'in_progress') {
+                    $this->design_phase_status = 'in_progress';
+                    $changed = true;
+                }
+            }
+        }
+
+        // Execution phase status
+        if ($this->execution_start_date && $this->execution_end_date) {
+            if ($today->lessThan($this->execution_start_date)) {
+                if ($this->execution_phase_status !== 'pending') {
+                    $this->execution_phase_status = 'pending';
+                    $changed = true;
+                }
+            } elseif ($today->greaterThan($this->execution_end_date)) {
+                if ($this->execution_phase_status !== 'completed') {
+                    $this->execution_phase_status = 'completed';
+                    $changed = true;
+                }
+            } else {
+                if ($this->execution_phase_status !== 'in_progress') {
+                    $this->execution_phase_status = 'in_progress';
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed) {
+            $this->save();
+        }
+    }
+
+    /**
+     * Boot method to set up model events
+     */
+    protected static function booted()
+    {
+        // Auto-update status when project is retrieved/accessed
+        static::retrieved(function ($project) {
+            $project->updateStatusAutomatically();
+        });
     }
 
 }
