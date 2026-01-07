@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Tenant - Super Admin - CSMS</title>
+    <title>Create Tenant - Super Admin - SiteLedger</title>
     <style>
         body { background: #0f172a; color: #e2e8f0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
         .nav { display: flex; gap: 12px; align-items: center; padding: 12px 20px; background: rgba(255,255,255,0.04); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); }

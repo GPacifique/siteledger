@@ -583,7 +583,7 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-brand">
-            <h1>🛡️ SiteLedger Super Admin</h1>
+            <h1>🏗️ SiteLedger <span style="font-size: 0.7em; opacity: 0.8;">Super Admin</span></h1>
         </div>
         <div class="navbar-links">
             <a href="{{ route('super-admin.dashboard') }}" class="active">Dashboard</a>

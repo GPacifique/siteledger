@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - CSMS</title>
+    <title>Register - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -32,9 +32,25 @@
         }
         h1 {
             color: #fff;
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 0;
             text-align: center;
+        }
+        .logo-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logo-header .logo-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .logo-header .tagline {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 5px;
+            letter-spacing: 0.5px;
         }
         .subtitle {
             color: #ccc;
@@ -145,8 +161,12 @@
 <body>
 
     <div class="container">
-        <h1>Register</h1>
-        <p class="subtitle">Create your CSMS account</p>
+        <div class="logo-header">
+            <span class="logo-icon">🏗️</span>
+            <h1>SiteLedger</h1>
+            <p class="tagline">Construction Sites Management</p>
+        </div>
+        <p class="subtitle">Create your account to get started</p>
 
         @if($errors->any())
             <div class="alert">

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users - Super Admin - CSMS</title>
+    <title>Manage Users - Super Admin - SiteLedger</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: linear-gradient(135deg, #1e1e2e 0%, #282c34 100%); min-height: 100vh; color: #fff; }
@@ -39,7 +39,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🛡️ Super Admin Control</h1>
+        <h1>🛡️ SiteLedger Admin</h1>
         <div class="navbar-links">
             <a href="{{ route('super-admin.dashboard') }}">Dashboard</a>
             <a href="{{ route('super-admin.users.index') }}">Users</a>

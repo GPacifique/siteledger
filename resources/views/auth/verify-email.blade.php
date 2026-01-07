@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Email - CSMS</title>
+    <title>Verify Email - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -42,6 +42,28 @@
             width: 40px;
             height: 40px;
             fill: white;
+        }
+        .logo-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .logo-header .logo-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .logo-header .logo-name {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .logo-header .logo-tagline {
+            color: #667eea;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         h1 {
             color: #333;
@@ -120,10 +142,10 @@
 </head>
 <body>
     <div class="container">
-        <div class="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-            </svg>
+        <div class="logo-header">
+            <span class="logo-icon">🏗️</span>
+            <span class="logo-name">SiteLedger</span>
+            <span class="logo-tagline">Construction Sites Management</span>
         </div>
 
         <h1>Verify Your Email</h1>

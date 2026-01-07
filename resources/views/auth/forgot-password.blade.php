@@ -42,6 +42,28 @@
             height: 35px;
             fill: white;
         }
+        .logo-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .logo-header .logo-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .logo-header .logo-name {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .logo-header .logo-tagline {
+            color: #667eea;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
         h1 {
             color: #333;
             font-size: 1.8em;
@@ -153,10 +175,10 @@
 </head>
 <body>
     <div class="container">
-        <div class="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-            </svg>
+        <div class="logo-header">
+            <span class="logo-icon">🏗️</span>
+            <span class="logo-name">SiteLedger</span>
+            <span class="logo-tagline">Construction Sites Management</span>
         </div>
 
         <h1>Forgot Password?</h1>

@@ -2,7 +2,13 @@
 <nav class="navbar">
     <div class="navbar-container">
         <div class="navbar-brand">
-            <a href="/" class="logo">🌿 Green Core Engineering</a>
+            <a href="/" class="logo">
+                <span class="logo-icon">🏗️</span>
+                <span class="logo-text">
+                    <span class="logo-name">SiteLedger</span>
+                    <span class="logo-tagline">Construction Sites Management</span>
+                </span>
+            </a>
         </div>
 
         <!-- Mobile Menu Toggle -->
@@ -117,6 +123,35 @@
     .logo:hover {
         transform: translateY(-2px);
         filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+    }
+
+    .logo-icon {
+        font-size: 1.75rem;
+    }
+
+    .logo-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .logo-name {
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .logo-tagline {
+        font-size: 0.65rem;
+        font-weight: 500;
+        opacity: 0.85;
+        letter-spacing: 0.3px;
+        color: rgba(255, 255, 255, 0.9);
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.9);
     }
 
     .navbar-menu {

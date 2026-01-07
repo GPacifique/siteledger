@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - CSMS</title>
+    <title>Login - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -29,9 +29,25 @@
         }
         h1 {
             color: #333;
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 0;
             text-align: center;
+        }
+        .logo-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logo-header .logo-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .logo-header .tagline {
+            color: #667eea;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 5px;
+            letter-spacing: 0.5px;
         }
         .subtitle {
             color: #666;
@@ -131,8 +147,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
-        <p class="subtitle">Welcome back to SiteLedger</p>
+        <div class="logo-header">
+            <span class="logo-icon">🏗️</span>
+            <h1>SiteLedger</h1>
+            <p class="tagline">Construction Sites Management</p>
+        </div>
+        <p class="subtitle">Welcome back! Sign in to continue</p>
 
         @if (session('status'))
             <div style="background: #d4edda; color: #155724; padding: 12px 20px; border-radius: 5px; margin-bottom: 20px; font-size: 0.9em; text-align: center;">
