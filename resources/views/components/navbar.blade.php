@@ -5,7 +5,14 @@
             <a href="/" class="logo">🌿 Green Core Engineering</a>
         </div>
 
-        <ul class="navbar-menu">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+
+        <ul class="navbar-menu" id="navbarMenu">
             @auth
                 <li><a href="/dashboard" class="nav-link">📊 Dashboard</a></li>
                 <li><a href="/projects" class="nav-link">🏗️ Projects</a></li>
@@ -411,34 +418,158 @@
     @media (max-width: 768px) {
         .navbar-container {
             flex-wrap: wrap;
-            padding: 0 1.25rem;
+            padding: 0 1rem;
             height: auto;
-            min-height: 75px;
+            min-height: 60px;
         }
 
-        .navbar-menu {
-            width: 100%;
-            justify-content: flex-start;
-            order: 3;
-            overflow-x: auto;
-            padding: 0.75rem 0;
-            gap: 0.25rem;
-        }
-
-        .nav-link {
-            padding: 0.625rem 1rem;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            border-radius: 6px;
-        }
-
-        .navbar-right {
-            margin-left: auto;
-            gap: 1rem;
+        .navbar-brand {
+            flex: 1;
         }
 
         .logo {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
+        }
+
+        /* Hamburger Menu Button */
+        .mobile-menu-toggle {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 8px;
+            order: 2;
+            margin-left: 10px;
+        }
+
+        .hamburger-line {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Mobile Menu */
+        .navbar-menu {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            order: 4;
+            padding: 1rem 0;
+            gap: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 0.5rem;
+        }
+
+        .navbar-menu.active {
+            display: flex;
+        }
+
+        .navbar-menu li {
+            width: 100%;
+        }
+
+        .nav-link {
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link:hover {
+            transform: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Navbar Right */
+        .navbar-right {
+            order: 3;
+            margin-left: 0;
+            gap: 0.5rem;
+        }
+
+        .user-menu-trigger {
+            padding: 0.4rem 0.6rem;
+        }
+
+        .user-menu-trigger .user-name,
+        .user-menu-trigger .dropdown-arrow {
+            display: none;
+        }
+
+        .avatar-circle {
+            width: 36px;
+            height: 36px;
+        }
+
+        .avatar-initials {
+            font-size: 13px;
+        }
+
+        .dropdown-menu {
+            right: -10px;
+            min-width: 220px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-container {
+            padding: 0 0.75rem;
+        }
+
+        .logo {
+            font-size: 0.95rem;
+        }
+
+        .mobile-menu-toggle {
+            width: 36px;
+            height: 36px;
+            padding: 7px;
+        }
+
+        .nav-link {
+            padding: 0.75rem 0.875rem;
+            font-size: 0.9rem;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+        }
+
+        .avatar-initials {
+            font-size: 12px;
+        }
+    }
+
+    /* Hide hamburger on desktop */
+    @media (min-width: 769px) {
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        .navbar-menu {
+            display: flex !important;
         }
     }
 </style>
@@ -447,6 +578,17 @@
     document.addEventListener('DOMContentLoaded', function() {
         const userMenuTrigger = document.getElementById('userMenuTrigger');
         const dropdownMenu = document.getElementById('dropdownMenu');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navbarMenu = document.getElementById('navbarMenu');
+
+        // Mobile menu toggle
+        if (mobileMenuToggle && navbarMenu) {
+            mobileMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                mobileMenuToggle.classList.toggle('active');
+                navbarMenu.classList.toggle('active');
+            });
+        }
 
         if (userMenuTrigger && dropdownMenu) {
             // Toggle dropdown on button click
@@ -462,6 +604,11 @@
                     userMenuTrigger.classList.remove('active');
                     dropdownMenu.classList.remove('active');
                 }
+                // Close mobile menu when clicking outside
+                if (!e.target.closest('.navbar') && navbarMenu) {
+                    mobileMenuToggle?.classList.remove('active');
+                    navbarMenu.classList.remove('active');
+                }
             });
 
             // Close dropdown when a menu item is clicked
@@ -470,6 +617,16 @@
                     userMenuTrigger.classList.remove('active');
                     dropdownMenu.classList.remove('active');
                 }
+            });
+        }
+
+        // Close mobile menu when nav link is clicked
+        if (navbarMenu) {
+            navbarMenu.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenuToggle?.classList.remove('active');
+                    navbarMenu.classList.remove('active');
+                });
             });
         }
     });
