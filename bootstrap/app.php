@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'check.permissions' => \App\Http\Middleware\CheckUserPermissions::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             // Multi-tenant middleware
             'resolve.tenant' => \App\Http\Middleware\ResolveTenantMiddleware::class,
             'tenant.scope' => \App\Http\Middleware\TenantDatabaseScopeMiddleware::class,

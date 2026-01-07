@@ -28,6 +28,14 @@ class Worker extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Get the worker's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? '')) ?: 'Unknown';
+    }
+
     // daily_wage is now stored directly in RWF, no conversion needed
 
     /**
