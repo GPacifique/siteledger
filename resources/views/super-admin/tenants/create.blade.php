@@ -88,6 +88,53 @@
                     @error('business_type')<div class="error">{{ $message }}</div>@enderror
                 </div>
             </div>
+
+            <!-- Company Admin Section -->
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="color: #c4b5fd; margin-bottom: 16px; font-size: 16px;">👤 Assign Company Admin (Optional)</h3>
+                <div class="grid">
+                    <div>
+                        <label for="admin_user_id">Select Company Admin</label>
+                        <select id="admin_user_id" name="admin_user_id" style="background-color: #1e293b; color: #ffffff;">
+                            <option value="">-- No Admin (Assign Later) --</option>
+                            @if($unassignedUsers->count() > 0)
+                                <optgroup label="Unassigned Users (Recommended)" style="background-color: #1e293b; color: #10b981;">
+                                    @foreach($unassignedUsers as $user)
+                                        <option value="{{ $user->id }}" style="background-color: #1e293b; color: #ffffff;" {{ old('admin_user_id') == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }} ({{ $user->email }})
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            @if($recentUsers->count() > 0)
+                                <optgroup label="Recent Users (May Have Tenants)" style="background-color: #1e293b; color: #f59e0b;">
+                                    @foreach($recentUsers as $user)
+                                        @if(!$unassignedUsers->contains('id', $user->id))
+                                            <option value="{{ $user->id }}" style="background-color: #1e293b; color: #ffffff;" {{ old('admin_user_id') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }} ({{ $user->email }}) {{ $user->tenants->count() > 0 ? '[' . $user->tenants->count() . ' tenant(s)]' : '' }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                        </select>
+                        @error('admin_user_id')<div class="error">{{ $message }}</div>@enderror
+                    </div>
+                    <div>
+                        <label for="admin_role">Admin Role in Tenant</label>
+                        <select id="admin_role" name="admin_role" style="background-color: #1e293b; color: #ffffff;">
+                            <option value="admin" style="background-color: #1e293b; color: #ffffff;" {{ old('admin_role', 'admin') == 'admin' ? 'selected' : '' }}>Admin (Full Access)</option>
+                            <option value="manager" style="background-color: #1e293b; color: #ffffff;" {{ old('admin_role') == 'manager' ? 'selected' : '' }}>Manager</option>
+                            <option value="member" style="background-color: #1e293b; color: #ffffff;" {{ old('admin_role') == 'member' ? 'selected' : '' }}>Member</option>
+                        </select>
+                        @error('admin_role')<div class="error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <p style="color: #94a3b8; font-size: 13px; margin-top: 10px;">
+                    💡 Tip: Selecting an unassigned user is recommended. Users already in other tenants can also be added.
+                </p>
+            </div>
+
             <div class="actions">
                 <button type="submit" class="btn-primary">Create Tenant</button>
                 <a href="{{ route('super-admin.tenants.index') }}" class="btn-secondary">Cancel</a>

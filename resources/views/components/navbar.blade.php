@@ -15,6 +15,9 @@
                 <li><a href="/payments" class="nav-link">💳 Payments</a></li>
                 <li><a href="/revenues" class="nav-link">💰 Revenues</a></li>
                 <li><a href="/expenses" class="nav-link">💸 Expenses</a></li>
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdminForTenant(Auth::user()->current_tenant_id ?? 0))
+                    <li><a href="{{ route('company.staff.index') }}" class="nav-link admin-link">👔 Staff</a></li>
+                @endif
             @endauth
 
             @guest
@@ -157,6 +160,19 @@
         color: #ffffff;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Admin Link Styling */
+    .nav-link.admin-link {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.2) 100%);
+        border: 1px solid rgba(255, 193, 7, 0.4);
+        color: #fff8e1;
+    }
+
+    .nav-link.admin-link:hover {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.35) 0%, rgba(255, 152, 0, 0.35) 100%);
+        border-color: rgba(255, 193, 7, 0.6);
+        box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
     }
 
     .navbar-right {

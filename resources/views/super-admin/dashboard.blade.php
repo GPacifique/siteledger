@@ -444,6 +444,37 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* Select dropdown styling for visible colors */
+        select.form-control {
+            background-color: #1e1e2e;
+            color: #ffffff;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        select.form-control option {
+            background-color: #1e1e2e;
+            color: #ffffff;
+            padding: 12px;
+        }
+
+        select.form-control option:hover,
+        select.form-control option:focus,
+        select.form-control option:checked {
+            background-color: #667eea;
+            color: #ffffff;
+        }
+
+        select.form-control:hover {
+            border-color: #667eea;
+        }
+
         .form-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -913,16 +944,18 @@
         <div class="section-card" style="margin-bottom: 32px;">
             <div class="section-header">
                 <h3>🔗 Assign User to Tenant</h3>
+                <span class="badge badge-info">{{ $unassignedUsers->count() }} unassigned users</span>
             </div>
             <div class="section-body">
+                @if($unassignedUsers->count() > 0)
                 <form method="POST" action="{{ route('super-admin.assign-tenant') }}">
                     @csrf
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="user_id">Select User</label>
+                            <label for="user_id">Select User (Unassigned Only)</label>
                             <select id="user_id" name="user_id" class="form-control" required>
                                 <option value="">-- Choose a User --</option>
-                                @foreach($allUsers as $user)
+                                @foreach($unassignedUsers as $user)
                                     <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                                 @endforeach
                             </select>
@@ -949,6 +982,13 @@
                         </div>
                     </div>
                 </form>
+                @else
+                <div style="text-align: center; padding: 24px; color: #9ca3af;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+                    <p style="margin-bottom: 8px;">All users are already assigned to tenants!</p>
+                    <p style="font-size: 12px;">Create new users or remove existing tenant assignments to see unassigned users here.</p>
+                </div>
+                @endif
             </div>
         </div>
 

@@ -140,7 +140,11 @@ class SuperAdminController extends Controller
         $recentTenants = Tenant::withCount('users')->latest('created_at')->limit(5)->get();
 
         // All users and tenants for assignment forms
+        // Only show users who are not yet assigned to any tenant
         $allUsers = User::with('tenants')->orderBy('name')->get();
+        $unassignedUsers = $allUsers->filter(function ($user) {
+            return $user->tenants->isEmpty();
+        });
         $allTenants = Tenant::with('users')->orderBy('name')->get();
 
         // System health checks
@@ -174,6 +178,7 @@ class SuperAdminController extends Controller
             'recentUsers',
             'recentTenants',
             'allUsers',
+            'unassignedUsers',
             'allTenants',
             'tenants',
             'systemHealth'
@@ -247,7 +252,22 @@ class SuperAdminController extends Controller
      */
     public function createTenant()
     {
-        return view('super-admin.tenants.create');
+        // Get users who are not yet assigned to any tenant (preferred for new tenant admin)
+        $unassignedUsers = User::with('tenants')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->filter(function ($user) {
+                return $user->tenants->isEmpty() && !$user->is_super_admin;
+            });
+
+        // Also get recent users (last 20) as alternative options
+        $recentUsers = User::with('tenants')
+            ->where('is_super_admin', false)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('super-admin.tenants.create', compact('unassignedUsers', 'recentUsers'));
     }
 
     /**
@@ -262,6 +282,8 @@ class SuperAdminController extends Controller
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'business_type' => 'nullable|string|in:construction,consulting,manufacturing,retail,service,other',
+            'admin_user_id' => 'nullable|exists:users,id',
+            'admin_role' => 'nullable|string|in:admin,manager,member',
         ]);
 
         $tenant = Tenant::create([
@@ -278,6 +300,16 @@ class SuperAdminController extends Controller
             'locale' => 'en',
             'created_by' => Auth::id(),
         ]);
+
+        // Assign admin user to tenant if selected
+        if (!empty($validated['admin_user_id'])) {
+            $adminUser = User::find($validated['admin_user_id']);
+            if ($adminUser) {
+                $role = $validated['admin_role'] ?? 'admin';
+                $isAdmin = $role === 'admin';
+                $adminUser->addToTenant($tenant->id, $role, $isAdmin);
+            }
+        }
 
         return redirect()->route('super-admin.tenants.show', $tenant)
             ->with('success', 'Tenant created successfully');
@@ -403,20 +435,48 @@ class SuperAdminController extends Controller
 
         // Check if user already has this tenant
         if ($user->tenants()->where('tenant_id', $tenant->id)->exists()) {
-            return redirect()->back()->with('error', 'User already assigned to this tenant');
+            return redirect()->route('super-admin.users.show', $user)->with('error', 'User already assigned to this tenant');
         }
 
         // Assign tenant to user with optional role and admin flag
         $role = $request->input('role') ?: 'member';
-        $isAdmin = (bool) $request->input('is_admin', false);
+        $isAdmin = $role === 'admin' || (bool) $request->input('is_admin', false);
         $user->addToTenant($tenant->id, $role, $isAdmin);
+
+        // Sync corresponding system role - replace existing roles with the new one
+        $systemRoleMap = [
+            'admin' => 'admin',
+            'manager' => 'manager',
+            'member' => 'user',
+        ];
+
+        $systemRoleName = $systemRoleMap[$role] ?? 'user';
+
+        // Sync roles - this replaces all existing roles with the new one
+        // Only sync if the new role is higher than current (admin > manager > user)
+        $roleHierarchy = ['user' => 1, 'member' => 1, 'viewer' => 1, 'employee' => 2, 'accountant' => 3, 'site manager' => 3, 'store keeper' => 3, 'manager' => 4, 'admin' => 5, 'super-admin' => 6, 'system administrator' => 7];
+
+        $newRoleLevel = $roleHierarchy[$systemRoleName] ?? 1;
+        $currentHighestLevel = 0;
+
+        foreach ($user->roles as $existingRole) {
+            $level = $roleHierarchy[$existingRole->name] ?? 1;
+            if ($level > $currentHighestLevel) {
+                $currentHighestLevel = $level;
+            }
+        }
+
+        // If new role is higher or equal, sync to the new role
+        if ($newRoleLevel >= $currentHighestLevel) {
+            $user->syncRoles([$systemRoleName]);
+        }
 
         // Set as current tenant if user doesn't have one
         if (!$user->current_tenant_id) {
             $user->update(['current_tenant_id' => $tenant->id]);
         }
 
-        return redirect()->back()->with('success', "User {$user->name} assigned to tenant {$tenant->name} as {$role}" . ($isAdmin ? ' (admin)' : ''));
+        return redirect()->route('super-admin.users.show', $user)->with('success', "User {$user->name} assigned to tenant {$tenant->name} as {$role}" . ($isAdmin ? ' (admin)' : ''));
     }
 
     /**
@@ -440,7 +500,7 @@ class SuperAdminController extends Controller
             $user->update(['current_tenant_id' => $user->tenants()->first()?->id]);
         }
 
-        return redirect()->back()->with('success', "User {$user->name} removed from tenant {$tenant->name}");
+        return redirect()->route('super-admin.users.show', $user)->with('success', "User {$user->name} removed from tenant {$tenant->name}");
     }
 }
 

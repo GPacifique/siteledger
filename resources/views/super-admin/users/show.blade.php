@@ -26,9 +26,26 @@
         .btn-primary:hover { background: #764ba2; }
         .btn-secondary { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
         .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
         .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
         .badge-super-admin { background: #ff6b6b; color: white; }
         .badge-admin { background: #4c6ef5; color: white; }
+        .badge-success { background: #10b981; color: white; }
+        .badge-warning { background: #f59e0b; color: white; }
+        .section-title { font-size: 18px; color: #667eea; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px; }
+        select.form-control { background-color: #1e293b; color: #ffffff; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+        select.form-control option { background-color: #1e293b; color: #ffffff; padding: 12px; }
+        .tenant-list { margin-top: 15px; }
+        .tenant-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 10px; }
+        .tenant-info { display: flex; align-items: center; gap: 12px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; }
+        .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
     </style>
 </head>
 <body>
@@ -53,6 +70,13 @@
 
         <h2>{{ $user->name }}</h2>
 
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-error">{{ session('error') }}</div>
+        @endif
+
         <div class="card">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
                 <div class="info-item">
@@ -60,16 +84,24 @@
                     <div class="info-value">{{ $user->email }}</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">Status</div>
+                    <div class="info-label">Account Status</div>
                     <div class="info-value">
                         @if($user->is_super_admin)
                             <span class="badge badge-super-admin">Super Admin</span>
-                        @elseif($user->roles->isNotEmpty())
+                        @else
+                            <span class="badge badge-success">Active</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">System Roles</div>
+                    <div class="info-value">
+                        @if($user->roles->isNotEmpty())
                             @foreach($user->roles as $role)
                                 <span class="badge badge-admin">{{ ucfirst($role->name) }}</span>
                             @endforeach
                         @else
-                            Active
+                            <span style="color: #9ca3af;">No roles assigned</span>
                         @endif
                     </div>
                 </div>
@@ -82,6 +114,99 @@
                     <div class="info-value">{{ $user->created_at->format('M d, Y g:i A') }}</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Current Tenant Assignments -->
+        <div class="card">
+            <h3 class="section-title">🏢 Current Tenant Assignments</h3>
+            @if($user->tenants->count() > 0)
+                <div class="tenant-list">
+                    @foreach($user->tenants as $tenant)
+                        <div class="tenant-item">
+                            <div class="tenant-info">
+                                <div>
+                                    <strong>{{ $tenant->name }}</strong>
+                                    <div style="font-size: 12px; color: #9ca3af;">{{ $tenant->domain }}</div>
+                                </div>
+                                <span class="badge badge-{{ $tenant->pivot->role === 'admin' ? 'warning' : 'success' }}">
+                                    {{ ucfirst($tenant->pivot->role) }}
+                                </span>
+                            </div>
+                            <form method="POST" action="{{ route('super-admin.remove-tenant') }}" style="display: inline;" onsubmit="return confirm('Remove this user from {{ $tenant->name }}?');">
+                                @csrf
+                                <input type="hidden" name="user_id" value="{{ $user->id }}">
+                                <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p style="color: #9ca3af;">This user is not assigned to any tenant.</p>
+            @endif
+        </div>
+
+        <!-- Assign to Tenant -->
+        <div class="card">
+            <h3 class="section-title">➕ Assign to Tenant</h3>
+            @php
+                $assignedTenantIds = $user->tenants->pluck('id')->toArray();
+                $availableTenants = $allTenants->whereNotIn('id', $assignedTenantIds);
+            @endphp
+
+            @if($availableTenants->count() > 0)
+                <form method="POST" action="{{ route('super-admin.assign-tenant') }}">
+                    @csrf
+                    <input type="hidden" name="user_id" value="{{ $user->id }}">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="tenant_id">Select Tenant</label>
+                            <select id="tenant_id" name="tenant_id" class="form-control" required>
+                                <option value="">-- Choose a Tenant --</option>
+                                @foreach($availableTenants as $tenant)
+                                    <option value="{{ $tenant->id }}">{{ $tenant->name }} ({{ $tenant->domain }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="role">Role in Tenant</label>
+                            <select id="role" name="role" class="form-control">
+                                <option value="member">Member</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Assign</button>
+                    </div>
+                </form>
+            @else
+                <p style="color: #9ca3af;">This user is already assigned to all available tenants.</p>
+            @endif
+        </div>
+
+        <!-- Update System Role -->
+        <div class="card">
+            <h3 class="section-title">🔐 Update System Role</h3>
+            <form method="POST" action="{{ route('super-admin.users.update-roles', $user) }}">
+                @csrf
+                @method('PUT')
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="system_role">System Role</label>
+                        <select id="system_role" name="roles[]" class="form-control">
+                            @foreach($allRoles as $role)
+                                <option value="{{ $role->id }}" {{ $user->roles->contains('id', $role->id) ? 'selected' : '' }}>
+                                    {{ ucfirst($role->name) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Role</button>
+                </div>
+                <p style="color: #9ca3af; font-size: 12px; margin-top: 10px;">
+                    💡 This updates the user's system-wide permissions. Tenant roles are managed separately above.
+                </p>
+            </form>
         </div>
 
         <div style="margin-top: 30px;">

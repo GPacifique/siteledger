@@ -108,17 +108,15 @@ class CompanyStaffController extends Controller
             'is_admin' => 'boolean',
         ]);
 
-        // Create the user
+        // Create the user (only store fields that exist in users table)
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'phone' => $data['phone'] ?? null,
-            'role' => $data['role'],
             'email_verified_at' => now(),
         ]);
 
-        // Add user to the tenant
+        // Add user to the tenant with their role
         $user->addToTenant(
             $tenant->id,
             $data['role'],

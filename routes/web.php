@@ -15,6 +15,9 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\CompanyStaffController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,8 +36,22 @@ Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Protected routes with tenant middleware
-Route::middleware(['auth', 'tenant.data'])->group(function () {
+// Email Verification Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/verify-email', EmailVerificationPromptController::class)
+        ->name('verification.notice');
+
+    Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
+    Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
+
+// Protected routes with tenant middleware (requires verified email)
+Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
     // Map manager/accountant/user dashboards to adminDashboard for now
@@ -149,7 +166,7 @@ Route::middleware(['auth', 'tenant.data'])->group(function () {
 });
 
 // Super Admin Routes - Restricted to System Administrator role
-Route::middleware(['auth', 'role:system administrator'])->prefix('super-admin')->name('super-admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:system administrator'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
 
     // User Management
@@ -161,9 +178,9 @@ Route::middleware(['auth', 'role:system administrator'])->prefix('super-admin')-
 
     // Tenant Management
     Route::get('/tenants', [SuperAdminController::class, 'tenants'])->name('tenants.index');
-    Route::get('/tenants/{tenant}', [SuperAdminController::class, 'showTenant'])->name('tenants.show');
     Route::get('/tenants/create', [SuperAdminController::class, 'createTenant'])->name('tenants.create');
     Route::post('/tenants', [SuperAdminController::class, 'storeTenant'])->name('tenants.store');
+    Route::get('/tenants/{tenant}', [SuperAdminController::class, 'showTenant'])->name('tenants.show');
 
     // Role Management
     Route::get('/roles', [SuperAdminController::class, 'roles'])->name('roles.index');

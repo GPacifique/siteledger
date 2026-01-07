@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasRoles;
 
@@ -61,7 +62,7 @@ class User extends Authenticatable
         if (app()->bound('currentTenant')) {
             return app('currentTenant');
         }
-        
+
         // If no current tenant context, return the first tenant
         return $this->tenants()->first();
     }
@@ -243,7 +244,7 @@ class User extends Authenticatable
      */
     public function canInviteUsers(int $tenantId): bool
     {
-        return $this->isAdminForTenant($tenantId) || 
+        return $this->isAdminForTenant($tenantId) ||
                $this->hasBusinessPermission('invite_users', $tenantId);
     }
 
@@ -252,7 +253,7 @@ class User extends Authenticatable
      */
     public function canManageUsers(int $tenantId): bool
     {
-        return $this->isAdminForTenant($tenantId) || 
+        return $this->isAdminForTenant($tenantId) ||
                $this->hasBusinessPermission('manage_users', $tenantId);
     }
 
@@ -266,7 +267,7 @@ class User extends Authenticatable
         }
 
         $hasPermission = $this->hasBusinessPermission('assign_roles', $tenantId);
-        
+
         if ($targetRole && $hasPermission) {
             // Check if user has constraint limiting which roles they can assign
             $permission = $this->businessAdminPermissions()
@@ -274,7 +275,7 @@ class User extends Authenticatable
                               ->forPermission('assign_roles')
                               ->valid()
                               ->first();
-            
+
             if ($permission && $permission->hasConstraint('allowed_roles')) {
                 return in_array($targetRole, $permission->getConstraint('allowed_roles', []));
             }
@@ -287,9 +288,9 @@ class User extends Authenticatable
      * Send invitation to join tenant
      */
     public function inviteUserToTenant(
-        int $tenantId, 
-        string $email, 
-        string $role = 'user', 
+        int $tenantId,
+        string $email,
+        string $role = 'user',
         bool $isAdmin = false,
         array $permissions = [],
         array $metadata = []
