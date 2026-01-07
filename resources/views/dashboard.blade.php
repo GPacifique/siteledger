@@ -327,18 +327,191 @@
             gap: 2rem;
             margin-bottom: 2rem;
         }
-        @media (max-width: 768px) {
-            .two-column {
-                grid-template-columns: 1fr;
-            }
+
+        /* ========== Responsive Styles ========== */
+        @media (max-width: 1024px) {
             .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
+                grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-card h3 {
+                font-size: 0.8rem;
+            }
+
+            .stat-card .value {
+                font-size: 1.5rem;
+            }
+
+            .section, .recent-section, .calendar-section {
+                padding: 1.25rem;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+            }
+
+            .section h2, .recent-section h2, .calendar-section h2 {
+                font-size: 1.15rem;
+                margin-bottom: 1rem;
+            }
+
+            /* Calendar Mobile */
+            .calendar-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .calendar-nav {
+                justify-content: center;
+            }
+
+            .calendar-month-year {
+                text-align: center;
+                font-size: 1.1rem;
+            }
+
+            .calendar-today-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .calendar-grid {
+                gap: 4px;
+                padding: 0.75rem;
+            }
+
+            .calendar-day {
+                font-size: 0.85rem;
+                min-height: 42px;
+                border-radius: 8px;
+            }
+
+            .calendar-day-header {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.25rem;
+            }
+
+            .calendar-kpis {
+                justify-content: center;
+            }
+
+            .calendar-chip {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+
+            /* Chart Mobile */
+            .chart-container canvas {
+                max-height: 280px;
+            }
+
+            /* Recent Items Mobile */
+            .recent-item {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            /* Table Mobile */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-custom {
+                font-size: 0.85rem;
+                min-width: 600px;
+            }
+
+            .table-custom th,
+            .table-custom td {
+                padding: 0.625rem 0.75rem;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-card .value {
+                font-size: 1.35rem;
+            }
+
+            .section, .recent-section, .calendar-section {
+                padding: 1rem;
+                border-radius: 10px;
+            }
+
+            .section h2, .recent-section h2, .calendar-section h2 {
+                font-size: 1.05rem;
+            }
+
+            .calendar-nav button {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+
+            .calendar-grid {
+                gap: 3px;
+                padding: 0.5rem;
+            }
+
+            .calendar-day {
+                font-size: 0.75rem;
+                min-height: 36px;
+            }
+
+            .calendar-day-header {
+                font-size: 0.65rem;
+            }
+
+            .calendar-day.has-data::after,
+            .calendar-day.has-income::after,
+            .calendar-day.has-expense::after {
+                width: 5px;
+                height: 5px;
+                bottom: 3px;
+            }
+
+            .calendar-day.has-both::after {
+                width: 9px;
+            }
+
+            .chart-container canvas {
+                max-height: 220px;
+            }
+
+            .recent-item {
+                padding: 0.875rem;
+            }
+        }
+
         .empty-state {
             text-align: center;
             padding: 2rem;
