@@ -12,57 +12,43 @@ class Payment extends Model
 
     protected $fillable = [
         'tenant_id',
-        'employee_id',
         'user_id',
-        'project_id',
-        'phase',
         'amount',
+        'payment_date',
+        'category',
         'method',
         'reference',
         'status',
+        'notes',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'payment_date' => 'date',
     ];
 
     /**
-     * Phase constants
+     * Category constants for company payments
      */
-    public const PHASES = [
-        'design' => 'Design Phase',
-        'execution' => 'Execution Phase',
+    public const CATEGORIES = [
+        'utilities' => 'Utilities (Electric, Water, Internet)',
+        'rent' => 'Rent',
+        'insurance' => 'Insurance',
+        'office_supplies' => 'Office Supplies',
+        'software' => 'Software & Subscriptions',
+        'maintenance' => 'Maintenance & Repairs',
+        'taxes' => 'Taxes & Licenses',
+        'travel' => 'Travel & Transport',
+        'marketing' => 'Marketing & Advertising',
+        'professional_services' => 'Professional Services',
+        'other' => 'Other',
     ];
 
     /**
-     * Worker relationship (employee_id references workers table)
-     */
-    public function employee()
-    {
-        return $this->belongsTo(Worker::class, 'employee_id');
-    }
-
-    /**
-     * Project relationship
-     */
-    public function project()
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    /**
-     * Example: if payments belong to a user
+     * User who created this payment
      */
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Example: if payments belong to an order/invoice
-     */
-    public function order()
-    {
-        return $this->belongsTo(Order::class);
     }
 }

@@ -69,9 +69,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
-    // Map manager/accountant/user dashboards to adminDashboard for now
-    Route::get('/manager/dashboard', [DashboardController::class, 'adminDashboard'])->name('manager.dashboard');
+    Route::get('/manager/dashboard', [DashboardController::class, 'managerDashboard'])->name('manager.dashboard');
     Route::get('/accountant/dashboard', [DashboardController::class, 'accountantDashboard'])->name('accountant.dashboard');
+    Route::get('/secretary/dashboard', [DashboardController::class, 'secretaryDashboard'])->name('secretary.dashboard');
+    Route::get('/foreman/dashboard', [DashboardController::class, 'foremanDashboard'])->name('foreman.dashboard');
     Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
     Route::post('/user/join-tenant', [DashboardController::class, 'joinTenant'])->name('user.join-tenant');
 

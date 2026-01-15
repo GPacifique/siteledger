@@ -296,6 +296,20 @@
                             @enderror
                         </div>
                     </div>
+
+                    <!-- Project Phase Section - Shown when project is selected -->
+                    <div class="form-group" id="projectPhaseSection" style="display: none; margin-top: 1rem;">
+                        <label for="phase">Project Phase</label>
+                        <select name="phase" id="phase">
+                            <option value="">-- Select Phase --</option>
+                            <option value="design" {{ old('phase') == 'design' ? 'selected' : '' }}>📝 Design Phase - Planning, drawings, permits</option>
+                            <option value="execution" {{ old('phase') == 'execution' ? 'selected' : '' }}>🔨 Execution Phase - Construction, installation</option>
+                        </select>
+                        <div class="help-text">Select which project phase this expense belongs to</div>
+                        @error('phase')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Expense Type Selection -->
@@ -394,32 +408,8 @@
 
                 <!-- Labor Fields (shown when labor is selected) -->
                 <div class="form-section labor-fields" id="laborFields">
-                    <h3>👷 Labor Phase</h3>
-
-                    <div class="form-group">
-                        <label>Project Phase</label>
-                        <div class="phase-selector">
-                            <label class="phase-option design {{ old('phase') == 'design' ? 'selected' : '' }}">
-                                <input type="radio" name="phase" value="design" {{ old('phase') == 'design' ? 'checked' : '' }}>
-                                <span style="font-size: 1.5rem;">📝</span>
-                                <div>
-                                    <strong>Design Phase</strong>
-                                    <div style="font-size: 0.85rem; color: #666;">Planning, drawings, permits</div>
-                                </div>
-                            </label>
-                            <label class="phase-option execution {{ old('phase') == 'execution' ? 'selected' : '' }}">
-                                <input type="radio" name="phase" value="execution" {{ old('phase') == 'execution' ? 'checked' : '' }}>
-                                <span style="font-size: 1.5rem;">🔨</span>
-                                <div>
-                                    <strong>Execution Phase</strong>
-                                    <div style="font-size: 0.85rem; color: #666;">Construction, installation</div>
-                                </div>
-                            </label>
-                        </div>
-                        @error('phase')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <h3>👷 Labor Details</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Labor expense selected. Use the project phase selector above to assign to design or execution phase.</p>
                 </div>
 
                 <!-- Amount & Description -->
@@ -455,8 +445,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="description">Description <span class="required">*</span></label>
-                        <textarea name="description" id="description" placeholder="Describe this expense..." required>{{ old('description') }}</textarea>
+                        <label for="description">Description</label>
+                        <textarea name="description" id="description" placeholder="Describe this expense (optional)...">{{ old('description') }}</textarea>
                         @error('description')
                             <div class="error">{{ $message }}</div>
                         @enderror
@@ -504,8 +494,27 @@
             const expenseTypeOptions = document.querySelectorAll('.expense-type-option');
             const materialsFields = document.getElementById('materialsFields');
             const laborFields = document.getElementById('laborFields');
-            const phaseOptions = document.querySelectorAll('.phase-option');
             const categorySelect = document.getElementById('category');
+            const projectSelect = document.getElementById('project_id');
+            const projectPhaseSection = document.getElementById('projectPhaseSection');
+            const phaseSelect = document.getElementById('phase');
+
+            // Show/hide phase section based on project selection
+            function togglePhaseSection() {
+                if (projectSelect.value) {
+                    projectPhaseSection.style.display = 'block';
+                } else {
+                    projectPhaseSection.style.display = 'none';
+                    // Clear phase selection when no project
+                    if (phaseSelect) {
+                        phaseSelect.value = '';
+                    }
+                }
+            }
+
+            projectSelect.addEventListener('change', togglePhaseSection);
+            // Check initial state
+            togglePhaseSection();
 
             // Expense type selection
             expenseTypeOptions.forEach(option => {
@@ -552,14 +561,6 @@
                         laborFields.classList.add('visible');
                     }
                 }
-            });
-
-            // Phase selection
-            phaseOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    phaseOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
             });
 
             // Auto-calculate amount from quantity * unit_price

@@ -271,6 +271,7 @@ class CompanyStaffController extends Controller
 
     /**
      * Get available roles for staff assignment.
+     * Each company can assign these roles to their staff members.
      */
     protected function getAvailableRoles(): array
     {
@@ -278,6 +279,10 @@ class CompanyStaffController extends Controller
             'admin' => 'Administrator',
             'manager' => 'Manager',
             'accountant' => 'Accountant',
+            'secretary' => 'Secretary',
+            'foreman' => 'Foreman',
+            'site manager' => 'Site Manager',
+            'store keeper' => 'Store Keeper',
             'employee' => 'Employee',
             'user' => 'User',
             'viewer' => 'Viewer',

@@ -37,7 +37,7 @@ class PaymentController extends Controller
 
         // Optional period filter
         $period = request('period');
-        $query = Payment::with(['employee', 'project', 'user'])->latest('created_at');
+        $query = Payment::with(['user'])->latest('created_at');
 
         if ($period === 'today') {
             $query->whereBetween('created_at', [$today, $endOfToday]);
@@ -70,20 +70,7 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        $tenantId = auth()->user()->current_tenant_id;
-
-        // Get workers linked to current tenant
-        $employees = Worker::where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->orderBy('first_name')
-            ->get();
-
-        // Get projects linked to current tenant
-        $projects = Project::where('tenant_id', $tenantId)
-            ->orderBy('name')
-            ->get();
-
-        return view('payments.create', compact('employees', 'projects'));
+        return view('payments.create');
     }
 
     /**
@@ -101,16 +88,14 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        // Custom validation for payment method
+        // Validation for company payment
         $validatedData = $request->validate([
-            'employee_id' => 'nullable|exists:workers,id',
-            'project_id' => 'nullable|exists:projects,id',
-            'phase' => 'nullable|in:design,execution',
             'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'category' => 'nullable|string|max:50',
             'method' => 'required|string|max:50',
-            'custom_method' => 'nullable|string|max:50',
             'reference' => 'nullable|string|max:100',
-            'status' => 'nullable|in:pending,completed,failed',
+            'notes' => 'nullable|string',
         ]);
 
         // Validate payment method options
@@ -120,15 +105,7 @@ class PaymentController extends Controller
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
-        $data = $request->only('employee_id', 'project_id', 'phase', 'amount', 'method', 'reference', 'status');
-
-        // Use custom method if "other" was selected and custom_method is provided
-        if ($validatedData['method'] === 'other') {
-            if (empty($validatedData['custom_method'])) {
-                return back()->withErrors(['custom_method' => 'Custom payment method is required when "Other" is selected.']);
-            }
-            $data['method'] = $validatedData['custom_method'];
-        }
+        $data = $request->only('amount', 'payment_date', 'category', 'method', 'reference', 'notes');
 
         // Auto-generate reference if not provided
         if (empty($data['reference'])) {
@@ -145,7 +122,7 @@ class PaymentController extends Controller
         Payment::create($data);
 
         return redirect()->route('payments.index')
-            ->with('success', 'Payment recorded successfully.');
+            ->with('success', 'Company payment recorded successfully.');
     }
 
     /**
@@ -153,7 +130,6 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment)
     {
-        $payment->load('employee');
         return view('payments.show', compact('payment'));
     }
 
@@ -162,20 +138,7 @@ class PaymentController extends Controller
      */
     public function edit(Payment $payment)
     {
-        $tenantId = auth()->user()->current_tenant_id;
-
-        // Get workers linked to current tenant
-        $employees = Worker::where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->orderBy('first_name')
-            ->get();
-
-        // Get projects linked to current tenant
-        $projects = Project::where('tenant_id', $tenantId)
-            ->orderBy('name')
-            ->get();
-
-        return view('payments.edit', compact('payment', 'employees', 'projects'));
+        return view('payments.edit', compact('payment'));
     }
 
     /**
@@ -183,16 +146,15 @@ class PaymentController extends Controller
      */
     public function update(Request $request, Payment $payment)
     {
-        // Custom validation for payment method
+        // Validation for company payment
         $validatedData = $request->validate([
-            'employee_id' => 'nullable|exists:workers,id',
-            'project_id' => 'nullable|exists:projects,id',
-            'phase' => 'nullable|in:design,execution',
             'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'category' => 'nullable|string|max:50',
             'method' => 'required|string|max:50',
-            'custom_method' => 'nullable|string|max:50',
             'reference' => 'nullable|string|max:100',
             'status' => 'nullable|in:pending,completed,failed',
+            'notes' => 'nullable|string',
         ]);
 
         // Validate payment method options
@@ -202,24 +164,12 @@ class PaymentController extends Controller
             return back()->withErrors(['method' => 'Invalid payment method selected.']);
         }
 
-        // Exclude status from update - payments are always "completed" (paid)
-        $data = $request->only('employee_id', 'project_id', 'phase', 'amount', 'method', 'reference');
-
-        // Use custom method if "other" was selected and custom_method is provided
-        if ($validatedData['method'] === 'other') {
-            if (empty($validatedData['custom_method'])) {
-                return back()->withErrors(['custom_method' => 'Custom payment method is required when "Other" is selected.']);
-            }
-            $data['method'] = $validatedData['custom_method'];
-        }
-
-        // Ensure status stays "completed" (paid)
-        $data['status'] = 'completed';
+        $data = $request->only('amount', 'payment_date', 'category', 'method', 'reference', 'status', 'notes');
 
         $payment->update($data);
 
         return redirect()->route('payments.index')
-            ->with('success', 'Payment updated successfully.');
+            ->with('success', 'Company payment updated successfully.');
     }
 
     /**

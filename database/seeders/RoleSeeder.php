@@ -22,6 +22,8 @@ class RoleSeeder extends Seeder
             'admin',
             'manager',
             'accountant',
+            'secretary',
+            'foreman',
             'site manager',
             'store keeper',
             'employee',

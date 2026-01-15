@@ -28,7 +28,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Check if user has any meaningful permissions
-        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant', 'user']) &&
+        if (!$user->hasRole(['super-admin', 'admin', 'manager', 'accountant', 'secretary', 'foreman', 'site manager', 'user']) &&
             !$user->hasAnyPermission(['projects.create', 'expenses.create', 'users.view', 'payments.create', 'reports.generate'])) {
             // Redirect users with no permissions to welcome page
             return redirect('/')->with('error', 'You need proper permissions to access the dashboard.');
@@ -43,6 +43,10 @@ class DashboardController extends Controller
             return redirect('/accountant/dashboard');
         } elseif ($user->hasRole('manager')) {
             return redirect('/manager/dashboard');
+        } elseif ($user->hasRole('secretary')) {
+            return redirect('/secretary/dashboard');
+        } elseif ($user->hasRole('foreman') || $user->hasRole('site manager')) {
+            return redirect('/foreman/dashboard');
         }
 
         return redirect('/user/dashboard');
@@ -102,23 +106,15 @@ class DashboardController extends Controller
             ? \App\Models\Employee::avg('salary') ?? 0
             : 0;
 
-        // Worker payments (using employee_id to identify worker-related payments)
-        $workerPaymentsToday = $has('payments', 'employee_id')
-            ? Payment::whereDate('created_at', $today)->whereNotNull('employee_id')->sum('amount')
-            : 0;
-        $workerPaymentsThisMonth = $has('payments', 'employee_id')
-            ? Payment::whereBetween('created_at', [$startOfMonth, $endOfToday])->whereNotNull('employee_id')->sum('amount')
-            : 0;
-        $recentWorkerPayments = $has('payments', 'employee_id')
-            ? Payment::whereNotNull('employee_id')->latest()->limit(7)->get()
-            : collect();
-
-        // Payments
+        // Payments (Company Payments - independent of employees)
         $paymentsTotal = $has('payments', 'amount') ? Payment::sum('amount') : 0;
         $paymentsThisMonth = $has('payments', 'amount')
             ? Payment::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
             : 0;
-        $recentPayments = $has('payments') ? Payment::with('employee')->latest()->limit(7)->get() : collect();
+        $paymentsToday = $has('payments', 'amount')
+            ? Payment::whereDate('created_at', $today)->sum('amount')
+            : 0;
+        $recentPayments = $has('payments') ? Payment::latest()->limit(7)->get() : collect();
 
         // Transactions
         $recentTransactions = $has('transactions') ? Transaction::latest()->limit(7)->get() : collect();
@@ -149,7 +145,7 @@ class DashboardController extends Controller
         // Combined Payments and Expenses (All Expenses)
         $allExpensesTotal = $paymentsTotal + $expensesTotal;
         $allExpensesThisMonth = $paymentsThisMonth + $expensesThisMonth;
-        $allExpensesToday = $workerPaymentsToday + $expensesToday;
+        $allExpensesToday = $paymentsToday + $expensesToday;
 
         // Expenses by category (Office vs Project)
         $officeExpenses = $has('expenses') ? Expense::whereNull('project_id')->sum('amount') : 0;
@@ -256,8 +252,7 @@ class DashboardController extends Controller
             'dailyCardStats', 'monthlyCardStats', 'yearlyCardStats',
             'totalWorkers', 'totalEmployees', 'totalWorkforce', 'activeWorkers', 'recentWorkers',
             'totalPayroll', 'workersAvgSalary', 'employeesAvgSalary',
-            'workerPaymentsToday', 'workerPaymentsThisMonth', 'recentWorkerPayments',
-            'paymentsTotal', 'paymentsThisMonth', 'recentPayments',
+            'paymentsTotal', 'paymentsThisMonth', 'paymentsToday', 'recentPayments',
             'recentTransactions', 'transactionsThisMonth',
             'incomesTotal', 'incomesThisMonth', 'incomesToday', 'recentIncomes',
             'expensesTotal', 'expensesThisMonth', 'expensesToday', 'recentExpenses',
@@ -267,6 +262,229 @@ class DashboardController extends Controller
             'totalClients', 'activeClients', 'clientsThisMonth', 'totalOrders',
             'projectStats', 'months', 'paymentsMonthly', 'expensesMonthly', 'incomeMonthly',
             'dailyDates', 'dailyRevenue', 'dailyExpenses', 'dailyTasks'
+        ));
+    }
+
+    /**
+     * Secretary sees clients, tasks, and administrative data
+     */
+    public function secretaryDashboard()
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        $has = function (string $table, ?string $column = null): bool {
+            if (! Schema::hasTable($table)) {
+                return false;
+            }
+            return $column ? Schema::hasColumn($table, $column) : true;
+        };
+
+        // Clients
+        $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
+        $clientsThisMonth = $has('clients')
+            ? \App\Models\Client::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+            : 0;
+        $recentClients = $has('clients') ? \App\Models\Client::latest()->limit(7)->get() : collect();
+
+        // Projects
+        $projectsCount = $has('projects') ? Project::count() : 0;
+        $projectsThisMonth = $has('projects')
+            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+            : 0;
+        $recentProjects = $has('projects') ? Project::with('client')->latest()->limit(7)->get() : collect();
+
+        // Tasks
+        $pendingTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
+        $tasksToday = $has('tasks') ? \App\Models\Task::whereDate('due_date', $today)->count() : 0;
+        $todaysTasks = $has('tasks') ? \App\Models\Task::whereDate('due_date', $today)->with('project')->get() : collect();
+
+        // Staff count
+        $totalStaff = $has('workers') ? Worker::count() : 0;
+        $activeStaff = $has('workers', 'status') ? Worker::where('status', 'active')->count() : $totalStaff;
+
+        // Notifications
+        $recentNotifications = Auth::user()->notifications()->latest()->limit(5)->get();
+
+        // Get current tenant/company
+        $company = Auth::user()->currentTenant();
+
+        return view('dashboard.secretary', compact(
+            'totalClients', 'clientsThisMonth', 'recentClients',
+            'projectsCount', 'projectsThisMonth', 'recentProjects',
+            'pendingTasks', 'tasksToday', 'todaysTasks',
+            'totalStaff', 'activeStaff',
+            'recentNotifications', 'company'
+        ));
+    }
+
+    /**
+     * Foreman sees workers, tasks, and site-related data
+     */
+    public function foremanDashboard()
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        $has = function (string $table, ?string $column = null): bool {
+            if (! Schema::hasTable($table)) {
+                return false;
+            }
+            return $column ? Schema::hasColumn($table, $column) : true;
+        };
+
+        // Workers
+        $totalWorkers = $has('workers') ? Worker::count() : 0;
+        $activeWorkers = $has('workers', 'status') ? Worker::where('status', 'active')->count() : $totalWorkers;
+        $recentWorkers = $has('workers') ? Worker::latest()->limit(8)->get() : collect();
+
+        // Tasks
+        $activeTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
+        $tasksCompleted = $has('tasks')
+            ? \App\Models\Task::where('status', 'completed')
+                ->whereBetween('updated_at', [$startOfMonth, $endOfToday])
+                ->count()
+            : 0;
+        $tasksList = $has('tasks')
+            ? \App\Models\Task::where('status', '!=', 'completed')
+                ->with(['project', 'assignedWorker'])
+                ->latest()
+                ->limit(8)
+                ->get()
+            : collect();
+
+        // Current project (latest active one)
+        $currentProject = $has('projects')
+            ? Project::where('status', '!=', 'completed')->latest()->first()
+            : null;
+        $projectProgress = 0;
+        if ($currentProject && $currentProject->contract_value > 0) {
+            $paid = $has('incomes') ? Income::where('project_id', $currentProject->id)->sum('amount_received') : 0;
+            $projectProgress = min(100, round(($paid / $currentProject->contract_value) * 100));
+        }
+
+        // Site expenses
+        $siteExpenses = $has('expenses', 'amount')
+            ? Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+            : 0;
+        $recentExpenses = $has('expenses') ? Expense::latest()->limit(7)->get() : collect();
+
+        // Company payments
+        $recentPayments = $has('payments') ? Payment::latest()->limit(7)->get() : collect();
+
+        // Get current tenant/company
+        $company = Auth::user()->currentTenant();
+
+        return view('dashboard.foreman', compact(
+            'totalWorkers', 'activeWorkers', 'recentWorkers',
+            'activeTasks', 'tasksCompleted', 'tasksList',
+            'currentProject', 'projectProgress',
+            'siteExpenses', 'recentExpenses',
+            'recentPayments', 'company'
+        ));
+    }
+
+    /**
+     * Manager sees project and employee data with analytics
+     */
+    public function managerDashboard()
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfToday = $today->endOfDay();
+
+        $has = function (string $table, ?string $column = null): bool {
+            if (! Schema::hasTable($table)) {
+                return false;
+            }
+            return $column ? Schema::hasColumn($table, $column) : true;
+        };
+
+        // Get financial summary and top projects from service
+        $financialSummary = $this->statsService->getFinancialSummary();
+        $topProjects = $this->statsService->getTopProjects(8);
+        $weeklyStats = $this->statsService->getWeeklyStats(12);
+        $incomeByCategory = $this->statsService->getIncomeByCategory();
+
+        // Workers/Employees
+        $totalWorkers = $has('workers') ? Worker::count() : 0;
+        $activeWorkers = $has('workers', 'status')
+            ? Worker::where('status', 'active')->count()
+            : $totalWorkers;
+        $recentWorkers = $has('workers') ? Worker::latest()->limit(10)->get() : collect();
+
+        // Projects
+        $projectsCount = $has('projects') ? Project::count() : 0;
+        $projectsThisMonth = $has('projects')
+            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+            : 0;
+        $projectsTotal = $has('projects', 'contract_value') ? Project::sum('contract_value') : 0;
+        $recentProjects = $has('projects') ? Project::with(['client', 'incomes'])->latest()->limit(10)->get() : collect();
+
+        // Tasks
+        $activeTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
+        $completedTasks = $has('tasks')
+            ? \App\Models\Task::where('status', 'completed')
+                ->whereBetween('updated_at', [$startOfMonth, $endOfToday])
+                ->count()
+            : 0;
+        $recentTasks = $has('tasks') ? \App\Models\Task::with('project')->latest()->limit(8)->get() : collect();
+
+        // Clients
+        $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
+        $activeClients = $has('clients', 'status')
+            ? \App\Models\Client::where('status', 'active')->count()
+            : $totalClients;
+
+        // Project Stats with payments
+        $projectStats = collect();
+        if ($has('projects') && $has('incomes', 'amount_received')) {
+            $projectStats = Project::with('incomes')
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->map(function($project) {
+                    $amountPaid = (float) $project->incomes->sum('amount_received');
+                    $totalAmount = (float) ($project->contract_value ?? 0);
+                    return [
+                        'id' => $project->id,
+                        'project_name' => $project->name,
+                        'amount_paid' => $amountPaid,
+                        'total_amount' => $totalAmount,
+                        'amount_remaining' => $totalAmount - $amountPaid,
+                    ];
+                })
+                ->toArray();
+        }
+
+        // Monthly project data
+        $months = [];
+        $projectsMonthly = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $dt = Carbon::now()->subMonths($i);
+            $months[] = $dt->format('M Y');
+
+            $mStart = $dt->copy()->startOfMonth();
+            $mEnd = $dt->copy()->endOfMonth();
+
+            $projectsMonthly[] = $has('projects', 'contract_value')
+                ? Project::whereBetween('created_at', [$mStart, $mEnd])->sum('contract_value')
+                : 0;
+        }
+
+        // Get current tenant/company
+        $company = Auth::user()->currentTenant();
+
+        return view('dashboard.manager', compact(
+            'financialSummary', 'topProjects', 'weeklyStats', 'incomeByCategory',
+            'totalWorkers', 'activeWorkers', 'recentWorkers',
+            'projectsCount', 'projectsThisMonth', 'projectsTotal', 'recentProjects',
+            'activeTasks', 'completedTasks', 'recentTasks',
+            'totalClients', 'activeClients',
+            'projectStats', 'months', 'projectsMonthly', 'company'
         ));
     }
 
@@ -306,94 +524,15 @@ class DashboardController extends Controller
         $recentIncomes = $has('incomes') ? Income::latest()->limit(10)->get() : collect();
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(10)->get() : collect();
 
+        // Get current tenant/company
+        $company = Auth::user()->currentTenant();
+
         return view('dashboard.accountant', compact(
             'financialSummary', 'quickStats',
             'dailyStats', 'weeklyStats', 'cashFlowAnalysis',
             'incomeByCategory', 'expenseByCategory', 'expenseByMethod', 'transactionsByCategory',
             'paymentStatusBreakdown', 'outstandingReceivables',
-            'recentPayments', 'recentIncomes', 'recentExpenses'
-        ));
-    }
-
-    /**
-     * Manager sees project and employee data with analytics
-     */
-    private function managerDashboard()
-    {
-        $today = Carbon::today();
-        $startOfMonth = $today->copy()->startOfMonth();
-        $endOfToday = $today->endOfDay();
-
-        $has = function (string $table, ?string $column = null): bool {
-            if (! Schema::hasTable($table)) {
-                return false;
-            }
-            return $column ? Schema::hasColumn($table, $column) : true;
-        };
-
-        // Get financial summary and top projects from service
-        $financialSummary = $this->statsService->getFinancialSummary();
-        $topProjects = $this->statsService->getTopProjects(8);
-        $weeklyStats = $this->statsService->getWeeklyStats(12);
-        $incomeByCategory = $this->statsService->getIncomeByCategory();
-
-        // Workers/Employees
-        $totalWorkers = $has('workers') ? Worker::count() : 0;
-        $activeWorkers = $has('workers', 'status')
-            ? Worker::where('status', 'active')->count()
-            : $totalWorkers;
-        $recentWorkers = $has('workers') ? Worker::latest()->limit(10)->get() : collect();
-
-        // Projects
-        $projectsCount = $has('projects') ? Project::count() : 0;
-        $projectsThisMonth = $has('projects')
-            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
-            : 0;
-        $projectsTotal = $has('projects', 'contract_value') ? Project::sum('contract_value') : 0;
-        $recentProjects = $has('projects') ? Project::latest()->limit(10)->get() : collect();
-
-        // Project Stats with payments
-        $projectStats = collect();
-        if ($has('projects') && $has('incomes', 'amount_received')) {
-            $projectStats = Project::with('incomes')
-                ->latest()
-                ->limit(10)
-                ->get()
-                ->map(function($project) {
-                    $amountPaid = (float) $project->incomes->sum('amount_received');
-                    $totalAmount = (float) ($project->contract_value ?? 0);
-                    return [
-                        'id' => $project->id,
-                        'project_name' => $project->name,
-                        'amount_paid' => $amountPaid,
-                        'total_amount' => $totalAmount,
-                        'amount_remaining' => $totalAmount - $amountPaid,
-                    ];
-                })
-                ->toArray();
-        }
-
-        // Monthly project data
-        $months = [];
-        $projectsMonthly = [];
-
-        for ($i = 5; $i >= 0; $i--) {
-            $dt = Carbon::now()->subMonths($i);
-            $months[] = $dt->format('M Y');
-
-            $mStart = $dt->copy()->startOfMonth();
-            $mEnd = $dt->copy()->endOfMonth();
-
-            $projectsMonthly[] = $has('projects', 'contract_value')
-                ? Project::whereBetween('created_at', [$mStart, $mEnd])->sum('contract_value')
-                : 0;
-        }
-
-        return view('dashboard.manager', compact(
-            'financialSummary', 'topProjects', 'weeklyStats', 'incomeByCategory',
-            'totalWorkers', 'activeWorkers', 'recentWorkers',
-            'projectsCount', 'projectsThisMonth', 'projectsTotal', 'recentProjects',
-            'projectStats', 'months', 'projectsMonthly'
+            'recentPayments', 'recentIncomes', 'recentExpenses', 'company'
         ));
     }
 

@@ -459,92 +459,18 @@
             </div>
         </div>
 
-        @if($revenuesByProject->count() > 0)
-            <!-- Project Revenues - Each Project Independent -->
-            @foreach($revenuesByProject as $projectId => $projectData)
-                <div class="project-section">
-                    <div class="project-header" onclick="toggleProject({{ $projectId }})">
-                        <h3>
-                            <span>🏗️ {{ $projectData['project_name'] }}</span>
-                            <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">({{ $projectData['count'] }} payments)</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <span class="project-total">RWF {{ number_format($projectData['total'], 0) }}</span>
-                            <span class="toggle-icon" id="icon-{{ $projectId }}">▼</span>
-                        </div>
-                    </div>
-                    <div class="project-body" id="project-{{ $projectId }}">
-                        <!-- Project Stats -->
-                        <div class="project-stats">
-                            <div class="project-stat">
-                                <div class="project-stat-label">Contract Value</div>
-                                <div class="project-stat-value neutral">RWF {{ number_format($projectData['contract_value'], 0) }}</div>
-                            </div>
-                            <div class="project-stat">
-                                <div class="project-stat-label">Total Received</div>
-                                <div class="project-stat-value positive">RWF {{ number_format($projectData['total'], 0) }}</div>
-                            </div>
-                            <div class="project-stat">
-                                <div class="project-stat-label">Remaining</div>
-                                <div class="project-stat-value negative">RWF {{ number_format($projectData['remaining'], 0) }}</div>
-                            </div>
-                            <div class="project-stat">
-                                <div class="project-stat-label">Progress</div>
-                                <div class="project-stat-value">{{ $projectData['progress'] }}%</div>
-                                <div class="progress-container">
-                                    <div class="progress-bar" style="width: {{ $projectData['progress'] }}%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Revenue List -->
-                        <div class="revenue-list">
-                            @foreach($projectData['revenues'] as $revenue)
-                                <div class="revenue-item {{ in_array($revenue->payment_status, ['Pending', 'pending']) ? 'pending' : '' }}"
-                                     onclick="window.location.href='{{ route('revenues.show', $revenue) }}'">
-                                    <div class="revenue-info">
-                                        <div class="revenue-description">
-                                            {{ $revenue->invoice_number ?? $revenue->notes ?? 'Payment #' . $revenue->id }}
-                                        </div>
-                                        <div class="revenue-meta">
-                                            <span>📅 {{ $revenue->received_at ? $revenue->received_at->format('M d, Y') : 'N/A' }}</span>
-                                            @if($revenue->notes)
-                                                <span>📝 {{ Str::limit($revenue->notes, 30) }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="revenue-amount">RWF {{ number_format($revenue->amount_received, 0) }}</div>
-                                    <span class="revenue-status status-{{ strtolower(str_replace(' ', '-', $revenue->payment_status ?? 'pending')) }}">
-                                        {{ $revenue->payment_status ?? 'Pending' }}
-                                    </span>
-                                    <div class="action-buttons" onclick="event.stopPropagation();">
-                                        <a href="{{ route('revenues.show', $revenue) }}" class="btn-sm btn-view">View</a>
-                                        <a href="{{ route('revenues.edit', $revenue) }}" class="btn-sm btn-edit">Edit</a>
-                                        <form action="{{ route('revenues.destroy', $revenue) }}" method="POST" style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn-sm btn-delete" onclick="return confirm('Are you sure?')">Delete</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        @endif
-
-        <!-- General Revenues (No Project) -->
-        @if($generalRevenues->count() > 0)
+        <!-- All Revenues in One Table -->
+        @if($allRevenues->count() > 0)
             <div class="general-section">
-                <div class="general-header">
-                    <h3>📋 General Revenue ({{ $generalRevenues->count() }})</h3>
-                    <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($generalTotal, 0) }}</span>
+                <div class="general-header" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);">
+                    <h3>📋 All Revenues ({{ $allRevenues->count() }})</h3>
+                    <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($totalRevenue ?? 0, 0) }}</span>
                 </div>
                 <table>
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>Project</th>
                             <th>Invoice/Description</th>
                             <th>Amount</th>
                             <th>Status</th>
@@ -552,10 +478,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($generalRevenues as $revenue)
+                        @foreach($allRevenues as $revenue)
                             <tr onclick="window.location.href='{{ route('revenues.show', $revenue) }}'">
                                 <td>{{ $revenue->received_at ? $revenue->received_at->format('M d, Y') : $revenue->created_at->format('M d, Y') }}</td>
-                                <td>{{ $revenue->invoice_number ?? $revenue->notes ?? 'N/A' }}</td>
+                                <td>
+                                    @if($revenue->project)
+                                        <span style="background: #e8f5e9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                                            🏗️ {{ $revenue->project->name }}
+                                        </span>
+                                    @else
+                                        <span style="color: #999; font-style: italic;">General</span>
+                                    @endif
+                                </td>
+                                <td>{{ $revenue->invoice_number ?? $revenue->notes ?? 'Payment #' . $revenue->id }}</td>
                                 <td><strong style="color: #27ae60;">RWF {{ number_format($revenue->amount_received ?? 0, 0) }}</strong></td>
                                 <td>
                                     <span class="revenue-status status-{{ strtolower(str_replace(' ', '-', $revenue->payment_status ?? 'pending')) }}">
@@ -576,11 +511,18 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr style="background: #e8f5e9; font-weight: bold;">
+                            <td colspan="3" style="text-align: right; font-size: 1.1rem;">Total:</td>
+                            <td style="color: #27ae60; font-size: 1.1rem;">RWF {{ number_format($totalRevenue ?? 0, 0) }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         @endif
 
-        @if($revenuesByProject->count() == 0 && $generalRevenues->count() == 0)
+        @if($allRevenues->count() == 0)
             <div class="empty-message" style="background: white; border-radius: 12px; padding: 3rem;">
                 <p style="font-size: 1.2rem;">No revenues found.</p>
                 <p style="margin-top: 0.5rem;">

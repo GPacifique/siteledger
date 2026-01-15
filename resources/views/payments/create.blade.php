@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Payment - SiteLedger</title>
+    <title>Add Company Payment - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -150,7 +150,7 @@
 
     <div class="container">
         <div class="form-card">
-            <h2>💰 Add New Payment</h2>
+            <h2>💰 Add New Company Payment</h2>
 
             @if($errors->any())
                 <div class="alert alert-danger">
@@ -168,71 +168,39 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="project_id">Project *</label>
-                        <select name="project_id" id="project_id" required>
-                            <option value="">-- Select Project --</option>
-                            @if(isset($projects) && $projects->count() > 0)
-                                @foreach($projects as $project)
-                                    <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
-                                        {{ $project->name }}
-                                    </option>
-                                @endforeach
-                            @else
-                                <option value="">No projects available</option>
-                            @endif
-                        </select>
-                        @error('project_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phase">Phase *</label>
-                        <select name="phase" id="phase" required>
-                            <option value="">-- Select Phase --</option>
-                            <option value="design" {{ old('phase') == 'design' ? 'selected' : '' }}>📝 Design Phase</option>
-                            <option value="execution" {{ old('phase') == 'execution' ? 'selected' : '' }}>🔨 Execution Phase</option>
-                        </select>
-                        @error('phase')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="employee_id">Worker</label>
-                        <select name="employee_id" id="employee_id">
-                            <option value="">-- Select Worker --</option>
-                            @if(isset($employees) && $employees->count() > 0)
-                                @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->first_name }} {{ $employee->last_name }}
-                                    </option>
-                                @endforeach
-                            @else
-                                <option value="">No workers available</option>
-                            @endif
-                        </select>
-                        @error('employee_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
                         <label for="amount">Amount (RWF) *</label>
                         <input type="number" name="amount" id="amount" step="0.01" value="{{ old('amount') }}" required>
                         @error('amount')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
 
-                <div class="form-row">
                     <div class="form-group">
                         <label for="payment_date">Payment Date *</label>
                         <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', date('Y-m-d')) }}" required>
                         @error('payment_date')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select name="category" id="category">
+                            <option value="utilities" {{ old('category') == 'utilities' ? 'selected' : '' }}>🔌 Utilities (Electric, Water, Internet)</option>
+                            <option value="rent" {{ old('category') == 'rent' ? 'selected' : '' }}>🏢 Rent</option>
+                            <option value="insurance" {{ old('category') == 'insurance' ? 'selected' : '' }}>🛡️ Insurance</option>
+                            <option value="office_supplies" {{ old('category') == 'office_supplies' ? 'selected' : '' }}>📎 Office Supplies</option>
+                            <option value="software" {{ old('category') == 'software' ? 'selected' : '' }}>💻 Software & Subscriptions</option>
+                            <option value="maintenance" {{ old('category') == 'maintenance' ? 'selected' : '' }}>🔧 Maintenance & Repairs</option>
+                            <option value="taxes" {{ old('category') == 'taxes' ? 'selected' : '' }}>📋 Taxes & Licenses</option>
+                            <option value="travel" {{ old('category') == 'travel' ? 'selected' : '' }}>✈️ Travel & Transport</option>
+                            <option value="marketing" {{ old('category') == 'marketing' ? 'selected' : '' }}>📢 Marketing & Advertising</option>
+                            <option value="professional_services" {{ old('category') == 'professional_services' ? 'selected' : '' }}>👔 Professional Services</option>
+                            <option value="other" {{ old('category', 'other') == 'other' ? 'selected' : '' }}>📦 Other</option>
+                        </select>
+                        @error('category')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>

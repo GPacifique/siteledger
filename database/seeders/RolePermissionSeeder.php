@@ -212,6 +212,32 @@ class RolePermissionSeeder extends Seeder
                 'notifications.view',
             ],
 
+            // Secretary - Administrative support
+            'secretary' => [
+                'dashboard.view',
+                'clients.view', 'clients.create', 'clients.edit',
+                'projects.view',
+                'employees.view',
+                'workers.view',
+                'tasks.view', 'tasks.create', 'tasks.edit',
+                'orders.view', 'orders.create', 'orders.edit',
+                'reports.view',
+                'notifications.view', 'notifications.create',
+                'profile.view', 'profile.edit',
+            ],
+
+            // Foreman - Site supervision and worker management
+            'foreman' => [
+                'dashboard.view',
+                'projects.view',
+                'workers.view', 'workers.create', 'workers.edit', 'workers.payments',
+                'tasks.view', 'tasks.create', 'tasks.edit', 'tasks.assign', 'tasks.complete',
+                'expenses.view', 'expenses.create',
+                'reports.view',
+                'profile.view', 'profile.edit',
+                'notifications.view',
+            ],
+
             // Site Manager - On-site management
             'site manager' => [
                 'dashboard.view',

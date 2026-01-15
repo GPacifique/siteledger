@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payments - SiteLedger</title>
+    <title>Company Payments - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -254,8 +254,8 @@
 
     <div class="container">
         <div class="page-header">
-            <h1>💳 Payments</h1>
-            <p>Manage and track all payments</p>
+            <h1>💳 Company Payments</h1>
+            <p>Track general company expenses (utilities, rent, subscriptions, etc.)</p>
         </div>
 
         <!-- Payments History Navigation -->
@@ -298,43 +298,52 @@
         <!-- Actions -->
         <div class="actions-bar">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by worker name, reference, or amount..." onkeyup="filterTable()">
+                <input type="text" id="searchInput" placeholder="Search by reference, category, or amount..." onkeyup="filterTable()">
             </div>
             <a href="{{ route('payments.create') }}" class="btn btn-primary">+ Add Payment</a>
         </div>
 
-        <!-- Worker Categories Section -->
+        <!-- Category Summary Section -->
         @php
-            // Group payments by worker position/role
+            // Group payments by category
             $paymentsByCategory = $payments->groupBy(function($payment) {
-                return $payment->employee?->position ?? 'Unassigned';
+                return $payment->category ?? 'other';
             })->sortByDesc(function($group) {
                 return $group->sum('amount');
             });
+
+            $categoryLabels = [
+                'utilities' => '🔌 Utilities',
+                'rent' => '🏢 Rent',
+                'insurance' => '🛡️ Insurance',
+                'office_supplies' => '📎 Office Supplies',
+                'software' => '💻 Software',
+                'maintenance' => '🔧 Maintenance',
+                'taxes' => '📋 Taxes',
+                'travel' => '✈️ Travel',
+                'marketing' => '📢 Marketing',
+                'professional_services' => '👔 Professional',
+                'other' => '📦 Other',
+            ];
         @endphp
 
         @if($payments->count() > 0)
             <div class="category-section">
-                <h2 class="category-title">📊 Payments by Worker Category</h2>
+                <h2 class="category-title">📊 Payments by Category</h2>
                 <div class="category-grid">
-                    @foreach($paymentsByCategory as $position => $categoryPayments)
+                    @foreach($paymentsByCategory as $category => $categoryPayments)
                         @php
                             $categoryTotal = $categoryPayments->sum('amount');
                             $categoryCount = $categoryPayments->count();
-                            $categoryWorkers = $categoryPayments->pluck('employee')->unique('id')->count();
                         @endphp
                         <div class="category-card">
-                            <h3>👷 {{ ucfirst($position) }}</h3>
-                            <div class="category-stat">
-                                <span class="category-stat-label">Workers:</span>
-                                <span class="category-stat-value">{{ $categoryWorkers }}</span>
-                            </div>
+                            <h3>{{ $categoryLabels[$category] ?? ucfirst($category) }}</h3>
                             <div class="category-stat">
                                 <span class="category-stat-label">Payments:</span>
                                 <span class="category-stat-value">{{ $categoryCount }}</span>
                             </div>
                             <div class="category-total">
-                                <div style="color: #999; font-size: 0.85rem; margin-bottom: 0.25rem;">Total Paid</div>
+                                <div style="color: #999; font-size: 0.85rem; margin-bottom: 0.25rem;">Total</div>
                                 <div class="category-total-amount">RWF {{ number_format($categoryTotal, 0) }}</div>
                             </div>
                         </div>
@@ -350,13 +359,11 @@
                     <thead>
                         <tr>
                             <th>Reference</th>
-                            <th>Project</th>
-                            <th>Phase</th>
-                            <th>Worker</th>
+                            <th>Category</th>
                             <th>Amount</th>
                             <th>Method</th>
-                            <th>Recorded By</th>
                             <th>Date</th>
+                            <th>Recorded By</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -365,51 +372,36 @@
                             <tr class="payment-row" data-id="{{ $payment->id }}">
                                 <td><strong>{{ $payment->reference ?? '#' . $payment->id }}</strong></td>
                                 <td>
-                                    @if($payment->project)
-                                        <span style="color: #27ae60; font-weight: 600;">🏗️ {{ $payment->project->name }}</span>
-                                    @else
-                                        <span style="color: #999;">—</span>
-                                    @endif
+                                    <span style="font-weight: 500;">{{ $categoryLabels[$payment->category] ?? ucfirst($payment->category ?? 'Other') }}</span>
                                 </td>
-                                <td>
-                                    @if($payment->phase)
-                                        @if($payment->phase == 'design')
-                                            <span class="badge" style="background: #e8daef; color: #6c5ce7;">📝 Design</span>
-                                        @else
-                                            <span class="badge" style="background: #fef9e7; color: #d68910;">🔨 Execution</span>
-                                        @endif
-                                    @else
-                                        <span style="color: #999;">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($payment->employee)
-                                        {{ $payment->employee->first_name }} {{ $payment->employee->last_name }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td><strong>RWF {{ number_format($payment->amount ?? 0, 0) }}</strong></td>
+                                <td><strong style="color: #e74c3c;">RWF {{ number_format($payment->amount ?? 0, 0) }}</strong></td>
                                 <td>
                                     @if($payment->method)
-                                        <span class="badge-method">{{ ucfirst($payment->method) }}</span>
+                                        <span class="badge-method">{{ ucfirst(str_replace('_', ' ', $payment->method)) }}</span>
                                     @else
                                         —
                                     @endif
                                 </td>
+                                <td>{{ $payment->payment_date ?? $payment->created_at?->format('M d, Y') ?? '—' }}</td>
                                 <td>{{ $payment->user->name ?? '—' }}</td>
-                                <td>{{ $payment->created_at?->format('M d, Y') ?? '—' }}</td>
                                 <td>
                                     <a href="{{ route('payments.show', $payment->id) }}" class="payment-link">View</a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr style="background: #fce4ec; font-weight: bold;">
+                            <td colspan="2" style="text-align: right; font-size: 1.1rem;">Total:</td>
+                            <td style="color: #e74c3c; font-size: 1.1rem;">RWF {{ number_format($payments->sum('amount'), 0) }}</td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         @else
             <div class="empty-message">
-                <p>📋 No payments found yet.</p>
+                <p>📋 No company payments found yet.</p>
                 <p><a href="{{ route('payments.create') }}" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Create First Payment</a></p>
             </div>
         @endif

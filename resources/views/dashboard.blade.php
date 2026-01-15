@@ -1112,7 +1112,6 @@
                 'Total Expenses': '/expenses',
                 'Total Projects': '/projects',
                 'Active Clients': '/clients',
-                'Total Workforce': '/workers',
                 'Total Payments': '/payments',
                 'Office Expenses': '/expenses',
                 'Project Expenses': '/expenses',
@@ -1123,13 +1122,12 @@
                 '💰 Total All Expenses': '/expenses',
                 '📅 This Month Expenses': '/expenses',
                 '📆 Today\'s Expenses': '/expenses',
-                '👷 Worker Payments': '/payments',
+                '🏢 Company Payments': '/payments',
                 // Summary cards
                 '💵 Overall Financial Summary': '/admin/dashboard',
                 '📝 Design Phase': '/projects',
                 '🔨 Execution Phase': '/projects',
-                '👷 Workforce by Position': '/workers',
-                '💳 Worker Payments': '/payments',
+                '💳 Company Payments': '/payments',
                 '📊 Office & Project Expenses': '/expenses'
             };
 
@@ -1238,7 +1236,6 @@
             $totalDesignPaid = $projects->sum('design_phase_paid');
             $totalExecutionValue = $projects->sum('execution_phase_value');
             $totalExecutionPaid = $projects->sum('execution_phase_paid');
-            $allWorkers = \App\Models\Worker::all();
         @endphp
 
         <!-- Combined Expenses & Payments Cards -->
@@ -1274,22 +1271,22 @@
                     <h3>📆 Today's Expenses</h3>
                     <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
                     <div class="change positive">
-                        💳 Worker Payments: RWF {{ number_format($workerPaymentsToday ?? 0, 2) }}
+                        💳 Company Payments: RWF {{ number_format($paymentsToday ?? 0, 2) }}
                     </div>
                     <div class="change negative">
-                        💸 Office Expenses: RWF {{ number_format($expensesToday ?? 0, 2) }}
+                        💸 Other Expenses: RWF {{ number_format($expensesToday ?? 0, 2) }}
                     </div>
                 </div>
 
-                <!-- Worker Payments Summary -->
+                <!-- Company Payments Summary -->
                 <div class="stat-card">
-                    <h3>👷 Worker Payments</h3>
+                    <h3>🏢 Company Payments</h3>
                     <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
                     <div class="change positive">
                         This Month: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}
                     </div>
                     <div class="change neutral">
-                        Today: RWF {{ number_format($workerPaymentsToday ?? 0, 2) }}
+                        Today: RWF {{ number_format($paymentsToday ?? 0, 2) }}
                     </div>
                 </div>
             </div>
@@ -1308,11 +1305,6 @@
                     <span class="action-title">Clients</span>
                     <span class="action-count">{{ $totalClients ?? 0 }} total</span>
                 </a>
-                <a href="{{ route('workers.index') }}" class="action-link workers">
-                    <span class="action-icon">👷</span>
-                    <span class="action-title">Workers</span>
-                    <span class="action-count">{{ $totalWorkforce ?? 0 }} total</span>
-                </a>
                 <a href="{{ route('revenues.index') }}" class="action-link revenues">
                     <span class="action-icon">💰</span>
                     <span class="action-title">Revenues</span>
@@ -1325,7 +1317,7 @@
                 </a>
                 <a href="{{ route('payments.index') }}" class="action-link payments">
                     <span class="action-icon">💳</span>
-                    <span class="action-title">Payments</span>
+                    <span class="action-title">Company Payments</span>
                     <span class="action-count">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
                 </a>
             </div>
@@ -1344,7 +1336,7 @@
                     <span class="summary-label">Total All Expenses</span>
                     <span class="summary-value negative">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</span>
                     <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
-                        Payments: RWF {{ number_format($workerPaymentsToday ?? 0, 0) }} + Other: RWF {{ number_format($expensesToday ?? 0, 0) }}
+                        Company Payments: RWF {{ number_format($paymentsToday ?? 0, 0) }} + Other: RWF {{ number_format($expensesToday ?? 0, 0) }}
                     </small>
                 </div>
                 <div class="summary-row">
@@ -1421,55 +1413,10 @@
             </div>
         </div>
 
-        <!-- Workforce by Position -->
-        @php
-            $engineers = $allWorkers->where('position', 'Engineer')->count();
-            $architects = $allWorkers->where('position', 'Architect')->count();
-            $mep = $allWorkers->where('position', 'MEP')->count();
-            $dealers = $allWorkers->where('position', 'Dealer')->count();
-            $technicians = $allWorkers->where('position', 'Technician')->count();
-            $casualLabor = $allWorkers->where('position', 'Casual Labor')->count();
-        @endphp
-        <div class="summary-section">
-            <h3>👷 Workforce by Position</h3>
-            <div class="actions-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
-                <a href="{{ route('workers.index') }}?position=Engineer" class="action-link" style="border-left: 4px solid #6c5ce7; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">👷</span>
-                    <span class="action-title" style="font-size: 0.9rem;">Engineers</span>
-                    <span class="action-count">{{ $engineers }}</span>
-                </a>
-                <a href="{{ route('workers.index') }}?position=Architect" class="action-link" style="border-left: 4px solid #00b894; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">🏗️</span>
-                    <span class="action-title" style="font-size: 0.9rem;">Architects</span>
-                    <span class="action-count">{{ $architects }}</span>
-                </a>
-                <a href="{{ route('workers.index') }}?position=MEP" class="action-link" style="border-left: 4px solid #e17055; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">⚡</span>
-                    <span class="action-title" style="font-size: 0.9rem;">MEP</span>
-                    <span class="action-count">{{ $mep }}</span>
-                </a>
-                <a href="{{ route('workers.index') }}?position=Dealer" class="action-link" style="border-left: 4px solid #fdcb6e; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">🤝</span>
-                    <span class="action-title" style="font-size: 0.9rem;">Dealers</span>
-                    <span class="action-count">{{ $dealers }}</span>
-                </a>
-                <a href="{{ route('workers.index') }}?position=Technician" class="action-link" style="border-left: 4px solid #0984e3; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">🔧</span>
-                    <span class="action-title" style="font-size: 0.9rem;">Technicians</span>
-                    <span class="action-count">{{ $technicians }}</span>
-                </a>
-                <a href="{{ route('workers.index') }}?position=Casual Labor" class="action-link" style="border-left: 4px solid #636e72; padding: 1rem;">
-                    <span class="action-icon" style="font-size: 1.8rem;">👨‍🔧</span>
-                    <span class="action-title" style="font-size: 0.9rem;">Casual Labor</span>
-                    <span class="action-count">{{ $casualLabor }}</span>
-                </a>
-            </div>
-        </div>
-
         <!-- Expense Breakdown -->
         <div class="two-column">
             <div class="summary-section">
-                <h3>💳 Worker Payments</h3>
+                <h3>💳 Company Payments</h3>
                 <div class="summary-row">
                     <span class="summary-label">Total</span>
                     <span class="summary-value negative">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</span>
@@ -1621,60 +1568,29 @@
                 @endif
             </div>
 
-            <div class="table-section">
-                <h2>Recent Workers</h2>
-                @if(($recentWorkers ?? collect())->count() > 0)
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Position</th>
-                                <th>Daily Wages</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($recentWorkers as $worker)
-                                <tr onclick="window.location.href='/workers/{{ $worker->id }}';" style="cursor: pointer;">
-                                    <td>{{ ($worker->first_name ?? '') . ' ' . ($worker->last_name ?? '') }}</td>
-                                    <td>{{ $worker->position ?? 'N/A' }}</td>
-                                    <td>RWF {{ number_format($worker->salary ?? 0, 2) }}</td>
-                                    <td><span class="badge success">{{ $worker->status ?? 'Active' }}</span></td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @else
-                    <div class="empty-state">
-                        <p>No workers yet</p>
-                    </div>
-                @endif
-            </div>
         </div>
 
         <div class="table-section">
-            <h2>Recent Payments</h2>
+            <h2>Recent Company Payments</h2>
             @if(($recentPayments ?? collect())->count() > 0)
                 <table>
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Worker</th>
-                            <th>Position</th>
+                            <th>Category</th>
                             <th>Amount</th>
-                            <th>Type</th>
+                            <th>Method</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($recentPayments as $payment)
                             <tr onclick="window.location.href='/payments/{{ $payment->id }}';" style="cursor: pointer;">
-                                <td>{{ $payment->created_at?->format('M d, Y') ?? 'N/A' }}</td>
-                                <td>{{ $payment->employee?->full_name ?? 'N/A' }}</td>
-                                <td>{{ $payment->employee?->position ?? 'N/A' }}</td>
+                                <td>{{ $payment->payment_date?->format('M d, Y') ?? $payment->created_at?->format('M d, Y') ?? 'N/A' }}</td>
+                                <td>{{ ucwords(str_replace('_', ' ', $payment->category ?? 'Other')) }}</td>
                                 <td>RWF {{ number_format($payment->amount ?? 0, 2) }}</td>
-                                <td>{{ $payment->type ?? 'Transfer' }}</td>
-                                <td><span class="badge success">Completed</span></td>
+                                <td>{{ ucfirst($payment->method ?? 'Transfer') }}</td>
+                                <td><span class="badge success">{{ ucfirst($payment->status ?? 'Completed') }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>

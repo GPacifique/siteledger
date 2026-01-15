@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Details - SiteLedger</title>
+    <title>Company Payment Details - SiteLedger</title>
     <style>
         * {
             margin: 0;
@@ -169,7 +169,7 @@
 
     <div class="container">
         <div class="detail-card">
-            <h2>Payment Information</h2>
+            <h2>Company Payment Information</h2>
 
             <div class="detail-row">
                 <div class="detail-item">
@@ -192,45 +192,29 @@
 
             <div class="detail-row">
                 <div class="detail-item">
-                    <span class="detail-label">Payment Type</span>
-                    <span class="detail-value">{{ $payment->type ?? 'Transfer' }}</span>
+                    <span class="detail-label">Category</span>
+                    <span class="detail-value">
+                        @php
+                            $categoryLabels = [
+                                'utilities' => '🔌 Utilities',
+                                'rent' => '🏢 Rent',
+                                'insurance' => '🛡️ Insurance',
+                                'office_supplies' => '📎 Office Supplies',
+                                'software' => '💻 Software & Subscriptions',
+                                'maintenance' => '🔧 Maintenance & Repairs',
+                                'taxes' => '📋 Taxes & Licenses',
+                                'travel' => '✈️ Travel & Transport',
+                                'marketing' => '📢 Marketing & Advertising',
+                                'professional_services' => '👔 Professional Services',
+                                'other' => '📦 Other',
+                            ];
+                        @endphp
+                        {{ $categoryLabels[$payment->category] ?? ucfirst($payment->category ?? 'Other') }}
+                    </span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Payment Date</span>
-                    <span class="detail-value">{{ $payment->created_at?->format('M d, Y H:i') ?? 'N/A' }}</span>
-                </div>
-            </div>
-
-            <div class="detail-row">
-                <div class="detail-item">
-                    <span class="detail-label">🏗️ Project</span>
-                    <span class="detail-value">
-                        @if($payment->project)
-                            <a href="{{ route('projects.show', $payment->project) }}" style="color: #27ae60; text-decoration: none; font-weight: 600;">
-                                {{ $payment->project->name }}
-                            </a>
-                        @else
-                            <span style="color: #999;">No project assigned</span>
-                        @endif
-                    </span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">📋 Phase</span>
-                    <span class="detail-value">
-                        @if($payment->phase)
-                            @if($payment->phase === 'design')
-                                <span style="background: #9b59b6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
-                                    📝 Design Phase
-                                </span>
-                            @else
-                                <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
-                                    🔨 Execution Phase
-                                </span>
-                            @endif
-                        @else
-                            <span style="color: #999;">No phase specified</span>
-                        @endif
-                    </span>
+                    <span class="detail-value">{{ $payment->payment_date ?? ($payment->created_at?->format('M d, Y') ?? 'N/A') }}</span>
                 </div>
             </div>
 
@@ -241,30 +225,16 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Payment Method</span>
-                    <span class="detail-value">{{ $payment->method ?? 'Unknown' }}</span>
+                    <span class="detail-value">{{ ucfirst(str_replace('_', ' ', $payment->method ?? 'Unknown')) }}</span>
                 </div>
             </div>
 
-            @if($payment->employee)
-                <div class="divider"></div>
-                <div class="detail-row">
-                    <div class="detail-item">
-                        <span class="detail-label">Recipient (Worker)</span>
-                        <span class="detail-value">{{ $payment->employee->first_name ?? '' }} {{ $payment->employee->last_name ?? '' }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Recipient Email</span>
-                        <span class="detail-value">{{ $payment->employee->email ?? 'N/A' }}</span>
-                    </div>
-                </div>
-            @endif
-
-            @if($payment->description)
+            @if($payment->notes)
                 <div class="divider"></div>
                 <div class="detail-row">
                     <div class="detail-item" style="grid-column: 1 / -1;">
-                        <span class="detail-label">Description</span>
-                        <span class="detail-value">{{ $payment->description }}</span>
+                        <span class="detail-label">Notes</span>
+                        <span class="detail-value">{{ $payment->notes }}</span>
                     </div>
                 </div>
             @endif
@@ -282,7 +252,7 @@
             </div>
 
             <div class="action-buttons">
-                <a href="{{ route('payments.index') }}" class="btn btn-secondary">← Back to Payments</a>
+                <a href="{{ route('payments.index') }}" class="btn btn-secondary">← Back to Company Payments</a>
                 <a href="{{ route('payments.edit', $payment->id) }}" class="btn btn-primary">✏️ Edit</a>
                 <form action="{{ route('payments.destroy', $payment->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this payment?')">
                     @csrf

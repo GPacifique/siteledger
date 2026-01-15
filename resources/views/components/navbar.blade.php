@@ -25,7 +25,7 @@
                 <li><a href="/tasks" class="nav-link">📋 Tasks</a></li>
                 <li><a href="/clients" class="nav-link">👥 Clients</a></li>
                 <li><a href="/workers" class="nav-link">👷 Workers</a></li>
-                <li><a href="/payments" class="nav-link">💳 Payments</a></li>
+                <li><a href="/payments" class="nav-link">💳 Company Payments</a></li>
                 <li><a href="/revenues" class="nav-link">💰 Revenues</a></li>
                 <li><a href="/expenses" class="nav-link">💸 Expenses</a></li>
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdminForTenant(Auth::user()->current_tenant_id ?? 0))
