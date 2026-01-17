@@ -12,7 +12,8 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $clients = Client::orderBy('name')->get();
+        $tenantId = auth()->user()->current_tenant_id;
+        $clients = Client::where('tenant_id', $tenantId)->orderBy('name')->get();
         return view('clients.index', compact('clients'));
     }
 

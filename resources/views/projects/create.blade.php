@@ -146,12 +146,12 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="client_id">Client *</label>
+                        <label for="client_id">Company Client *</label>
                         <select name="client_id" id="client_id" required>
-                            <option value="">Select a client</option>
+                            <option value="">Select a company client</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>
-                                    {{ $client->name }}
+                                    Company: {{ $client->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -212,21 +212,22 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="contract_value">Contract Value (RWF)</label>
+                        <label for="phase_type">Project Type *</label>
+                        <select name="phase_type" id="phase_type" required>
+                            <option value="">-- Select Project Type --</option>
+                            <option value="design_only" {{ old('phase_type') == 'design_only' ? 'selected' : '' }}>Design Only</option>
+                            <option value="execution_only" {{ old('phase_type') == 'execution_only' ? 'selected' : '' }}>Execution Only</option>
+                            <option value="both" {{ old('phase_type') == 'both' ? 'selected' : '' }}>Both (Design & Execution)</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85rem;">Select the type of project. Amounts for each phase are entered manually and are not auto-calculated.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contract_value">Total Contract Value (RWF)</label>
                         <input type="number" name="contract_value" id="contract_value" step="0.01" value="{{ old('contract_value') }}">
                         @error('contract_value')
                             <div class="error">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phase_type">Project Phase Type</label>
-                        <select name="phase_type" id="phase_type">
-                            <option value="">-- Select --</option>
-                            <option value="design_only" {{ old('phase_type') == 'design_only' ? 'selected' : '' }}>Design Only</option>
-                            <option value="both" {{ old('phase_type') == 'both' ? 'selected' : '' }}>Both Phases (Design & Execution)</option>
-                        </select>
-                        <small style="color: #666; font-size: 0.85rem;">Optional: Choose if this project is only for design or for both phases.</small>
                     </div>
 
                     <div class="form-group">
@@ -250,74 +251,65 @@
                     <div class="form-group">
                         <label for="current_phase">Current Phase</label>
                         <select name="current_phase" id="current_phase">
-                            <option value="design" {{ old('current_phase') == 'design' ? 'selected' : '' }}>Design Phase</option>
-                            <option value="execution" {{ old('current_phase') == 'execution' ? 'selected' : '' }}>Execution Phase</option>
+                            <option value="">-- Select --</option>
+                            <option value="design" {{ old('current_phase') == 'design' ? 'selected' : '' }}>Design</option>
+                            <option value="execution" {{ old('current_phase') == 'execution' ? 'selected' : '' }}>Execution</option>
                         </select>
                     </div>
 
-                    <!-- Design Phase -->
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #667eea;">
-                        <h4 style="color: #667eea; margin-bottom: 1rem;">📝 Design Phase</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="design_phase_value">Design Phase Value (RWF)</label>
-                                <input type="number" name="design_phase_value" id="design_phase_value" step="0.01" value="{{ old('design_phase_value', 0) }}">
-                                @error('design_phase_value')
-                                    <div class="error">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="design_phase_status">Design Phase Status</label>
-                                <select name="design_phase_status" id="design_phase_status">
-                                    <option value="pending" {{ old('design_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="in_progress" {{ old('design_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="completed" {{ old('design_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                </select>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="design_phase_value">Design Phase Value (RWF)</label>
+                            <input type="number" name="design_phase_value" id="design_phase_value" step="0.01" value="{{ old('design_phase_value') }}">
+                            @error('design_phase_value')
+                                <div class="error">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="design_start_date">Design Start Date</label>
-                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date', $defaultStartDate) }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="design_end_date">Design End Date</label>
-                                <input type="date" name="design_end_date" id="design_end_date" value="{{ old('design_end_date') }}">
-                            </div>
+                        <div class="form-group">
+                            <label for="design_phase_status">Design Phase Status</label>
+                            <select name="design_phase_status" id="design_phase_status">
+                                <option value="pending" {{ old('design_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="in_progress" {{ old('design_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="completed" {{ old('design_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="design_start_date">Design Start Date</label>
+                            <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date', $defaultStartDate) }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="design_end_date">Design End Date</label>
+                            <input type="date" name="design_end_date" id="design_end_date" value="{{ old('design_end_date') }}">
                         </div>
                     </div>
 
-                    <!-- Execution Phase -->
-                    <div style="padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #27ae60;">
-                        <h4 style="color: #27ae60; margin-bottom: 1rem;">🔨 Execution Phase</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="execution_phase_value">Execution Phase Value (RWF)</label>
-                                <input type="number" name="execution_phase_value" id="execution_phase_value" step="0.01" value="{{ old('execution_phase_value', 0) }}">
-                                @error('execution_phase_value')
-                                    <div class="error">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="execution_phase_status">Execution Phase Status</label>
-                                <select name="execution_phase_status" id="execution_phase_status">
-                                    <option value="pending" {{ old('execution_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="in_progress" {{ old('execution_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="completed" {{ old('execution_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                </select>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="execution_phase_value">Execution Phase Value (RWF)</label>
+                            <input type="number" name="execution_phase_value" id="execution_phase_value" step="0.01" value="{{ old('execution_phase_value') }}">
+                            @error('execution_phase_value')
+                                <div class="error">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="execution_start_date">Execution Start Date</label>
-                                <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date') }}">
-                                <small style="color: #666; font-size: 0.8rem;">Auto-fills when Design End Date is set</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="execution_end_date">Execution End Date</label>
-                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date', $defaultEndDate) }}">
-                                <small style="color: #666; font-size: 0.8rem;">Defaults to Project End Date</small>
-                            </div>
+                        <div class="form-group">
+                            <label for="execution_phase_status">Execution Phase Status</label>
+                            <select name="execution_phase_status" id="execution_phase_status">
+                                <option value="pending" {{ old('execution_phase_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="in_progress" {{ old('execution_phase_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="completed" {{ old('execution_phase_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="execution_start_date">Execution Start Date</label>
+                            <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date') }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="execution_end_date">Execution End Date</label>
+                            <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date', $defaultEndDate) }}">
                         </div>
                     </div>
                 </div>
@@ -365,101 +357,6 @@
             const codeField = document.getElementById('project_code');
             if (!codeField.value) {
                 generateProjectCode();
-            }
-        });
-
-        // Auto-calculate design and execution phase values from contract value
-        const contractValueInput = document.getElementById('contract_value');
-        const designPhaseInput = document.getElementById('design_phase_value');
-        const executionPhaseInput = document.getElementById('execution_phase_value');
-
-        // Default split: 30% Design, 70% Execution
-        const DESIGN_PERCENTAGE = 0.30;
-        const EXECUTION_PERCENTAGE = 0.70;
-
-        function calculatePhaseValues() {
-            const contractValue = parseFloat(contractValueInput.value) || 0;
-
-            if (contractValue > 0) {
-                const designValue = contractValue * DESIGN_PERCENTAGE;
-                const executionValue = contractValue * EXECUTION_PERCENTAGE;
-
-                designPhaseInput.value = designValue.toFixed(2);
-                executionPhaseInput.value = executionValue.toFixed(2);
-
-                // Show calculation info
-                showCalculationInfo(contractValue, designValue, executionValue);
-            }
-        }
-
-        function showCalculationInfo(contract, design, execution) {
-            let infoDiv = document.getElementById('calculationInfo');
-
-            if (!infoDiv) {
-                infoDiv = document.createElement('div');
-                infoDiv.id = 'calculationInfo';
-                infoDiv.style.cssText = 'margin-top: 0.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 3px solid #3498db; border-radius: 4px; font-size: 0.9rem; color: #2c3e50;';
-                contractValueInput.parentElement.appendChild(infoDiv);
-            }
-
-            infoDiv.innerHTML = `
-                <strong>📊 Calculated Split:</strong><br>
-                Design Phase (30%): RWF ${design.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-                Execution Phase (70%): RWF ${execution.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-            `;
-        }
-
-        // Listen for changes in contract value
-        contractValueInput.addEventListener('input', calculatePhaseValues);
-        contractValueInput.addEventListener('change', calculatePhaseValues);
-
-        // Allow manual editing of phase values by removing auto-calc when user manually changes them
-        let userEditedDesign = false;
-        let userEditedExecution = false;
-
-        designPhaseInput.addEventListener('focus', function() {
-            this.dataset.originalValue = this.value;
-        });
-
-        designPhaseInput.addEventListener('change', function() {
-            if (this.value !== this.dataset.originalValue) {
-                userEditedDesign = true;
-            }
-        });
-
-        executionPhaseInput.addEventListener('focus', function() {
-            this.dataset.originalValue = this.value;
-        });
-
-        executionPhaseInput.addEventListener('change', function() {
-            if (this.value !== this.dataset.originalValue) {
-                userEditedExecution = true;
-            }
-        });
-
-        // Reset user edit flags when contract value changes significantly
-        contractValueInput.addEventListener('input', function() {
-            userEditedDesign = false;
-            userEditedExecution = false;
-        });
-
-        // Auto-sync dates between phases
-        const designEndDateInput = document.getElementById('design_end_date');
-        const executionStartDateInput = document.getElementById('execution_start_date');
-        const executionEndDateInput = document.getElementById('execution_end_date');
-        const projectEndDateInput = document.getElementById('end_date');
-
-        // When Design End Date changes, set Execution Start Date to match
-        designEndDateInput.addEventListener('change', function() {
-            if (this.value && !executionStartDateInput.value) {
-                executionStartDateInput.value = this.value;
-            }
-        });
-
-        // When Project End Date changes, update Execution End Date
-        projectEndDateInput.addEventListener('change', function() {
-            if (this.value) {
-                executionEndDateInput.value = this.value;
             }
         });
     </script>

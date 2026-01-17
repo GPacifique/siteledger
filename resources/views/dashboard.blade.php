@@ -1320,6 +1320,11 @@
                     <span class="action-title">Company Payments</span>
                     <span class="action-count">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
                 </a>
+                <a href="{{ route('company.staff.index') }}" class="action-link workers" style="border-left: 4px solid #e17055;">
+                    <span class="action-icon">👔</span>
+                    <span class="action-title">Staff Management</span>
+                    <span class="action-count">Manage Staff</span>
+                </a>
             </div>
         </div>
 
