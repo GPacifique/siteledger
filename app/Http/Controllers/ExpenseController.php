@@ -118,7 +118,8 @@ class ExpenseController extends Controller
         $expensesThisMonthTotal = Expense::whereBetween('date', [$monthStart, $endOfToday])->sum('amount');
         $expensesTodayTotal = Expense::whereDate('date', $today)->sum('amount');
 
-        $allExpensesTotal = $paymentsTotal + ($officeTotal + $projectTotal);
+        // Only sum project expenses for the total (no office expenses or payments)
+        $allExpensesTotal = $projectTotal;
         $allExpensesThisMonth = $paymentsThisMonth + $expensesThisMonthTotal;
         $allExpensesToday = $paymentsToday + $expensesTodayTotal;
 
@@ -131,6 +132,10 @@ class ExpenseController extends Controller
                 'expenses' => $group,
             ];
         })->sortByDesc('total');
+
+        // Phase totals for all expenses (not just labor)
+        $designPhaseTotal = $allExpenses->where('phase', 'design')->sum('amount');
+        $executionPhaseTotal = $allExpenses->where('phase', 'execution')->sum('amount');
 
         return view('expenses.index', [
             'officeExpenses' => $officeExpenses,
@@ -149,6 +154,8 @@ class ExpenseController extends Controller
             'allExpensesTotal' => $allExpensesTotal,
             'allExpensesThisMonth' => $allExpensesThisMonth,
             'allExpensesToday' => $allExpensesToday,
+            'designPhaseTotal' => $designPhaseTotal,
+            'executionPhaseTotal' => $executionPhaseTotal,
         ]);
     }
 

@@ -357,34 +357,36 @@
             <a href="/expenses/create" class="btn-primary">+ Add Expense</a>
         </div>
 
-        <!-- Combined Payments + Expenses Summary Cards -->
+        <!-- Combined Summary Cards -->
         <div class="summary-grid">
             <div class="summary-card total">
                 <h4>💳 Total All Expenses</h4>
-                <div class="value negative">RWF {{ number_format($allExpensesTotal ?? 0, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">Payments + Office + Project</small>
+                <div class="value" style="color: #d32f2f;">RWF {{ number_format($allExpensesTotal ?? 0, 0) }}</div>
             </div>
-            <div class="summary-card office">
-                <h4>📅 This Month</h4>
-                <div class="value">RWF {{ number_format($allExpensesThisMonth ?? 0, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">All expenses this month</small>
+            @php
+                $designPhaseTotal = isset($designPhaseTotal) ? $designPhaseTotal : 0;
+                $executionPhaseTotal = isset($executionPhaseTotal) ? $executionPhaseTotal : 0;
+            @endphp
+            <div class="summary-card design">
+                <h4>📝 Design Phase</h4>
+                <div class="value" style="color: #d32f2f;">RWF {{ number_format($designPhaseTotal, 0) }}</div>
+                <small style="color: #666; margin-top: 0.5rem; display: block;">
+                    This total represents all expenses linked to the <b>Design Phase</b> of your projects, including planning, drawings, and permits.
+                </small>
             </div>
-            <div class="summary-card materials">
-                <h4>📆 Today</h4>
-                <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">All expenses today</small>
-            </div>
-            <div class="summary-card labor">
-                <h4>👷 Worker Payments</h4>
-                <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">Total worker payments</small>
+            <div class="summary-card execution">
+                <h4>🔨 Execution Phase</h4>
+                <div class="value" style="color: #d32f2f;">RWF {{ number_format($executionPhaseTotal, 0) }}</div>
+                <small style="color: #666; margin-top: 0.5rem; display: block;">
+                    This total represents all expenses linked to the <b>Execution Phase</b> of your projects, including construction and installation costs.
+                </small>
             </div>
         </div>
 
         <!-- Summary Cards -->
         <div class="summary-grid">
             <div class="summary-card total">
-                <h4>Total Expenses</h4>
+                <h4>💳 Total All Expenses</h4>
                 <div class="value negative">RWF {{ number_format(($officeTotal ?? 0) + ($projectTotal ?? 0), 0) }}</div>
             </div>
             <div class="summary-card materials">
@@ -396,11 +398,11 @@
                 <div class="value">RWF {{ number_format($totalLabor ?? 0, 0) }}</div>
             </div>
             <div class="summary-card design">
-                <h4>📝 Design Labor</h4>
+                <h4>📝 Design Phase</h4>
                 <div class="value">RWF {{ number_format($totalDesignLabor ?? 0, 0) }}</div>
             </div>
             <div class="summary-card execution">
-                <h4>🔨 Execution Labor</h4>
+                <h4>🔨 Execution Phase</h4>
                 <div class="value">RWF {{ number_format($totalExecutionLabor ?? 0, 0) }}</div>
             </div>
             <div class="summary-card office">
@@ -409,220 +411,127 @@
             </div>
         </div>
 
-        @if(($expensesByProject ?? collect())->count() > 0)
-            <!-- Project Expenses - Each Project Independent -->
-            @foreach($expensesByProject as $projectId => $projectData)
-                <div class="project-section">
-                    <div class="project-header" onclick="toggleProject({{ $projectId }})">
-                        <h3>
-                            <span>🏗️ {{ $projectData['project_name'] }}</span>
-                            <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">({{ $projectData['count'] }} expenses)</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <span class="project-total">RWF {{ number_format($projectData['total'], 0) }}</span>
-                            <span class="toggle-icon" id="icon-{{ $projectId }}">▼</span>
-                        </div>
-                    </div>
-                    <div class="project-body" id="project-{{ $projectId }}">
-                        <!-- Project Summary -->
-                        <div class="summary-grid" style="margin-bottom: 1.5rem;">
-                            <div class="summary-card materials" style="padding: 1rem;">
-                                <h4 style="font-size: 0.75rem;">Materials</h4>
-                                <div class="value" style="font-size: 1.2rem;">RWF {{ number_format($projectData['materials']['total'], 0) }}</div>
-                            </div>
-                            <div class="summary-card labor" style="padding: 1rem;">
-                                <h4 style="font-size: 0.75rem;">Labor Total</h4>
-                                <div class="value" style="font-size: 1.2rem;">RWF {{ number_format($projectData['labor']['total'], 0) }}</div>
-                            </div>
-                            <div class="summary-card design" style="padding: 1rem;">
-                                <h4 style="font-size: 0.75rem;">Design Phase</h4>
-                                <div class="value" style="font-size: 1.2rem;">RWF {{ number_format($projectData['labor']['design']['total'], 0) }}</div>
-                            </div>
-                            <div class="summary-card execution" style="padding: 1rem;">
-                                <h4 style="font-size: 0.75rem;">Execution Phase</h4>
-                                <div class="value" style="font-size: 1.2rem;">RWF {{ number_format($projectData['labor']['execution']['total'], 0) }}</div>
-                            </div>
-                        </div>
+        @php
+            // Combine all expenses into one collection
+            $allExpenses = collect();
 
-                        <div class="expense-type-grid">
-                            <!-- Materials Section -->
-                            <div class="expense-type-card">
-                                <div class="expense-type-header materials">
-                                    <span>🧱 Materials ({{ $projectData['materials']['count'] }})</span>
-                                    <span>RWF {{ number_format($projectData['materials']['total'], 0) }}</span>
-                                </div>
-                                <div class="expense-type-body">
-                                    @forelse($projectData['materials']['expenses'] as $expense)
-                                        <div class="material-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                            <div>
-                                                <div class="material-name">{{ $expense->item_name ?? $expense->description ?? 'Material' }}</div>
-                                                <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
-                                            </div>
-                                            <div class="material-qty">
-                                                @if($expense->quantity && $expense->unit)
-                                                    {{ number_format($expense->quantity, 0) }} {{ $expense->unit }}
-                                                @endif
-                                            </div>
-                                            <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
-                                        </div>
-                                    @empty
-                                        <div class="empty-message">No materials recorded</div>
-                                    @endforelse
-                                    @if($projectData['materials']['count'] > 0)
-                                        <div class="summary-row">
-                                            <span>Total Materials</span>
-                                            <span style="color: #d63031;">RWF {{ number_format($projectData['materials']['total'], 0) }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+            // Add project expenses
+            if(isset($expensesByProject) && $expensesByProject->count() > 0) {
+                foreach($expensesByProject as $projectId => $projectData) {
+                    foreach($projectData['materials']['expenses'] as $expense) {
+                        $allExpenses->push($expense);
+                    }
+                    foreach($projectData['labor']['expenses'] as $expense) {
+                        $allExpenses->push($expense);
+                    }
+                    foreach($projectData['other']['expenses'] as $expense) {
+                        $allExpenses->push($expense);
+                    }
+                }
+            }
 
-                            <!-- Labor Section -->
-                            <div class="expense-type-card">
-                                <div class="expense-type-header labor">
-                                    <span>👷 Labor ({{ $projectData['labor']['count'] }})</span>
-                                    <span>RWF {{ number_format($projectData['labor']['total'], 0) }}</span>
-                                </div>
-                                <div class="expense-type-body">
-                                    <!-- Design Phase Labor -->
-                                    @if($projectData['labor']['design']['count'] > 0)
-                                        <div class="phase-section">
-                                            <div class="phase-header design">
-                                                <span>📝 Design Phase</span>
-                                                <span>RWF {{ number_format($projectData['labor']['design']['total'], 0) }}</span>
-                                            </div>
-                                            @foreach($projectData['labor']['design']['expenses'] as $expense)
-                                                <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                                    <div class="expense-info">
-                                                        <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
-                                                    </div>
-                                                    <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+            // Add office expenses
+            if(isset($officeExpenses) && $officeExpenses->count() > 0) {
+                foreach($officeExpenses as $expense) {
+                    $allExpenses->push($expense);
+                }
+            }
 
-                                    <!-- Execution Phase Labor -->
-                                    @if($projectData['labor']['execution']['count'] > 0)
-                                        <div class="phase-section">
-                                            <div class="phase-header execution">
-                                                <span>🔨 Execution Phase</span>
-                                                <span>RWF {{ number_format($projectData['labor']['execution']['total'], 0) }}</span>
-                                            </div>
-                                            @foreach($projectData['labor']['execution']['expenses'] as $expense)
-                                                <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                                    <div class="expense-info">
-                                                        <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
-                                                    </div>
-                                                    <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+            // Sort by date descending
+            $allExpenses = $allExpenses->sortByDesc(function($expense) {
+                return $expense->date ?? $expense->created_at;
+            });
 
-                                    <!-- Unassigned Phase Labor -->
-                                    @php
-                                        $unassignedLabor = $projectData['labor']['expenses']->whereNull('phase')->merge(
-                                            $projectData['labor']['expenses']->whereNotIn('phase', ['design', 'execution'])
-                                        );
-                                    @endphp
-                                    @if($unassignedLabor->count() > 0)
-                                        <div class="phase-section" style="background: #f5f5f5;">
-                                            <div class="phase-header" style="background: #95a5a6; color: white;">
-                                                <span>📋 General Labor</span>
-                                                <span>RWF {{ number_format($unassignedLabor->sum('amount'), 0) }}</span>
-                                            </div>
-                                            @foreach($unassignedLabor as $expense)
-                                                <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                                    <div class="expense-info">
-                                                        <div class="expense-description">{{ $expense->description ?? 'Labor' }}</div>
-                                                        <div class="expense-meta">{{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }} • {{ $expense->user->name ?? 'Unknown' }}</div>
-                                                    </div>
-                                                    <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+            $grandTotal = $allExpenses->sum('amount');
+            $designPhaseTotal = $allExpenses->where('phase', 'design')->sum('amount');
+            $executionPhaseTotal = $allExpenses->where('phase', 'execution')->sum('amount');
+        @endphp
 
-                                    @if($projectData['labor']['count'] == 0)
-                                        <div class="empty-message">No labor recorded</div>
-                                    @endif
-                                </div>
-                            </div>
+        @php
+            if (!isset($designPhaseTotal)) $designPhaseTotal = 0;
+            if (!isset($executionPhaseTotal)) $executionPhaseTotal = 0;
+        @endphp
 
-                            <!-- Other Expenses Section -->
-                            @if($projectData['other']['count'] > 0)
-                                <div class="expense-type-card">
-                                    <div class="expense-type-header other">
-                                        <span>📦 Other ({{ $projectData['other']['count'] }})</span>
-                                        <span>RWF {{ number_format($projectData['other']['total'], 0) }}</span>
-                                    </div>
-                                    <div class="expense-type-body">
-                                        @foreach($projectData['other']['expenses'] as $expense)
-                                            <div class="expense-item" onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                                <div class="expense-info">
-                                                    <div class="expense-description">{{ $expense->description ?? $expense->category ?? 'Expense' }}</div>
-                                                    <div class="expense-meta">
-                                                        {{ $expense->date ? $expense->date->format('M d, Y') : 'N/A' }}
-                                                        @if($expense->expense_type)
-                                                            • {{ ucfirst($expense->expense_type) }}
-                                                        @endif
-                                                        • {{ $expense->user->name ?? 'Unknown' }}
-                                                    </div>
-                                                </div>
-                                                <div class="expense-amount">RWF {{ number_format($expense->amount, 0) }}</div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        @endif
-
-        <!-- Office Expenses Section -->
-        @if(($officeExpenses ?? collect())->count() > 0)
+        <!-- All Expenses in One Table -->
+        @if($allExpenses->count() > 0)
             <div class="office-section">
-                <div class="office-header">
-                    <h3>🏢 Office Expenses ({{ $officeExpenses->count() }})</h3>
-                    <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($officeTotal, 0) }}</span>
+                <div class="office-header" style="background: linear-gradient(135deg, #d63031 0%, #e74c3c 100%);">
+                    <h3>📋 All Expenses ({{ $allExpenses->count() }})</h3>
+                    <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($grandTotal, 0) }}</span>
                 </div>
                 <table>
-                    <thead>
+                    <thead style="background: #d63031;">
                         <tr>
                             <th>Date</th>
+                            <th>Project</th>
+                            <th>Type</th>
                             <th>Description</th>
-                            <th>Category</th>
+                            <th>Phase</th>
                             <th>Amount</th>
-                            <th>Recorded By</th>
-                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($officeExpenses as $expense)
+                        @foreach($allExpenses as $expense)
                             <tr onclick="window.location.href='/expenses/{{ $expense->id }}'">
                                 <td>{{ $expense->date ? $expense->date->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
-                                <td>{{ $expense->description ?? 'N/A' }}</td>
-                                <td>{{ $expense->category ?? 'General' }}</td>
-                                <td><strong style="color: #d63031;">RWF {{ number_format($expense->amount ?? 0, 0) }}</strong></td>
-                                <td>{{ $expense->user->name ?? '—' }}</td>
                                 <td>
-                                    <span class="badge badge-{{ $expense->status ?? 'pending' }}">
-                                        {{ ucfirst($expense->status ?? 'Pending') }}
-                                    </span>
+                                    @if($expense->project)
+                                        <span style="background: #e8f5e9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                                            🏗️ {{ $expense->project->name }}
+                                        </span>
+                                    @else
+                                        <span style="background: #e3f2fd; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                                            🏢 Office
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($expense->expense_type == 'Materials' || $expense->expense_type == 'materials')
+                                        <span class="badge badge-materials">🧱 Materials</span>
+                                    @elseif($expense->expense_type == 'Labor' || $expense->expense_type == 'labor')
+                                        <span class="badge badge-labor">👷 Labor</span>
+                                    @else
+                                        <span class="badge" style="background: #dfe6e9; color: #636e72;">📦 {{ ucfirst($expense->expense_type ?? 'Other') }}</span>
+                                    @endif
+                                </td>
+                                <td>{{ $expense->item_name ?? $expense->description ?? 'N/A' }}</td>
+                                <td>
+                                    @if($expense->phase == 'design')
+                                        <span class="badge badge-design">📝 Design</span>
+                                    @elseif($expense->phase == 'execution')
+                                        <span class="badge badge-execution">🔨 Execution</span>
+                                    @else
+                                        <span style="color: #999;">—</span>
+                                    @endif
+                                </td>
+                                <td><strong style="color: #d63031;">RWF {{ number_format($expense->amount ?? 0, 0) }}</strong></td>
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem;" onclick="event.stopPropagation();">
+                                        <a href="/expenses/{{ $expense->id }}" style="background: #27ae60; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">View</a>
+                                        <a href="/expenses/{{ $expense->id }}/edit" style="background: #f39c12; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">Edit</a>
+                                        <form action="/expenses/{{ $expense->id }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background: #e74c3c; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('Are you sure?')">Delete</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr style="background: #fce4e4; font-weight: bold;">
+                            <td colspan="5" style="text-align: right; font-size: 1.1rem;">Total:</td>
+                            <td style="color: #d63031; font-size: 1.1rem;">RWF {{ number_format($grandTotal, 0) }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         @endif
 
-        @if(($expensesByProject ?? collect())->count() == 0 && ($officeExpenses ?? collect())->count() == 0)
+        @if($allExpenses->count() == 0)
             <div class="empty-message" style="background: white; border-radius: 12px; padding: 3rem;">
                 <p style="font-size: 1.2rem;">No expenses found.</p>
                 <p style="margin-top: 0.5rem;">

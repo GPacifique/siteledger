@@ -220,6 +220,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="phase_type">Project Phase Type</label>
+                        <select name="phase_type" id="phase_type">
+                            <option value="">-- Select --</option>
+                            <option value="design_only" {{ old('phase_type') == 'design_only' ? 'selected' : '' }}>Design Only</option>
+                            <option value="both" {{ old('phase_type') == 'both' ? 'selected' : '' }}>Both Phases (Design & Execution)</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85rem;">Optional: Choose if this project is only for design or for both phases.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="status">Status</label>
                         <select name="status" id="status">
                             <option value="planning" {{ old('status') == 'planning' ? 'selected' : '' }}>Planning</option>

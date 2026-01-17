@@ -51,6 +51,8 @@ class Project extends Model
         'execution_start_date',
         'execution_end_date',
         'execution_phase_status',
+        // New phase type field
+        'phase_type',
     ];
 
     protected $casts = [

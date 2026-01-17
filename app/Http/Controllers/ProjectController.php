@@ -105,6 +105,8 @@ class ProjectController extends Controller
             'execution_phase_status'  => 'nullable|in:pending,in_progress,completed',
             'execution_start_date'    => 'nullable|date',
             'execution_end_date'      => 'nullable|date',
+            // New phase type field
+            'phase_type'              => 'nullable|in:design_only,both',
         ]);
 
         // Add tenant and creator information
