@@ -1226,100 +1226,47 @@
     </style>
 </head>
 <body>
-    @include('components.navbar')
 
-    <div class="container">
-        <!-- Quick Actions -->
+    @php
+        // Detect if user is new (no data access)
+        $isNewUser = ($projectsCount ?? 0) == 0 && ($totalClients ?? 0) == 0 && ($incomesTotal ?? 0) == 0 && ($allExpensesTotal ?? 0) == 0 && ($paymentsTotal ?? 0) == 0;
+    @endphp
 
-        <!-- Combined Expenses & Payments Cards -->
-        <div class="two-column">
-            <div class="stats-grid">
-                <!-- Total All Expenses (Payments + Expenses) -->
-                <div class="stat-card">
-                    <h3>💰 Total All Expenses</h3>
-                    <div class="value">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</div>
-                    <div class="change positive">
-                        📊 Payments: RWF {{ number_format($paymentsTotal ?? 0, 2) }}
-                    </div>
-                    <div class="change negative">
-                        📊 Other Expenses: RWF {{ number_format($expensesTotal ?? 0, 2) }}
-                    </div>
-                </div>
-
-                <!-- This Month All Expenses -->
-                <div class="stat-card">
-                    <h3>📅 This Month Expenses</h3>
-                    <div class="value">RWF {{ number_format($allExpensesThisMonth ?? 0, 2) }}</div>
-                    <div class="change positive">
-                        💳 Payments: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}
-                    </div>
-                    <div class="change negative">
-                        💸 Other: RWF {{ number_format($expensesThisMonth ?? 0, 2) }}
-                    </div>
-                </div>
+    @if($isNewUser)
+        <div class="container">
+            <div style="text-align:center; margin-top: 4rem; margin-bottom: 4rem;">
+                <h1 style="font-size:2.5rem; color:#667eea; margin-bottom:1rem;">Welcome to SiteLedger!</h1>
+                <p style="font-size:1.2rem; color:#555; max-width:600px; margin:0 auto 2rem auto;">
+                    We're excited to have you on board. To get started, use the navigation above or the quick actions below to add your first project, client, or transaction.<br><br>
+                    Once you add data, your dashboard will come alive with insights and summaries.
+                </p>
+                <img src="https://cdn.jsdelivr.net/gh/GPacifique/siteledger-assets@main/welcome-illustration.svg" alt="Welcome" style="max-width:320px; width:100%; margin:2rem auto; display:block;">
             </div>
-            <div class="stats-grid">
-                <!-- Today's All Expenses -->
-                <div class="stat-card">
-                    <h3>📆 Today's Expenses</h3>
-                    <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
-                    <div class="change positive">
-                        💳 Company Payments: RWF {{ number_format($paymentsToday ?? 0, 2) }}
-                    </div>
-                    <div class="change negative">
-                        💸 Other Expenses: RWF {{ number_format($expensesToday ?? 0, 2) }}
-                    </div>
-                </div>
-
-                <!-- Company Payments Summary -->
-                <div class="stat-card">
-                    <h3>🏢 Company Payments</h3>
-                    <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
-                    <div class="change positive">
-                        This Month: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}
-                    </div>
-                    <div class="change neutral">
-                        Today: RWF {{ number_format($paymentsToday ?? 0, 2) }}
-                    </div>
+            <div class="quick-actions">
+                <h2>⚡ Quick Actions</h2>
+                <div class="actions-grid">
+                    <a href="{{ route('projects.create') }}" class="action-link projects">
+                        <span class="action-icon">📁</span>
+                        <span class="action-title">Add Project</span>
+                    </a>
+                    <a href="{{ route('clients.create') }}" class="action-link clients">
+                        <span class="action-icon">👥</span>
+                        <span class="action-title">Add Client</span>
+                    </a>
+                    <a href="{{ route('revenues.create') }}" class="action-link revenues">
+                        <span class="action-icon">💰</span>
+                        <span class="action-title">Add Revenue</span>
+                    </a>
+                    <a href="{{ route('expenses.create') }}" class="action-link expenses">
+                        <span class="action-icon">💸</span>
+                        <span class="action-title">Add Expense</span>
+                    </a>
                 </div>
             </div>
         </div>
-
-        <div class="quick-actions">
-            <h2>⚡ Quick Actions</h2>
-            <div class="actions-grid">
-                <a href="{{ route('projects.index') }}" class="action-link projects">
-                    <span class="action-icon">📁</span>
-                    <span class="action-title">Projects</span>
-                    <span class="action-count">{{ $projectsCount ?? 0 }} total</span>
-                </a>
-                <a href="{{ route('clients.index') }}" class="action-link clients">
-                    <span class="action-icon">👥</span>
-                    <span class="action-title">Clients</span>
-                    <span class="action-count">{{ $totalClients ?? 0 }} total</span>
-                </a>
-                <a href="{{ route('revenues.index') }}" class="action-link revenues">
-                    <span class="action-icon">💰</span>
-                    <span class="action-title">Revenues</span>
-                    <span class="action-count">RWF {{ number_format(($incomesTotal ?? 0) / 1000, 0) }}K</span>
-                </a>
-                <a href="{{ route('expenses.index') }}" class="action-link expenses">
-                    <span class="action-icon">💸</span>
-                    <span class="action-title">All Expenses</span>
-                    <span class="action-count">RWF {{ number_format(($allExpensesTotal ?? 0) / 1000, 0) }}K</span>
-                </a>
-                <a href="{{ route('payments.index') }}" class="action-link payments">
-                    <span class="action-icon">💳</span>
-                    <span class="action-title">Company Payments</span>
-                    <span class="action-count">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
-                </a>
-                <a href="{{ route('company.staff.index') }}" class="action-link workers" style="border-left: 4px solid #e17055;">
-                    <span class="action-icon">👔</span>
-                    <span class="action-title">Staff Management</span>
-                    <span class="action-count">Manage Staff</span>
-                </a>
-            </div>
-        </div>
+    @else
+        // ...existing code...
+    @endif
 
         <!-- Summary Sections Row -->
         <div class="two-column">
