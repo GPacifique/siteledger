@@ -7,10 +7,19 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, Authorizable;
+
+    /**
+     * Proxy for Spatie's hasPermissionTo for compatibility.
+     */
+    public function hasPermissionTo($permission, $guardName = null)
+    {
+        return $this->checkPermissionTo($permission, $guardName);
+    }
 
     /**
      * If you use a guard other than 'web', set it here. Otherwise 'web' is used by default.

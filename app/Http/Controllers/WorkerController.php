@@ -39,32 +39,34 @@ public function index(Request $request)
 // Show the form for creating a new worker
 public function create()
 {
-return view('workers.create');
+    // Get all projects for the dropdown
+    $projects = \App\Models\Project::orderBy('name')->get();
+    return view('workers.create', compact('projects'));
 }
 
 
 // Store a newly created worker
 public function store(Request $request)
 {
-$data = $request->validate([
-'first_name' => 'required|string|max:100',
-'last_name' => 'required|string|max:100',
-'email' => 'nullable|email',
-'phone' => 'nullable|string|max:30',
-'position' => 'nullable|string|max:100',
-'daily_wage' => 'required|numeric|min:0',
-'hired_at' => 'nullable|date',
-'status' => 'nullable|string|max:50',
-'notes' => 'nullable|string',
-]);
+    $data = $request->validate([
+        'first_name' => 'required|string|max:100',
+        'last_name' => 'required|string|max:100',
+        'email' => 'nullable|email',
+        'phone' => 'nullable|string|max:30',
+        'position' => 'nullable|string|max:100',
+        'daily_wage' => 'required|numeric|min:0',
+        'hired_at' => 'nullable|date',
+        'status' => 'nullable|string|max:50',
+        'notes' => 'nullable|string',
+        'project_id' => 'nullable|exists:projects,id',
+    ]);
 
-$data['currency'] = 'RWF';
-$data = $this->ensureTenantId($data);
-$data['created_by'] = Auth::id();
-$worker = Worker::create($data);
+    $data['currency'] = 'RWF';
+    $data = $this->ensureTenantId($data);
+    $data['created_by'] = Auth::id();
+    $worker = Worker::create($data);
 
-
-return redirect()->route('workers.show', $worker)->with('success', 'Worker created.');
+    return redirect()->route('workers.show', $worker)->with('success', 'Worker created.');
 }
 
 

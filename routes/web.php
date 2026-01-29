@@ -158,6 +158,12 @@ Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
+    // Laborers CRUD
+    Route::resource('laborers', App\Http\Controllers\LaborerController::class);
+
+    // Labor Expenses CRUD (no show/edit/update/destroy for now)
+    Route::resource('labor_expenses', App\Http\Controllers\LaborExpenseController::class)->except(['show', 'edit', 'update', 'destroy']);
+
     // Calendar API endpoints
     Route::get('/api/calendar/daily-summary', [DashboardController::class, 'calendarDailySummary'])->name('api.calendar.daily-summary');
     Route::get('/api/calendar/month-data', [DashboardController::class, 'calendarMonthData'])->name('api.calendar.month-data');
@@ -183,8 +189,7 @@ Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
 
 // Super Admin Routes - Restricted to System Administrator role
 Route::middleware(['auth', 'verified', 'role:system administrator'])->prefix('super-admin')->name('super-admin.')->group(function () {
-    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
-
+    Route::get('dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     // User Management
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users.index');
     Route::get('/users/{user}', [SuperAdminController::class, 'showUser'])->name('users.show');

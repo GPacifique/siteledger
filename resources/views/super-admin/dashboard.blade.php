@@ -896,7 +896,13 @@
                                 <tr>
                                     <td>
                                         <div style="font-weight: 500;">{{ $tenant->name }}</div>
-                                        <div style="font-size: 12px; color: #9ca3af;">{{ $tenant->created_at->diffForHumans() }}</div>
+                                        <div style="font-size: 12px; color: #9ca3af;">
+                                            @if($tenant->created_at)
+                                                {{ $tenant->created_at->diffForHumans() }}
+                                            @else
+                                                N/A
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge badge-info">{{ $tenant->users_count ?? 0 }}</span>

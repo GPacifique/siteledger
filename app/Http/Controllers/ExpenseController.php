@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Models\Payment;
+use App\Models\ExpenseCategory;
 use App\Models\Project;
 use App\Models\Client;
 use App\Traits\Downloadable;
@@ -39,124 +39,31 @@ class ExpenseController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all expenses with relationships
-        $allExpenses = Expense::with(['project', 'user'])->latest('date')->get();
+        $categories = ExpenseCategory::where('active', true)->orderBy('name')->get();
+        $query = Expense::with(['category', 'project'])->orderByDesc('date');
 
-        // Separate expenses into office and project categories
-        $officeExpenses = $allExpenses->whereNull('project_id');
-        $projectExpenses = $allExpenses->whereNotNull('project_id');
+        // Filtering
+        if ($request->filled('category_id')) {
+            $query->where('expense_category_id', $request->category_id);
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('date', $request->date);
+        }
 
-        // Calculate totals
-        $officeTotal = $officeExpenses->sum('amount');
-        $projectTotal = $projectExpenses->sum('amount');
+        $expenses = $query->get();
+        $grandTotal = $expenses->sum('total');
 
-        // Group project expenses by project
-        $expensesByProject = $projectExpenses->groupBy('project_id')->map(function($expenses, $projectId) {
-            $project = $expenses->first()->project;
+        // Reporting
+        $today = now()->toDateString();
+        $month = now()->format('Y-m');
+        $year = now()->format('Y');
+        $dailyTotal = $expenses->where('date', $today)->sum('total');
+        $monthlyTotal = $expenses->where('date', '>=', $month.'-01')->where('date', '<=', $month.'-31')->sum('total');
+        $yearlyTotal = $expenses->where('date', '>=', $year.'-01-01')->where('date', '<=', $year.'-12-31')->sum('total');
 
-            // Group by expense type
-            $materials = $expenses->where('expense_type', 'materials');
-            $labor = $expenses->where('expense_type', 'labor');
-            $other = $expenses->whereNotIn('expense_type', ['materials', 'labor']);
-
-            // Group labor by phase
-            $designLabor = $labor->where('phase', 'design');
-            $executionLabor = $labor->where('phase', 'execution');
-
-            return [
-                'project' => $project,
-                'project_name' => $project ? $project->name : 'Unknown Project',
-                'total' => $expenses->sum('amount'),
-                'count' => $expenses->count(),
-                'materials' => [
-                    'expenses' => $materials,
-                    'total' => $materials->sum('amount'),
-                    'count' => $materials->count(),
-                ],
-                'labor' => [
-                    'expenses' => $labor,
-                    'total' => $labor->sum('amount'),
-                    'count' => $labor->count(),
-                    'design' => [
-                        'expenses' => $designLabor,
-                        'total' => $designLabor->sum('amount'),
-                        'count' => $designLabor->count(),
-                    ],
-                    'execution' => [
-                        'expenses' => $executionLabor,
-                        'total' => $executionLabor->sum('amount'),
-                        'count' => $executionLabor->count(),
-                    ],
-                ],
-                'other' => [
-                    'expenses' => $other,
-                    'total' => $other->sum('amount'),
-                    'count' => $other->count(),
-                ],
-                'all_expenses' => $expenses,
-            ];
-        })->sortByDesc('total');
-
-        // Calculate overall totals by type
-        $totalMaterials = $projectExpenses->where('expense_type', 'materials')->sum('amount');
-        $totalLabor = $projectExpenses->where('expense_type', 'labor')->sum('amount');
-        $totalDesignLabor = $projectExpenses->where('expense_type', 'labor')->where('phase', 'design')->sum('amount');
-        $totalExecutionLabor = $projectExpenses->where('expense_type', 'labor')->where('phase', 'execution')->sum('amount');
-
-        // Combined Payments and Expenses totals
-        $monthStart = Carbon::now()->startOfMonth();
-        $endOfToday = Carbon::now()->endOfDay();
-        $today = Carbon::today();
-
-        $paymentsTotal = Payment::sum('amount') ?? 0;
-        $paymentsThisMonth = Payment::whereBetween('created_at', [$monthStart, $endOfToday])->sum('amount') ?? 0;
-        $paymentsToday = Payment::whereDate('created_at', $today)->sum('amount') ?? 0;
-
-        // Use query-based sums for expenses to avoid collection date filters
-        $expensesThisMonthTotal = Expense::whereBetween('date', [$monthStart, $endOfToday])->sum('amount');
-        $expensesTodayTotal = Expense::whereDate('date', $today)->sum('amount');
-
-        // Only sum project expenses for the total (no office expenses or payments)
-        $allExpensesTotal = $projectTotal;
-        $allExpensesThisMonth = $paymentsThisMonth + $expensesThisMonthTotal;
-        $allExpensesToday = $paymentsToday + $expensesTodayTotal;
-
-        // Group expenses by category with totals and counts (for summary)
-        $expensesByCategory = $allExpenses->groupBy('category')->map(function($group, $category) {
-            return [
-                'category' => $category ?: 'Uncategorized',
-                'count' => $group->count(),
-                'total' => $group->sum('amount'),
-                'expenses' => $group,
-            ];
-        })->sortByDesc('total');
-
-        // Phase totals for all expenses (not just labor)
-        $designPhaseTotal = $allExpenses->where('phase', 'design')->sum('amount');
-        $executionPhaseTotal = $allExpenses->where('phase', 'execution')->sum('amount');
-
-        return view('expenses.index', [
-            'officeExpenses' => $officeExpenses,
-            'projectExpenses' => $projectExpenses,
-            'officeTotal' => $officeTotal,
-            'projectTotal' => $projectTotal,
-            'expensesByProject' => $expensesByProject,
-            'expensesByCategory' => $expensesByCategory,
-            'totalMaterials' => $totalMaterials,
-            'totalLabor' => $totalLabor,
-            'totalDesignLabor' => $totalDesignLabor,
-            'totalExecutionLabor' => $totalExecutionLabor,
-            'paymentsTotal' => $paymentsTotal,
-            'paymentsThisMonth' => $paymentsThisMonth,
-            'paymentsToday' => $paymentsToday,
-            'allExpensesTotal' => $allExpensesTotal,
-            'allExpensesThisMonth' => $allExpensesThisMonth,
-            'allExpensesToday' => $allExpensesToday,
-            'designPhaseTotal' => $designPhaseTotal,
-            'executionPhaseTotal' => $executionPhaseTotal,
-        ]);
+        return view('expenses.index', compact('expenses', 'categories', 'grandTotal', 'dailyTotal', 'monthlyTotal', 'yearlyTotal'));
     }
 
     /**
@@ -166,10 +73,9 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        $projects = Project::orderBy('name')->pluck('name', 'id');
-        $clients  = Client::orderBy('name')->pluck('name', 'id');
-
-        return view('expenses.create', compact('projects', 'clients'));
+        $categories = ExpenseCategory::where('active', true)->orderBy('name')->get();
+        $projects = \App\Models\Project::orderBy('name')->get();
+        return view('expenses.create', compact('categories', 'projects'));
     }
 
     /**
@@ -180,14 +86,42 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $this->validateExpense($request);
-
-        $data = $this->ensureTenantId($data);
+        $data = $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_type' => 'required|string',
+            'item_name' => 'nullable|string',
+            'quantity' => 'nullable|numeric|min:0',
+            'unit' => 'nullable|string',
+            'unit_price' => 'nullable|numeric|min:0',
+            'price_per_one' => 'nullable|numeric|min:0',
+            'total' => 'required|numeric|min:0.01',
+            'date' => 'required|date',
+            'notes' => 'nullable|string',
+        ]);
+        // Validate phase as required if expense_type is labor
+        $data['phase'] = $request->input('phase') ?? null;
+        if ($data['expense_type'] === 'labor' && empty($data['phase'])) {
+            $data['phase'] = 'design';
+        }
+        $data['phase'] = $request->validate([
+            'phase' => 'required_if:expense_type,labor|string|in:design,execution',
+        ])['phase'];
+        // Calculate total if not provided and possible
+        if (empty($data['total']) && isset($data['quantity'], $data['unit_price']) && $data['quantity'] > 0 && $data['unit_price'] > 0) {
+            $data['total'] = $data['quantity'] * $data['unit_price'];
+        }
+        // Save unit_price to price_per_one for labor, and to unit_price for materials
+        if (isset($data['expense_type']) && $data['expense_type'] === 'labor') {
+            $data['price_per_one'] = $data['unit_price'] ?? null;
+        } else {
+            $data['unit_price'] = $data['unit_price'] ?? null;
+            $data['price_per_one'] = null;
+        }
+        $data['user_id'] = Auth::id();
+        $data['tenant_id'] = Auth::user()->tenant_id ?? null;
         Expense::create($data);
-
-        return redirect()
-            ->route('expenses.index')
-            ->with('success', 'Expense created successfully.');
+        return redirect()->route('expenses.index')->with('success', 'Expense created successfully.');
     }
 
     /**
@@ -257,26 +191,7 @@ class ExpenseController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    protected function validateExpense(Request $request): array
-    {
-        return $request->validate([
-            'date'         => 'required|date',
-            'category'     => 'required|string|max:255',
-            'expense_type' => 'nullable|string|max:255',
-            'phase'        => 'nullable|string|in:design,execution',
-            'item_name'    => 'nullable|string|max:255',
-            'quantity'     => 'nullable|numeric|min:0',
-            'unit'         => 'nullable|string|max:50',
-            'unit_price'   => 'nullable|numeric|min:0',
-            'description'  => 'nullable|string',
-            'project_id'   => 'nullable|exists:projects,id',
-            'client_id'    => 'nullable|exists:clients,id',
-            'amount'       => 'required|numeric',
-            'method'       => 'nullable|string|max:255',
-            'status'       => 'nullable|string|max:255',
-            'user_id'      => 'nullable|exists:users,id',
-        ]);
-    }
+    // Validation now handled inline in store()
 
     /**
      * Export expenses as CSV
@@ -284,7 +199,7 @@ class ExpenseController extends Controller
     public function exportCsv(Request $request)
     {
         // Check permission for expense export
-        if (!Auth::user()->can('expenses.export')) {
+        if (!Auth::user() || !Auth::user()->hasPermissionTo('expenses.export')) {
             abort(403, 'You do not have permission to export expenses.');
         }
 
@@ -328,7 +243,7 @@ class ExpenseController extends Controller
     public function exportPdf(Request $request)
     {
         // Check permission for expense export
-        if (!Auth::user()->can('expenses.export')) {
+        if (!Auth::user() || !Auth::user()->hasPermissionTo('expenses.export')) {
             abort(403, 'You do not have permission to export expenses.');
         }
 

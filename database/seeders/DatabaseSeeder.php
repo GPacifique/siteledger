@@ -24,9 +24,15 @@ class DatabaseSeeder extends Seeder
         $this->call(ClientSeeder::class);
         $this->command->newLine();
 
+
         // Step 3: Projects
         $this->command->info('3️⃣  Seeding Projects...');
         $this->call(ProjectSeeder::class);
+        $this->command->newLine();
+
+        // Step 3b: Design Phases
+        $this->command->info('3️⃣b Seeding Design Phases...');
+        $this->call(DesignPhaseSeeder::class);
         $this->command->newLine();
 
         // Step 4: Incomes
@@ -34,41 +40,46 @@ class DatabaseSeeder extends Seeder
         $this->call(IncomeSeeder::class);
         $this->command->newLine();
 
-        // Step 5: Expenses
-        $this->command->info('5️⃣  Seeding Expenses...');
+        // Step 5: Expense Categories
+        $this->command->info('5️⃣  Seeding Expense Categories...');
+        $this->call(ExpenseCategorySeeder::class);
+        $this->command->newLine();
+
+        // Step 6: Expenses
+        $this->command->info('6️⃣  Seeding Expenses...');
         $this->call(ExpenseSeeder::class);
         $this->command->newLine();
 
-        // Step 6: Workers
-        $this->command->info('6️⃣  Seeding Workers...');
+        // Step 7: Workers
+        $this->command->info('7️⃣  Seeding Workers...');
         $this->call(WorkerSeeder::class);
         $this->command->newLine();
 
-        // Step 7: Employees
-        $this->command->info('7️⃣  Seeding Employees...');
+        // Step 8: Employees
+        $this->command->info('8️⃣  Seeding Employees...');
         $this->call(EmployeeSeeder::class);
         $this->command->newLine();
 
-        // Step 8: Sample Tenants (Multi-tenant System)
-        $this->command->info('8️⃣  Seeding Sample Tenants...');
+        // Step 9: Sample Tenants (Multi-tenant System)
+        $this->command->info('9️⃣  Seeding Sample Tenants...');
         $this->call(SampleTenantsSeeder::class);
         $this->command->newLine();
 
-        // Step 9: Chart of Accounts
-        $this->command->info('9️⃣  Seeding Chart of Accounts...');
+        // Step 10: Chart of Accounts
+        $this->command->info('🔟  Seeding Chart of Accounts...');
         $this->call(AccountsSeeder::class);
         $this->command->newLine();
 
-        // Step 10: Sample Tasks (if not already seeded)
+        // Step 11: Sample Tasks (if not already seeded)
         if (!\App\Models\Task::exists()) {
-            $this->command->info('🔟 Seeding Sample Tasks...');
+            $this->command->info('1️⃣1️⃣ Seeding Sample Tasks...');
             $this->call(SampleTasksSeeder::class);
             $this->command->newLine();
         }
 
         $this->command->info('✅ Enhanced Database Seeding Completed Successfully!');
         $this->command->newLine();
-        
+
         if (!app()->environment('production')) {
             $this->command->info('🔐 Enhanced Development Login Credentials:');
             $this->command->table(

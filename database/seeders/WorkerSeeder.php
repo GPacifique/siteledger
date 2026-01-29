@@ -21,6 +21,9 @@ class WorkerSeeder extends Seeder
             return;
         }
 
+        // Get all projects
+        $projects = \App\Models\Project::all();
+
         $workers = [
             [
                 'first_name' => 'Jean Baptiste',
@@ -136,6 +139,10 @@ class WorkerSeeder extends Seeder
 
         foreach ($workers as $worker) {
             $worker['tenant_id'] = $tenant->id;
+            // Assign a random project if available
+            if ($projects->count() > 0) {
+                $worker['project_id'] = $projects->random()->id;
+            }
             Worker::firstOrCreate(
                 ['email' => $worker['email'], 'tenant_id' => $worker['tenant_id']],
                 $worker

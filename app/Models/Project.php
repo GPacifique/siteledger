@@ -1,14 +1,19 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\BelongsToTenant;
 
+
 class Project extends Model
 {
     use HasFactory, BelongsToTenant;
+
+    public function designPhases()
+    {
+        return $this->hasMany(DesignPhase::class);
+    }
 
     /**
      * Available project phases
@@ -27,19 +32,22 @@ class Project extends Model
         'completed' => 'Completed',
     ];
 
+    public const PROJECT_TYPE_DESIGN = 'DESIGN';
+    public const PROJECT_TYPE_EXECUTION = 'EXECUTION';
+    public const PROJECT_TYPE_DESIGN_EXECUTION = 'DESIGN_EXECUTION';
+
     protected $fillable = [
         'tenant_id',
         'client_id',
         'name',
         'start_date',
-        'status',      // e.g., planned, active, completed
+        'status',
         'end_date',
         'contract_value',
         'amount_paid',
         'amount_remaining',
         'notes',
         'manager_id',
-        // Phase fields
         'current_phase',
         'design_phase_value',
         'design_phase_paid',
@@ -51,9 +59,24 @@ class Project extends Model
         'execution_start_date',
         'execution_end_date',
         'execution_phase_status',
-        // New phase type field
-        'phase_type',
+        'project_type',
     ];
+
+    /**
+     * Helper: Check project type
+     */
+    public function isDesignOnly()
+    {
+        return $this->project_type === self::PROJECT_TYPE_DESIGN;
+    }
+    public function isExecutionOnly()
+    {
+        return $this->project_type === self::PROJECT_TYPE_EXECUTION;
+    }
+    public function isDesignExecution()
+    {
+        return $this->project_type === self::PROJECT_TYPE_DESIGN_EXECUTION;
+    }
 
     protected $casts = [
         'start_date' => 'date',

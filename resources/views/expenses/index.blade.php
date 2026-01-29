@@ -352,194 +352,106 @@
         <div class="page-header">
             <div>
                 <h1>💰 Expenses</h1>
-                <p>Track project expenses: Materials, Labor by Phase, and more</p>
+                <p>Track all expenses by category, quantity, and price per unit.</p>
             </div>
             <a href="/expenses/create" class="btn-primary">+ Add Expense</a>
         </div>
 
-        <!-- Combined Summary Cards -->
         <div class="summary-grid">
             <div class="summary-card total">
-                <h4>💳 Total All Expenses</h4>
-                <div class="value" style="color: #d32f2f;">RWF {{ number_format($allExpensesTotal ?? 0, 0) }}</div>
+                <h4>💳 Grand Total</h4>
+                <div class="value" style="color: #d32f2f;">RWF {{ number_format($grandTotal ?? 0, 0) }}</div>
             </div>
-            @php
-                $designPhaseTotal = isset($designPhaseTotal) ? $designPhaseTotal : 0;
-                $executionPhaseTotal = isset($executionPhaseTotal) ? $executionPhaseTotal : 0;
-            @endphp
-            <div class="summary-card design">
-                <h4>📝 Design Phase</h4>
-                <div class="value" style="color: #d32f2f;">RWF {{ number_format($designPhaseTotal, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">
-                    This total represents all expenses linked to the <b>Design Phase</b> of your projects, including planning, drawings, and permits.
-                </small>
+            <div class="summary-card">
+                <h4>📅 Today</h4>
+                <div class="value">RWF {{ number_format($dailyTotal ?? 0, 0) }}</div>
             </div>
-            <div class="summary-card execution">
-                <h4>🔨 Execution Phase</h4>
-                <div class="value" style="color: #d32f2f;">RWF {{ number_format($executionPhaseTotal, 0) }}</div>
-                <small style="color: #666; margin-top: 0.5rem; display: block;">
-                    This total represents all expenses linked to the <b>Execution Phase</b> of your projects, including construction and installation costs.
-                </small>
+            <div class="summary-card">
+                <h4>🗓️ This Month</h4>
+                <div class="value">RWF {{ number_format($monthlyTotal ?? 0, 0) }}</div>
+            </div>
+            <div class="summary-card">
+                <h4>📆 This Year</h4>
+                <div class="value">RWF {{ number_format($yearlyTotal ?? 0, 0) }}</div>
             </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="summary-grid">
-            <div class="summary-card total">
-                <h4>💳 Total All Expenses</h4>
-                <div class="value negative">RWF {{ number_format(($officeTotal ?? 0) + ($projectTotal ?? 0), 0) }}</div>
-            </div>
-            <div class="summary-card materials">
-                <h4>🧱 Materials</h4>
-                <div class="value">RWF {{ number_format($totalMaterials ?? 0, 0) }}</div>
-            </div>
-            <div class="summary-card labor">
-                <h4>👷 Labor</h4>
-                <div class="value">RWF {{ number_format($totalLabor ?? 0, 0) }}</div>
-            </div>
-            <div class="summary-card design">
-                <h4>📝 Design Phase</h4>
-                <div class="value">RWF {{ number_format($totalDesignLabor ?? 0, 0) }}</div>
-            </div>
-            <div class="summary-card execution">
-                <h4>🔨 Execution Phase</h4>
-                <div class="value">RWF {{ number_format($totalExecutionLabor ?? 0, 0) }}</div>
-            </div>
-            <div class="summary-card office">
-                <h4>🏢 Office</h4>
-                <div class="value">RWF {{ number_format($officeTotal ?? 0, 0) }}</div>
-            </div>
-        </div>
-
-        @php
-            // Combine all expenses into one collection
-            $allExpenses = collect();
-
-            // Add project expenses
-            if(isset($expensesByProject) && $expensesByProject->count() > 0) {
-                foreach($expensesByProject as $projectId => $projectData) {
-                    foreach($projectData['materials']['expenses'] as $expense) {
-                        $allExpenses->push($expense);
-                    }
-                    foreach($projectData['labor']['expenses'] as $expense) {
-                        $allExpenses->push($expense);
-                    }
-                    foreach($projectData['other']['expenses'] as $expense) {
-                        $allExpenses->push($expense);
-                    }
-                }
-            }
-
-            // Add office expenses
-            if(isset($officeExpenses) && $officeExpenses->count() > 0) {
-                foreach($officeExpenses as $expense) {
-                    $allExpenses->push($expense);
-                }
-            }
-
-            // Sort by date descending
-            $allExpenses = $allExpenses->sortByDesc(function($expense) {
-                return $expense->date ?? $expense->created_at;
-            });
-
-            $grandTotal = $allExpenses->sum('amount');
-            $designPhaseTotal = $allExpenses->where('phase', 'design')->sum('amount');
-            $executionPhaseTotal = $allExpenses->where('phase', 'execution')->sum('amount');
-        @endphp
-
-        @php
-            if (!isset($designPhaseTotal)) $designPhaseTotal = 0;
-            if (!isset($executionPhaseTotal)) $executionPhaseTotal = 0;
-        @endphp
-
-        <!-- All Expenses in One Table -->
-        @if($allExpenses->count() > 0)
-            <div class="office-section">
-                <div class="office-header" style="background: linear-gradient(135deg, #d63031 0%, #e74c3c 100%);">
-                    <h3>📋 All Expenses ({{ $allExpenses->count() }})</h3>
-                    <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($grandTotal, 0) }}</span>
-                </div>
-                <table>
-                    <thead style="background: #d63031;">
-                        <tr>
-                            <th>Date</th>
-                            <th>Project</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Phase</th>
-                            <th>Amount</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($allExpenses as $expense)
-                            <tr onclick="window.location.href='/expenses/{{ $expense->id }}'">
-                                <td>{{ $expense->date ? $expense->date->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
-                                <td>
-                                    @if($expense->project)
-                                        <span style="background: #e8f5e9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
-                                            🏗️ {{ $expense->project->name }}
-                                        </span>
-                                    @else
-                                        <span style="background: #e3f2fd; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
-                                            🏢 Office
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($expense->expense_type == 'Materials' || $expense->expense_type == 'materials')
-                                        <span class="badge badge-materials">🧱 Materials</span>
-                                    @elseif($expense->expense_type == 'Labor' || $expense->expense_type == 'labor')
-                                        <span class="badge badge-labor">👷 Labor</span>
-                                    @else
-                                        <span class="badge" style="background: #dfe6e9; color: #636e72;">📦 {{ ucfirst($expense->expense_type ?? 'Other') }}</span>
-                                    @endif
-                                </td>
-                                <td>{{ $expense->item_name ?? $expense->description ?? 'N/A' }}</td>
-                                <td>
-                                    @if($expense->phase == 'design')
-                                        <span class="badge badge-design">📝 Design</span>
-                                    @elseif($expense->phase == 'execution')
-                                        <span class="badge badge-execution">🔨 Execution</span>
-                                    @else
-                                        <span style="color: #999;">—</span>
-                                    @endif
-                                </td>
-                                <td><strong style="color: #d63031;">RWF {{ number_format($expense->amount ?? 0, 0) }}</strong></td>
-                                <td>
-                                    <div style="display: flex; gap: 0.5rem;" onclick="event.stopPropagation();">
-                                        <a href="/expenses/{{ $expense->id }}" style="background: #27ae60; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">View</a>
-                                        <a href="/expenses/{{ $expense->id }}/edit" style="background: #f39c12; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">Edit</a>
-                                        <form action="/expenses/{{ $expense->id }}" method="POST" style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" style="background: #e74c3c; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('Are you sure?')">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
+        <form method="GET" class="mb-3" style="margin-bottom: 2rem;">
+            <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                <div>
+                    <label for="category_id">Category</label>
+                    <select name="category_id" id="category_id" class="form-control">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr style="background: #fce4e4; font-weight: bold;">
-                            <td colspan="5" style="text-align: right; font-size: 1.1rem;">Total:</td>
-                            <td style="color: #d63031; font-size: 1.1rem;">RWF {{ number_format($grandTotal, 0) }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                    </select>
+                </div>
+                <div>
+                    <label for="date">Date</label>
+                    <input type="date" name="date" id="date" value="{{ request('date') }}" class="form-control">
+                </div>
+                <div>
+                    <button type="submit" class="btn-primary" style="padding: 0.5rem 1.5rem;">Filter</button>
+                </div>
             </div>
-        @endif
+        </form>
 
-        @if($allExpenses->count() == 0)
-            <div class="empty-message" style="background: white; border-radius: 12px; padding: 3rem;">
-                <p style="font-size: 1.2rem;">No expenses found.</p>
-                <p style="margin-top: 0.5rem;">
-                    <a href="/expenses/create" style="color: #667eea;">Add your first expense</a> or
-                    <a href="/admin/dashboard" style="color: #667eea;">Go to Dashboard</a>
-                </p>
+        <div class="office-section">
+            <div class="office-header" style="background: linear-gradient(135deg, #d63031 0%, #e74c3c 100%);">
+                <h3>📋 All Expenses ({{ $expenses->count() }})</h3>
+                <span style="font-size: 1.3rem; font-weight: 700;">RWF {{ number_format($grandTotal, 0) }}</span>
             </div>
-        @endif
+            <table>
+                <thead style="background: #d63031;">
+                    <tr>
+                        <th>Date</th>
+                        <th>Project</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($expenses as $expense)
+                        <tr>
+                            <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : '' }}</td>
+                            <td>{{ $expense->project->name ?? 'N/A' }}</td>
+                            <td>{{ $expense->category->name ?? 'N/A' }}</td>
+                            <td>{{ $expense->quantity }}</td>
+                            <td>RWF {{ number_format($expense->price_per_one, 2) }}</td>
+                            <td><strong style="color: #d63031;">RWF {{ number_format($expense->total, 2) }}</strong></td>
+                            <td>{{ $expense->notes }}</td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="/expenses/{{ $expense->id }}/edit" style="background: #f39c12; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">Edit</a>
+                                    <form action="/expenses/{{ $expense->id }}" method="POST" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="background: #e74c3c; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('Are you sure?')">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="empty-message">No expenses found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <tfoot>
+                    <tr style="background: #fce4e4; font-weight: bold;">
+                        <td colspan="4" style="text-align: right; font-size: 1.1rem;">Total:</td>
+                        <td style="color: #d63031; font-size: 1.1rem;">RWF {{ number_format($grandTotal, 0) }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
     </div>
 
     <script>

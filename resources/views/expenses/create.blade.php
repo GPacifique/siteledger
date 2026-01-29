@@ -264,7 +264,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('expenses.store') }}" method="POST" id="expenseForm">
+            <form action="{{ route('expenses.store') }}" method="POST" id="expenseForm" novalidate>
                 @csrf
 
                 <!-- Basic Information -->
@@ -281,16 +281,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="project_id">Project</label>
-                            <select name="project_id" id="project_id">
-                                <option value="">-- Office Expense (No Project) --</option>
-                                @foreach($projects as $id => $name)
-                                    <option value="{{ $id }}" {{ old('project_id') == $id ? 'selected' : '' }}>
-                                        {{ $name }}
+                            <label for="project_id">Project <span class="required">*</span></label>
+                            <select name="project_id" id="project_id" required>
+                                <option value="">-- Select Project --</option>
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                        {{ $project->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="help-text">Leave empty for office expenses</div>
                             @error('project_id')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -354,51 +353,53 @@
                 </div>
 
                 <!-- Materials Fields (shown when materials is selected) -->
-                <div class="form-section materials-fields" id="materialsFields">
-                    <h3>🧱 Material Details</h3>
 
-                    <div class="form-group">
+                <div class="form-section" id="dynamicFieldsSection">
+                    <h3 id="dynamicFieldsTitle">🧱 Material Details</h3>
+                    <div class="form-group" id="itemNameGroup">
                         <label for="item_name">Item Name <span class="required">*</span></label>
                         <input type="text" name="item_name" id="item_name" value="{{ old('item_name') }}" placeholder="e.g., Cement, Sand, Iron rods">
                         @error('item_name')
                             <div class="error">{{ $message }}</div>
                         @enderror
                     </div>
-
                     <div class="form-row-3">
                         <div class="form-group">
-                            <label for="quantity">Quantity</label>
-                            <input type="number" name="quantity" id="quantity" step="0.01" value="{{ old('quantity') }}" placeholder="0">
+                            <label for="quantity" id="quantityLabel">Quantity <span class="required">*</span></label>
+                            <div class="help-text" id="quantityHelp">Enter the number of items. For example, 40 bags of cement.</div>
+                            <input type="number" name="quantity" id="quantity" step="0.01" value="{{ old('quantity') }}" placeholder="0" required>
                             @error('quantity')
                                 <div class="error">{{ $message }}</div>
                             @enderror
                         </div>
-
                         <div class="form-group">
-                            <label for="unit">Unit</label>
+                            <label for="unit" id="unitLabel">Unit</label>
                             <select name="unit" id="unit">
                                 <option value="">Select unit</option>
-                                <option value="pieces" {{ old('unit') == 'pieces' ? 'selected' : '' }}>Pieces</option>
-                                <option value="kg" {{ old('unit') == 'kg' ? 'selected' : '' }}>Kilograms (kg)</option>
-                                <option value="bags" {{ old('unit') == 'bags' ? 'selected' : '' }}>Bags</option>
-                                <option value="tons" {{ old('unit') == 'tons' ? 'selected' : '' }}>Tons</option>
-                                <option value="liters" {{ old('unit') == 'liters' ? 'selected' : '' }}>Liters</option>
-                                <option value="meters" {{ old('unit') == 'meters' ? 'selected' : '' }}>Meters</option>
-                                <option value="sqm" {{ old('unit') == 'sqm' ? 'selected' : '' }}>Square Meters</option>
-                                <option value="cbm" {{ old('unit') == 'cbm' ? 'selected' : '' }}>Cubic Meters</option>
-                                <option value="rolls" {{ old('unit') == 'rolls' ? 'selected' : '' }}>Rolls</option>
-                                <option value="sheets" {{ old('unit') == 'sheets' ? 'selected' : '' }}>Sheets</option>
-                                <option value="boxes" {{ old('unit') == 'boxes' ? 'selected' : '' }}>Boxes</option>
-                                <option value="trips" {{ old('unit') == 'trips' ? 'selected' : '' }}>Trips</option>
+                                <option class="unit-material" value="pieces" {{ old('unit') == 'pieces' ? 'selected' : '' }}>Pieces</option>
+                                <option class="unit-material" value="kg" {{ old('unit') == 'kg' ? 'selected' : '' }}>Kilograms (kg)</option>
+                                <option class="unit-material" value="bags" {{ old('unit') == 'bags' ? 'selected' : '' }}>Bags</option>
+                                <option class="unit-material" value="tons" {{ old('unit') == 'tons' ? 'selected' : '' }}>Tons</option>
+                                <option class="unit-material" value="liters" {{ old('unit') == 'liters' ? 'selected' : '' }}>Liters</option>
+                                <option class="unit-material" value="meters" {{ old('unit') == 'meters' ? 'selected' : '' }}>Meters</option>
+                                <option class="unit-material" value="sqm" {{ old('unit') == 'sqm' ? 'selected' : '' }}>Square Meters</option>
+                                <option class="unit-material" value="cbm" {{ old('unit') == 'cbm' ? 'selected' : '' }}>Cubic Meters</option>
+                                <option class="unit-material" value="rolls" {{ old('unit') == 'rolls' ? 'selected' : '' }}>Rolls</option>
+                                <option class="unit-material" value="sheets" {{ old('unit') == 'sheets' ? 'selected' : '' }}>Sheets</option>
+                                <option class="unit-material" value="boxes" {{ old('unit') == 'boxes' ? 'selected' : '' }}>Boxes</option>
+                                <option class="unit-material" value="trips" {{ old('unit') == 'trips' ? 'selected' : '' }}>Trips</option>
+                                <option class="unit-labor" value="person" {{ old('unit') == 'person' ? 'selected' : '' }} style="display:none;">Person</option>
+                                <option class="unit-labor" value="day" {{ old('unit') == 'day' ? 'selected' : '' }} style="display:none;">Day</option>
+                                <option class="unit-labor" value="hour" {{ old('unit') == 'hour' ? 'selected' : '' }} style="display:none;">Hour</option>
                             </select>
                             @error('unit')
                                 <div class="error">{{ $message }}</div>
                             @enderror
                         </div>
-
                         <div class="form-group">
-                            <label for="unit_price">Unit Price (RWF)</label>
-                            <input type="number" name="unit_price" id="unit_price" step="0.01" value="{{ old('unit_price') }}" placeholder="0.00">
+                            <label for="unit_price" id="unitPriceLabel">Unit Price (RWF) <span class="required">*</span></label>
+                            <div class="help-text" id="unitPriceHelp">Enter the amount for one item.</div>
+                            <input type="number" name="unit_price" id="unit_price" step="0.01" value="{{ old('unit_price') }}" placeholder="0.00" required>
                             @error('unit_price')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -406,39 +407,32 @@
                     </div>
                 </div>
 
-                <!-- Labor Fields (shown when labor is selected) -->
-                <div class="form-section labor-fields" id="laborFields">
-                    <h3>👷 Labor Details</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Labor expense selected. Use the project phase selector above to assign to design or execution phase.</p>
-                </div>
-
                 <!-- Amount & Description -->
                 <div class="form-section">
                     <h3>💰 Amount & Details</h3>
+                    <div class="help-text" style="margin-bottom: 10px; color: #444;">
+                        For labor, <b>Quantity</b> = number of labors, <b>Unit Price</b> = amount for one labor. For materials, use the number of items and price per item.
+                    </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="amount">Total Amount (RWF) <span class="required">*</span></label>
-                            <input type="number" name="amount" id="amount" step="0.01" value="{{ old('amount') }}" required placeholder="0.00">
-                            <div class="help-text" id="calculatedAmount"></div>
-                            @error('amount')
+                            <label for="expense_category_id">Category <span class="required">*</span></label>
+                            <select name="expense_category_id" id="expense_category_id" required>
+                                <option value="">-- Select Category --</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('expense_category_id')
                                 <div class="error">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="form-group">
-                            <label for="category">Category</label>
-                            <select name="category" id="category">
-                                <option value="Materials" {{ old('category') == 'Materials' ? 'selected' : '' }}>Materials</option>
-                                <option value="Labor" {{ old('category') == 'Labor' ? 'selected' : '' }}>Labor</option>
-                                <option value="Equipment" {{ old('category') == 'Equipment' ? 'selected' : '' }}>Equipment</option>
-                                <option value="Transport" {{ old('category') == 'Transport' ? 'selected' : '' }}>Transport</option>
-                                <option value="Subcontractor" {{ old('category') == 'Subcontractor' ? 'selected' : '' }}>Subcontractor</option>
-                                <option value="Utilities" {{ old('category') == 'Utilities' ? 'selected' : '' }}>Utilities</option>
-                                <option value="Permits" {{ old('category') == 'Permits' ? 'selected' : '' }}>Permits</option>
-                                <option value="Miscellaneous" {{ old('category', 'Miscellaneous') == 'Miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                            </select>
-                            @error('category')
+                            <label for="total" style="font-weight: bold; color: #2d3436;">Total Amount (RWF) <span class="required">*</span></label>
+                            <input type="number" name="total" id="total" step="0.01" value="{{ old('total') }}" required placeholder="0.00" readonly style="background: #eafaf1; color: #09804a; font-weight: bold; font-size: 1.2rem; border: 2px solid #55efc4;">
+                            <div class="help-text" id="calculatedAmount" style="color: #09804a; font-weight: 600; margin-top: 0.25rem;">This value is auto-calculated from Quantity × Unit Price.</div>
+                            @error('total')
                                 <div class="error">{{ $message }}</div>
                             @enderror
                         </div>
@@ -489,7 +483,26 @@
         </div>
     </div>
 
-    <script>
+            <script>
+        // Prevent submit if total is empty or zero
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            const total = document.getElementById('total');
+            const totalVal = parseFloat(total.value) || 0;
+            let errorDiv = document.getElementById('totalRequiredError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'totalRequiredError';
+                errorDiv.className = 'error';
+                total.parentNode.appendChild(errorDiv);
+            }
+            if (totalVal <= 0) {
+                errorDiv.textContent = 'Total amount is required and must be greater than zero.';
+                total.focus();
+                e.preventDefault();
+            } else {
+                errorDiv.textContent = '';
+            }
+        });
         document.addEventListener('DOMContentLoaded', function() {
             const expenseTypeOptions = document.querySelectorAll('.expense-type-option');
             const materialsFields = document.getElementById('materialsFields');
@@ -564,25 +577,80 @@
             });
 
             // Auto-calculate amount from quantity * unit_price
-            const quantityInput = document.getElementById('quantity');
-            const unitPriceInput = document.getElementById('unit_price');
-            const amountInput = document.getElementById('amount');
-            const calculatedAmount = document.getElementById('calculatedAmount');
+            // Dynamic field logic for single set of fields
+            const dynamicFieldsTitle = document.getElementById('dynamicFieldsTitle');
+            const itemNameGroup = document.getElementById('itemNameGroup');
+            const quantityLabel = document.getElementById('quantityLabel');
+            const quantityHelp = document.getElementById('quantityHelp');
+            const unitLabel = document.getElementById('unitLabel');
+            const unitSelect = document.getElementById('unit');
+            const unitPriceLabel = document.getElementById('unitPriceLabel');
+            const unitPriceHelp = document.getElementById('unitPriceHelp');
 
-            function calculateAmount() {
-                const qty = parseFloat(quantityInput.value) || 0;
-                const price = parseFloat(unitPriceInput.value) || 0;
-                if (qty > 0 && price > 0) {
-                    const total = qty * price;
-                    amountInput.value = total.toFixed(2);
-                    calculatedAmount.textContent = `Calculated: ${qty} × ${price.toLocaleString()} = RWF ${total.toLocaleString()}`;
+            function setFieldsForType(type) {
+                if (type === 'labor') {
+                    dynamicFieldsTitle.textContent = '👷 Labor Details';
+                    itemNameGroup.style.display = 'none';
+                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
+                    quantityHelp.textContent = 'Enter the number of labors. For example, if 40 labors worked, enter 40.';
+                    unitLabel.textContent = 'Unit';
+                    // Show only labor units
+                    Array.from(unitSelect.options).forEach(opt => {
+                        if (opt.classList.contains('unit-labor')) opt.style.display = '';
+                        else if (opt.value !== '') opt.style.display = 'none';
+                    });
+                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
+                    unitPriceHelp.textContent = 'Enter the amount for one labor (per person, per day, or per hour).';
                 } else {
-                    calculatedAmount.textContent = '';
+                    dynamicFieldsTitle.textContent = '🧱 Material Details';
+                    itemNameGroup.style.display = '';
+                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
+                    quantityHelp.textContent = 'Enter the number of items. For example, 40 bags of cement.';
+                    unitLabel.textContent = 'Unit';
+                    // Show only material units
+                    Array.from(unitSelect.options).forEach(opt => {
+                        if (opt.classList.contains('unit-material')) opt.style.display = '';
+                        else if (opt.value !== '') opt.style.display = 'none';
+                    });
+                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
+                    unitPriceHelp.textContent = 'Enter the amount for one item.';
                 }
             }
 
-            quantityInput.addEventListener('input', calculateAmount);
-            unitPriceInput.addEventListener('input', calculateAmount);
+            // Expense type selection logic
+            expenseTypeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    setFieldsForType(type);
+                    setTimeout(calculateAmount, 50);
+                });
+                // On page load, set correct fields
+                if (option.querySelector('input').checked) {
+                    setFieldsForType(option.dataset.type);
+                }
+            });
+
+            // Auto-calculate amount from quantity * unit_price (single logic)
+            function calculateAmount() {
+                const quantity = document.getElementById('quantity');
+                const unitPrice = document.getElementById('unit_price');
+                const total = document.getElementById('total');
+                const calculatedAmount = document.getElementById('calculatedAmount');
+                const qty = parseFloat(quantity.value) || 0;
+                const price = parseFloat(unitPrice.value) || 0;
+                if (qty > 0 && price > 0) {
+                    const totalVal = qty * price;
+                    total.value = totalVal.toFixed(2);
+                    calculatedAmount.textContent = `Calculated: ${qty} × ${price.toLocaleString()} = RWF ${totalVal.toLocaleString()}`;
+                } else {
+                    total.value = '';
+                    calculatedAmount.textContent = '';
+                }
+            }
+            document.getElementById('quantity').addEventListener('input', calculateAmount);
+            document.getElementById('unit_price').addEventListener('input', calculateAmount);
+            // Initial calculation on page load
+            calculateAmount();
         });
     </script>
 </body>

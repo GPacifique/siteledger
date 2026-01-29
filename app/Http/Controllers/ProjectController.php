@@ -43,7 +43,7 @@ class ProjectController extends Controller
 
             // Get expenses
             $project->total_expenses = \App\Models\Expense::where('project_id', $project->id)
-                ->sum('amount');
+                ->sum('total');
 
             // Get worker payments for this project
             $project->total_payments = \App\Models\Payment::where('project_id', $project->id)
@@ -82,21 +82,21 @@ class ProjectController extends Controller
     {
         $tenantId = auth()->user()->current_tenant_id;
         $validated = $request->validate([
-            'client_id'      => 'required|exists:clients,id',
+            'client_id'      => 'nullable|exists:clients,id',
             'name'           => ['required','string','max:255', Rule::unique('projects')->where(function($q) use ($tenantId) { $q->where('tenant_id', $tenantId); })],
             'project_code'   => 'nullable|string|max:50|unique:projects,project_code',
             'description'    => 'nullable|string',
             'start_date'     => 'nullable|date',
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'budget'         => 'nullable|numeric|min:0',
-            'contract_value' => 'nullable|numeric|min:0',
+            'contract_value' => 'required|numeric|min:0',
             'manager_id'     => 'nullable|exists:workers,id',
             'status'         => 'nullable|string|in:planning,active,completed,on_hold',
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',
             'notes'          => 'nullable|string',
             // Phase fields
-            'current_phase'           => 'nullable|in:design,execution',
+            'current_phase'           => 'required|in:design,execution',
             'design_phase_value'      => 'nullable|numeric|min:0',
             'design_phase_status'     => 'nullable|in:pending,in_progress,completed',
             'design_start_date'       => 'nullable|date',
@@ -105,18 +105,22 @@ class ProjectController extends Controller
             'execution_phase_status'  => 'nullable|in:pending,in_progress,completed',
             'execution_start_date'    => 'nullable|date',
             'execution_end_date'      => 'nullable|date',
-            // New phase type field
-            'phase_type'              => 'nullable|in:design_only,both',
+            // Project type field
+            'project_type'            => 'required|in:DESIGN,EXECUTION,DESIGN_EXECUTION',
         ]);
+        // Default current_phase if missing
+        if (empty($validated['current_phase'])) {
+            $validated['current_phase'] = 'design';
+        }
 
         // Add tenant and creator information
         $validated['created_by'] = Auth::id();
         $validated['status'] = $validated['status'] ?? 'planning';
         $validated['current_phase'] = $validated['current_phase'] ?? 'design';
 
-        // Validate client exists
-        if (!Client::where('id', $validated['client_id'])->exists()) {
-            return back()->withErrors(['client_id' => 'Invalid client selected.']);
+        // Only check client if provided
+        if (!empty($validated['client_id']) && !Client::where('id', $validated['client_id'])->exists()) {
+            return back()->withErrors(['client_id' => 'Invalid client selected.'])->withInput();
         }
 
         $validated = $this->ensureTenantId($validated);

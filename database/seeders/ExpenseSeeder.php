@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Expense;
 use App\Models\Project;
 use App\Models\Tenant;
+use App\Models\ExpenseCategory;
 
 class ExpenseSeeder extends Seeder
 {
@@ -23,7 +24,7 @@ class ExpenseSeeder extends Seeder
 
         // Get the first tenant
         $tenant = Tenant::first();
-        
+
         if (!$tenant) {
             $this->command->warn('No tenant found. Please ensure tenants are created first.');
             return;
@@ -38,145 +39,167 @@ class ExpenseSeeder extends Seeder
             return;
         }
 
+        $categories = ExpenseCategory::all()->keyBy(function($cat) {
+            return strtolower($cat->name);
+        });
+
         $expenses = [
             // Material expenses
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Materials',
-                'amount' => 50000000,
-                'description' => 'Cement and steel for foundation - Rwanda Building Materials',
+                'quantity' => 1000,
+                'unit' => 'bags',
+                'unit_price' => 50000,
                 'date' => now()->subMonths(3),
-                'method' => 'Bank Transfer',
             ],
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Materials',
-                'amount' => 30000000,
-                'description' => 'Bricks and blocks - Kigali Brick Factory',
+                'quantity' => 600,
+                'unit' => 'blocks',
+                'unit_price' => 50000,
                 'date' => now()->subMonths(2),
-                'method' => 'Bank Transfer',
             ],
             [
                 'project_id' => $project2->id,
                 'client_id' => $project2->client_id,
                 'category' => 'Materials',
-                'amount' => 80000000,
-                'description' => 'Glass and aluminum for facade - Modern Glass Rwanda',
+                'quantity' => 1000,
+                'unit' => 'sqm',
+                'unit_price' => 80000,
                 'date' => now()->subMonths(4),
-                'method' => 'Bank Transfer',
             ],
             // Labor expenses
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Labor',
-                'amount' => 25000000,
-                'description' => 'Construction workers monthly wages',
+                'quantity' => 1000,
+                'unit' => 'hours',
+                'price_per_one' => 25000,
                 'date' => now()->subMonth(),
-                'method' => 'Cash',
             ],
             [
                 'project_id' => $project2->id,
                 'client_id' => $project2->client_id,
                 'category' => 'Labor',
-                'amount' => 35000000,
-                'description' => 'Skilled workers and technicians',
+                'quantity' => 1400,
+                'unit' => 'hours',
+                'price_per_one' => 25000,
                 'date' => now()->subMonth(),
-                'method' => 'Cash',
             ],
             // Equipment expenses
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Equipment',
-                'amount' => 15000000,
-                'description' => 'Excavator and crane rental - Heavy Equipment Rental',
+                'quantity' => 30,
+                'unit' => 'days',
+                'unit_price' => 500000,
                 'date' => now()->subMonths(2),
-                'method' => 'Bank Transfer',
             ],
             [
                 'project_id' => $project2->id,
                 'client_id' => $project2->client_id,
                 'category' => 'Equipment',
-                'amount' => 20000000,
-                'description' => 'Construction machinery rental - Heavy Equipment Rental',
+                'quantity' => 40,
+                'unit' => 'days',
+                'unit_price' => 500000,
                 'date' => now()->subMonths(3),
-                'method' => 'Bank Transfer',
             ],
             // Utilities
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Utilities',
-                'amount' => 2000000,
-                'description' => 'Water and electricity for site - EUCL',
+                'quantity' => 2,
+                'unit' => 'months',
+                'unit_price' => 1000000,
                 'date' => now()->subMonth(),
-                'method' => 'Mobile Money',
             ],
             [
                 'project_id' => $project2->id,
                 'client_id' => $project2->client_id,
                 'category' => 'Utilities',
-                'amount' => 3000000,
-                'description' => 'Site utilities - EUCL',
+                'quantity' => 2,
+                'unit' => 'months',
+                'unit_price' => 1500000,
                 'date' => now()->subMonth(),
-                'method' => 'Mobile Money',
             ],
             // Transport
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Transport',
-                'amount' => 5000000,
-                'description' => 'Material delivery and logistics - Transport Services Ltd',
+                'quantity' => 10,
+                'unit' => 'trips',
+                'unit_price' => 500000,
                 'date' => now()->subWeeks(2),
-                'method' => 'Bank Transfer',
             ],
             // Completed project expenses
             [
                 'project_id' => $project3->id,
                 'client_id' => $project3->client_id,
                 'category' => 'Materials',
-                'amount' => 120000000,
-                'description' => 'All construction materials - Rwanda Building Materials',
+                'quantity' => 2000,
+                'unit' => 'bags',
+                'unit_price' => 60000,
                 'date' => now()->subMonths(10),
-                'method' => 'Bank Transfer',
             ],
             [
                 'project_id' => $project3->id,
                 'client_id' => $project3->client_id,
                 'category' => 'Labor',
-                'amount' => 80000000,
-                'description' => 'Total labor costs',
+                'quantity' => 3200,
+                'unit' => 'hours',
+                'price_per_one' => 25000,
                 'date' => now()->subMonths(8),
-                'method' => 'Cash',
             ],
             // Recent expenses (this week)
             [
                 'project_id' => $project1->id,
                 'client_id' => $project1->client_id,
                 'category' => 'Materials',
-                'amount' => 8000000,
-                'description' => 'Paint and finishing materials - Paint Supplies Rwanda',
+                'quantity' => 100,
+                'unit' => 'cans',
+                'unit_price' => 80000,
                 'date' => now()->subDays(3),
-                'method' => 'Bank Transfer',
             ],
             [
                 'project_id' => $project4->id,
                 'client_id' => $project4->client_id,
                 'category' => 'Materials',
-                'amount' => 12000000,
-                'description' => 'Initial site materials - Rwanda Building Materials',
+                'quantity' => 200,
+                'unit' => 'bags',
+                'unit_price' => 60000,
                 'date' => now()->subDays(5),
-                'method' => 'Bank Transfer',
             ],
         ];
 
         foreach ($expenses as $expense) {
-            $expense['tenant_id'] = $tenant->id;
-            Expense::create($expense);
+            $categoryName = strtolower($expense['category']);
+            $expense_category_id = $categories[$categoryName]->id ?? null;
+            $insert = [
+                'project_id' => $expense['project_id'],
+                'client_id' => $expense['client_id'],
+                'expense_category_id' => $expense_category_id,
+                'quantity' => $expense['quantity'],
+                'unit' => $expense['unit'],
+                'date' => $expense['date'],
+            ];
+            if (isset($expense['unit_price'])) {
+                $insert['unit_price'] = $expense['unit_price'];
+            }
+            if (isset($expense['price_per_one'])) {
+                $insert['price_per_one'] = $expense['price_per_one'];
+            }
+            // Always calculate total as quantity * (unit_price or price_per_one)
+            $unitPrice = $expense['unit_price'] ?? $expense['price_per_one'] ?? 0;
+            $insert['total'] = $expense['quantity'] * $unitPrice;
+            Expense::query()->insert([$insert]);
         }
 
         $this->command->info('Expenses seeded successfully!');

@@ -293,7 +293,13 @@
 
                 <div class="expense-item">
                     <span class="expense-label">Category</span>
-                    <span class="expense-value">{{ $expense->category ?? 'General' }}</span>
+                    <span class="expense-value">
+                        @if(is_object($expense->category) && isset($expense->category->name))
+                            {{ $expense->category->name }}
+                        @else
+                            {{ $expense->category ?? 'General' }}
+                        @endif
+                    </span>
                 </div>
 
                 <div class="expense-item">
@@ -321,7 +327,13 @@
 
                 <div class="expense-item">
                     <span class="expense-label">Recorded</span>
-                    <span class="expense-value">{{ $expense->created_at->format('M d, Y - g:i A') }}</span>
+                    <span class="expense-value">
+                        @if($expense->created_at)
+                            {{ $expense->created_at->format('M d, Y - g:i A') }}
+                        @else
+                            Not recorded
+                        @endif
+                    </span>
                 </div>
             </div>
 
@@ -367,7 +379,13 @@
 
             <div class="meta-info">
                 <div class="meta-item">ID: <strong>{{ $expense->id }}</strong></div>
-                <div class="meta-item">Last Updated: <strong>{{ $expense->updated_at->format('M d, Y - g:i A') }}</strong></div>
+                <div class="meta-item">Last Updated: <strong>
+                    @if($expense->updated_at)
+                        {{ $expense->updated_at->format('M d, Y - g:i A') }}
+                    @else
+                        Not updated
+                    @endif
+                </strong></div>
             </div>
         </div>
     </div>

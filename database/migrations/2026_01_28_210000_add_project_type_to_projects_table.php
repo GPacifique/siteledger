@@ -4,20 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    public function up()
+return new class extends Migration {
+    public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            // Add the new phase_type field
-            $table->enum('phase_type', ['design_only', 'both'])->nullable()->after('contract_value');
+            $table->string('project_type')->default('DESIGN_EXECUTION')->after('id');
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->dropColumn('phase_type');
+            $table->dropColumn('project_type');
         });
     }
 };

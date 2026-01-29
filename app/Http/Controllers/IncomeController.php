@@ -36,8 +36,8 @@ class IncomeController extends Controller
         $revenueToday = Income::whereDate('received_at', $today)->sum('amount_received');
 
         // Get expenses for comparison
-        $expensesToday = \App\Models\Expense::whereDate('created_at', $today)->sum('amount');
-        $expensesThisMonth = \App\Models\Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount');
+        $expensesToday = \App\Models\Expense::whereDate('created_at', $today)->sum('total');
+        $expensesThisMonth = \App\Models\Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total');
 
         // Get worker payments for comparison
         $workerPaymentsToday = \App\Models\Payment::whereDate('created_at', $today)->whereNotNull('employee_id')->sum('amount');
@@ -122,7 +122,7 @@ class IncomeController extends Controller
                 ->get();
 
             // Get total expenses for this project
-            $projectExpenses = \App\Models\Expense::where('project_id', $project->id)->sum('amount');
+            $projectExpenses = \App\Models\Expense::where('project_id', $project->id)->sum('total');
 
             // Calculate stats
             $receivedSum = $projectRevenues->where('payment_status', 'Paid')->sum('amount_received');

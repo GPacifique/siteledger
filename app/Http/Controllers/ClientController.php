@@ -38,7 +38,8 @@ class ClientController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
-        $validated = $this->ensureTenantId($validated);
+        // Always link client to current company (tenant)
+        $validated['tenant_id'] = auth()->user()->current_tenant_id;
         Client::create($validated);
 
         return redirect()->route('clients.index')

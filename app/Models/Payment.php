@@ -10,6 +10,14 @@ class Payment extends Model
 {
     use HasFactory, BelongsToTenant;
 
+    /**
+     * Employee/Worker associated with this payment (if any)
+     */
+    public function employee()
+    {
+        return $this->belongsTo(\App\Models\Worker::class, 'employee_id');
+    }
+
     protected $fillable = [
         'tenant_id',
         'user_id',

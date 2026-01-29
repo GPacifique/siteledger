@@ -275,7 +275,7 @@
             </div>
             <div class="stat-card">
                 <h3>Outstanding</h3>
-                <div class="value">RWF {{ number_format($outstandingReceivables ?? 0, 0) }}</div>
+                <div class="value">RWF {{ number_format(is_array($outstandingReceivables) ? ($outstandingReceivables['total_outstanding'] ?? 0) : ($outstandingReceivables ?? 0), 0) }}</div>
                 <div class="change">Receivables</div>
             </div>
         </div>
@@ -389,7 +389,7 @@
                     <a href="{{ route('payments.index') }}">View all →</a>
                 </div>
                 <div class="panel-body">
-                    @forelse($recentPayments ?? [] as $payment)
+                    @forelse($companyPayments ?? [] as $payment)
                         <div class="transaction-item">
                             <div class="transaction-info">
                                 <div class="title">{{ $payment->employee->name ?? 'Payment' }}</div>

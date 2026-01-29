@@ -133,12 +133,12 @@ class DashboardController extends Controller
         $recentIncomes = $has('incomes') ? Income::latest()->limit(7)->get() : collect();
 
         // Expenses
-        $expensesTotal = $has('expenses', 'amount') ? Expense::sum('amount') : 0;
-        $expensesThisMonth = $has('expenses', 'amount')
-            ? Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+        $expensesTotal = $has('expenses', 'total') ? Expense::sum('total') : 0;
+        $expensesThisMonth = $has('expenses', 'total')
+            ? Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total')
             : 0;
-        $expensesToday = $has('expenses', 'amount')
-            ? Expense::whereDate('created_at', $today)->sum('amount')
+        $expensesToday = $has('expenses', 'total')
+            ? Expense::whereDate('created_at', $today)->sum('total')
             : 0;
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(7)->get() : collect();
 
@@ -148,13 +148,13 @@ class DashboardController extends Controller
         $allExpensesToday = $paymentsToday + $expensesToday;
 
         // Expenses by category (Office vs Project)
-        $officeExpenses = $has('expenses') ? Expense::whereNull('project_id')->sum('amount') : 0;
-        $projectExpenses = $has('expenses') ? Expense::whereNotNull('project_id')->sum('amount') : 0;
+        $officeExpenses = $has('expenses') ? Expense::whereNull('project_id')->sum('total') : 0;
+        $projectExpenses = $has('expenses') ? Expense::whereNotNull('project_id')->sum('total') : 0;
         $officeExpensesThisMonth = $has('expenses')
-            ? Expense::whereNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+            ? Expense::whereNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total')
             : 0;
         $projectExpensesThisMonth = $has('expenses')
-            ? Expense::whereNotNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('amount')
+            ? Expense::whereNotNull('project_id')->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total')
             : 0;
 
         // Projects
@@ -164,6 +164,30 @@ class DashboardController extends Controller
             : 0;
         $projectsTotal = $has('projects', 'contract_value') ? Project::sum('contract_value') : 0;
         $recentProjects = $has('projects') ? Project::latest()->limit(7)->get() : collect();
+
+        // Design Phase Summary Variables
+        $totalDesignValue = 0;
+        $totalDesignPaid = 0;
+        $totalExecutionValue = 0;
+        $totalExecutionPaid = 0;
+        $totalDesignPhases = 0;
+        $completedDesignPhases = 0;
+        $inProgressDesignPhases = 0;
+        $pendingDesignPhases = 0;
+        if (class_exists('App\\Models\\DesignPhase') && $has('design_phases')) {
+            $designPhases = \App\Models\DesignPhase::all();
+            $totalDesignPhases = $designPhases->count();
+            $completedDesignPhases = $designPhases->where('status', 'completed')->count();
+            $inProgressDesignPhases = $designPhases->where('status', 'in_progress')->count();
+            $pendingDesignPhases = $designPhases->where('status', 'pending')->count();
+        }
+        if ($has('projects')) {
+            $projects = Project::all();
+            $totalDesignValue = $projects->sum('design_phase_value');
+            $totalDesignPaid = $projects->sum('design_phase_paid');
+            $totalExecutionValue = $projects->sum('execution_phase_value');
+            $totalExecutionPaid = $projects->sum('execution_phase_paid');
+        }
 
         // Clients (using clients table)
         $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
@@ -261,7 +285,9 @@ class DashboardController extends Controller
             'projectsCount', 'projectsThisMonth', 'projectsTotal', 'recentProjects',
             'totalClients', 'activeClients', 'clientsThisMonth', 'totalOrders',
             'projectStats', 'months', 'paymentsMonthly', 'expensesMonthly', 'incomeMonthly',
-            'dailyDates', 'dailyRevenue', 'dailyExpenses', 'dailyTasks'
+            'dailyDates', 'dailyRevenue', 'dailyExpenses', 'dailyTasks',
+            'totalDesignValue', 'totalDesignPaid', 'totalExecutionValue', 'totalExecutionPaid',
+            'totalDesignPhases', 'completedDesignPhases', 'inProgressDesignPhases', 'pendingDesignPhases'
         ));
     }
 
@@ -520,7 +546,7 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
-        $recentPayments = $has('payments') ? Payment::with('employee')->latest()->limit(10)->get() : collect();
+        $companyPayments = $has('payments') ? Payment::with('employee')->latest()->limit(10)->get() : collect();
         $recentIncomes = $has('incomes') ? Income::latest()->limit(10)->get() : collect();
         $recentExpenses = $has('expenses') ? Expense::latest()->limit(10)->get() : collect();
 
@@ -532,7 +558,7 @@ class DashboardController extends Controller
             'dailyStats', 'weeklyStats', 'cashFlowAnalysis',
             'incomeByCategory', 'expenseByCategory', 'expenseByMethod', 'transactionsByCategory',
             'paymentStatusBreakdown', 'outstandingReceivables',
-            'recentPayments', 'recentIncomes', 'recentExpenses', 'company'
+            'companyPayments', 'recentIncomes', 'recentExpenses', 'company'
         ));
     }
 
@@ -715,14 +741,14 @@ class DashboardController extends Controller
                     'expenseDetails' => []
                 ];
             }
-            $projectData[$projectId]['expenses'] = $projectExps->sum('amount');
+            $projectData[$projectId]['expenses'] = $projectExps->sum('total');
 
             // Calculate materials, labor, and other expenses
-            $projectData[$projectId]['materials'] = $projectExps->where('expense_type', 'materials')->sum('amount');
-            $projectData[$projectId]['labor'] = $projectExps->where('expense_type', 'labor')->sum('amount');
-            $projectData[$projectId]['designLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'design')->sum('amount');
-            $projectData[$projectId]['executionLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'execution')->sum('amount');
-            $projectData[$projectId]['otherExpenses'] = $projectExps->whereNotIn('expense_type', ['materials', 'labor'])->sum('amount');
+            $projectData[$projectId]['materials'] = $projectExps->where('expense_type', 'materials')->sum('total');
+            $projectData[$projectId]['labor'] = $projectExps->where('expense_type', 'labor')->sum('total');
+            $projectData[$projectId]['designLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'design')->sum('total');
+            $projectData[$projectId]['executionLabor'] = $projectExps->where('expense_type', 'labor')->where('phase', 'execution')->sum('total');
+            $projectData[$projectId]['otherExpenses'] = $projectExps->whereNotIn('expense_type', ['materials', 'labor'])->sum('total');
 
             $projectData[$projectId]['expenseDetails'] = $projectExps->map(function ($expense) {
                 return [
@@ -733,7 +759,7 @@ class DashboardController extends Controller
                     'item_name' => $expense->item_name ?? null,
                     'quantity' => $expense->quantity ?? null,
                     'unit' => $expense->unit ?? null,
-                    'amount' => $expense->amount
+                    'amount' => $expense->total
                 ];
             })->values()->toArray();
         }

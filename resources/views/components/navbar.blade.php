@@ -22,7 +22,6 @@
             @auth
                 <li><a href="/dashboard" class="nav-link">📊 Dashboard</a></li>
                 <li><a href="/projects" class="nav-link">🏗️ Projects</a></li>
-                <li><a href="/tasks" class="nav-link">📋 Tasks</a></li>
                 <li><a href="/clients" class="nav-link">👥 Clients</a></li>
                 <li><a href="/workers" class="nav-link">👷 Workers</a></li>
                 <li><a href="/payments" class="nav-link">💳 Company Payments</a></li>

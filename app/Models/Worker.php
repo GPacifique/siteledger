@@ -19,7 +19,16 @@ class Worker extends Model
         'daily_wage','currency',
         // metadata
         'hired_at',
+        // direct project link
+        'project_id',
     ];
+    /**
+     * The project this worker is directly assigned to (if any).
+     */
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
 
     // Cast attributes to native types
     protected $casts = [

@@ -1230,13 +1230,6 @@
 
     <div class="container">
         <!-- Quick Actions -->
-        @php
-            $projects = \App\Models\Project::all();
-            $totalDesignValue = $projects->sum('design_phase_value');
-            $totalDesignPaid = $projects->sum('design_phase_paid');
-            $totalExecutionValue = $projects->sum('execution_phase_value');
-            $totalExecutionPaid = $projects->sum('execution_phase_paid');
-        @endphp
 
         <!-- Combined Expenses & Payments Cards -->
         <div class="two-column">
@@ -1379,6 +1372,22 @@
         <div class="two-column">
             <div class="summary-section">
                 <h3>📝 Design Phase</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total Phases</span>
+                    <span class="summary-value neutral">{{ $totalDesignPhases }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Completed</span>
+                    <span class="summary-value positive">{{ $completedDesignPhases }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">In Progress</span>
+                    <span class="summary-value neutral">{{ $inProgressDesignPhases }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Pending</span>
+                    <span class="summary-value negative">{{ $pendingDesignPhases }}</span>
+                </div>
                 <div class="summary-row">
                     <span class="summary-label">Total Value</span>
                     <span class="summary-value neutral">RWF {{ number_format($totalDesignValue, 2) }}</span>

@@ -243,8 +243,29 @@
 
             <div class="detail-row" style="margin-top: 1.5rem;">
                 <div class="detail-item">
-                    <span class="detail-label">Project Name</span>
-                    <span class="detail-value">{{ $project->name ?? 'N/A' }}</span>
+                    <span class="detail-label"><strong>Project Name *</strong></span>
+                    <span class="detail-value" style="font-weight: bold; font-size: 1.2rem;">{{ $project->name ?? 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><strong>Contract Value (Budget) *</strong></span>
+                    <span class="detail-value" style="font-weight: bold; color: #27ae60; font-size: 1.2rem;">RWF {{ number_format($project->contract_value ?? 0, 2) }}</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-item">
+                    <span class="detail-label">Phase *</span>
+                    <span class="detail-value" style="font-weight: bold; color: #667eea;">
+                        @if($project->isDesignOnly())
+                            Design Only
+                        @elseif($project->isExecutionOnly())
+                            Execution Only
+                        @elseif($project->isDesignExecution())
+                            Design & Execution
+                        @else
+                            N/A
+                        @endif
+                    </span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Status</span>
@@ -253,24 +274,13 @@
             </div>
 
             <div class="detail-row">
-                <div class="detail-item">
-                    <span class="detail-label">Contract Value</span>
-                    <span class="detail-value">RWF {{ number_format($project->contract_value ?? 0, 2) }}</span>
-                </div>
                 <div class="detail-item">
                     <span class="detail-label">Client</span>
                     <span class="detail-value">{{ $project->client->name ?? 'N/A' }}</span>
                 </div>
-            </div>
-
-            <div class="detail-row">
                 <div class="detail-item">
                     <span class="detail-label">Project Manager</span>
                     <span class="detail-value">{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'N/A' }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Status</span>
-                    <span class="badge badge-active">{{ ucfirst($project->status ?? 'Active') }}</span>
                 </div>
             </div>
 
@@ -325,7 +335,7 @@
                 </div>
                 <div class="financial-item profit">
                     <h4>📈 Profit</h4>
-                    <div class="amount" style="color: {{ ($profit ?? 0) >= 0 ? '#27ae60' : '#dc3545' }};">
+                    <div class="amount" style="color: {{ ($profit ?? 0) >= 0 ? '#27ae60' : '#dc3545' }}">
                         RWF {{ number_format($profit ?? 0, 0) }}
                     </div>
                     <small style="color: #666; display: block; margin-top: 0.3rem;">
@@ -338,16 +348,7 @@
         <!-- Project Phases -->
         <div class="detail-card">
             <h2>📐 Project Phases</h2>
-
-            <div class="detail-row">
-                <div class="detail-item">
-                    <span class="detail-label">Current Phase</span>
-                    <span class="badge {{ $project->current_phase === 'execution' ? 'badge-active' : 'badge-pending' }}">
-                        {{ $project->current_phase_label ?? 'Design Phase' }}
-                    </span>
-                </div>
-            </div>
-
+            @if($project->isDesignOnly() || $project->isDesignExecution())
             <!-- Design Phase -->
             <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
                 <h3 style="color: #667eea; margin-bottom: 1rem; font-size: 1.1rem;">📝 Design Phase</h3>
@@ -402,7 +403,9 @@
                     </a>
                 </div>
             </div>
+            @endif
 
+            @if($project->isExecutionOnly() || $project->isDesignExecution())
             <!-- Execution Phase -->
             <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #27ae60;">
                 <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.1rem;">🔨 Execution Phase</h3>
@@ -457,6 +460,7 @@
                     </a>
                 </div>
             </div>
+            @endif
         </div>
 
         <!-- Phase Payments History -->
@@ -724,7 +728,13 @@
                             <tr data-expense-id="{{ $expense->id }}">
                                 <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
                                 <td>{{ $expense->description ?? 'Expense' }}</td>
-                                <td>{{ $expense->category ?? 'General' }}</td>
+                                <td>
+                                    @if(is_object($expense->category) && isset($expense->category->name))
+                                        {{ $expense->category->name }}
+                                    @else
+                                        {{ $expense->category ?? 'General' }}
+                                    @endif
+                                </td>
                                 <td><strong>RWF {{ number_format($expense->amount ?? 0, 2) }}</strong></td>
                                 <td>
                                     @php
