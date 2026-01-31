@@ -158,12 +158,12 @@ class DashboardController extends Controller
             : 0;
 
         // Projects
-        $projectsCount = $has('projects') ? Project::count() : 0;
+        $projectsCount = $has('projects') ? Project::withoutGlobalScope('tenant')->count() : 0;
         $projectsThisMonth = $has('projects')
-            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+            ? Project::withoutGlobalScope('tenant')->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
-        $projectsTotal = $has('projects', 'contract_value') ? Project::sum('contract_value') : 0;
-        $recentProjects = $has('projects') ? Project::latest()->limit(7)->get() : collect();
+        $projectsTotal = $has('projects', 'contract_value') ? Project::withoutGlobalScope('tenant')->sum('contract_value') : 0;
+        $recentProjects = $has('projects') ? Project::withoutGlobalScope('tenant')->latest()->limit(7)->get() : collect();
 
         // Design Phase Summary Variables
         $totalDesignValue = 0;
@@ -184,7 +184,7 @@ class DashboardController extends Controller
             $pendingDesignPhases = $designPhases->where('status', 'pending')->count();
         }
         if ($has('projects')) {
-            $projects = Project::all();
+            $projects = Project::withoutGlobalScope('tenant')->get();
             $totalDesignValue = $projects->sum('design_phase_value');
             $totalDesignPaid = $projects->sum('design_phase_paid');
             $totalExecutionValue = $projects->sum('execution_phase_value');
@@ -223,7 +223,7 @@ class DashboardController extends Controller
 
         if ($has('projects')) {
             // Revenue from design-only projects (use Income if available, otherwise use amount_paid)
-            $designOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN);
+            $designOnlyProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_DESIGN);
             if ($has('incomes')) {
                 $designOnlyProjectIds = $designOnlyProjects->pluck('id');
                 $totalDesignRevenue = Income::whereIn('project_id', $designOnlyProjectIds)->sum('amount_received');
@@ -237,7 +237,7 @@ class DashboardController extends Controller
             }
 
             // Revenue from execution-only projects (use Income if available, otherwise use amount_paid)
-            $executionOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_EXECUTION);
+            $executionOnlyProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_EXECUTION);
             if ($has('incomes')) {
                 $executionOnlyProjectIds = $executionOnlyProjects->pluck('id');
                 $totalExecutionRevenue = Income::whereIn('project_id', $executionOnlyProjectIds)->sum('amount_received');
@@ -251,7 +251,7 @@ class DashboardController extends Controller
             }
 
             // For combined projects, use phase payments (with fallback to 50/50 split of amount_paid)
-            $designExecutionProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION);
+            $designExecutionProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION);
             $designPhaseRevenue = $designExecutionProjects->sum('design_phase_paid');
             $executionPhaseRevenue = $designExecutionProjects->sum('execution_phase_paid');
 
@@ -270,9 +270,9 @@ class DashboardController extends Controller
         $totalProjectsByType = 0;
 
         if ($has('projects') && $has('projects', 'project_type')) {
-            $designOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN)->count();
-            $executionOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_EXECUTION)->count();
-            $designExecutionProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION)->count();
+            $designOnlyProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_DESIGN)->count();
+            $executionOnlyProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_EXECUTION)->count();
+            $designExecutionProjects = Project::withoutGlobalScope('tenant')->where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION)->count();
             $totalProjectsByType = $designOnlyProjects + $executionOnlyProjects + $designExecutionProjects;
         }
 
@@ -397,28 +397,40 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
+        // Filter by current user's tenant
+        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
+
         // Clients
-        $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
-        $clientsThisMonth = $has('clients')
-            ? \App\Models\Client::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+        $totalClients = $has('clients') && $currentTenantId
+            ? \App\Models\Client::where('tenant_id', $currentTenantId)->count() : 0;
+        $clientsThisMonth = $has('clients') && $currentTenantId
+            ? \App\Models\Client::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
-        $recentClients = $has('clients') ? \App\Models\Client::latest()->limit(7)->get() : collect();
+        $recentClients = $has('clients') && $currentTenantId
+            ? \App\Models\Client::where('tenant_id', $currentTenantId)->latest()->limit(7)->get() : collect();
 
         // Projects
-        $projectsCount = $has('projects') ? Project::count() : 0;
-        $projectsThisMonth = $has('projects')
-            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+        $projectsCount = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->count() : 0;
+        $projectsThisMonth = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
-        $recentProjects = $has('projects') ? Project::with('client')->latest()->limit(7)->get() : collect();
+        $recentProjects = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->with('client')->latest()->limit(7)->get() : collect();
 
         // Tasks
-        $pendingTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
-        $tasksToday = $has('tasks') ? \App\Models\Task::whereDate('due_date', $today)->count() : 0;
-        $todaysTasks = $has('tasks') ? \App\Models\Task::whereDate('due_date', $today)->with('project')->get() : collect();
+        $pendingTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', '!=', 'completed')->count() : 0;
+        $tasksToday = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->whereDate('due_date', $today)->count() : 0;
+        $todaysTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->whereDate('due_date', $today)->with('project')->get() : collect();
 
         // Staff count
-        $totalStaff = $has('workers') ? Worker::count() : 0;
-        $activeStaff = $has('workers', 'status') ? Worker::where('status', 'active')->count() : $totalStaff;
+        $totalStaff = $has('workers') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->count() : 0;
+        $activeStaff = $has('workers', 'status') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->where('status', 'active')->count() : $totalStaff;
 
         // Notifications
         $recentNotifications = Auth::user()->notifications()->latest()->limit(5)->get();
@@ -451,20 +463,27 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
+        // Filter by current user's tenant
+        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
+
         // Workers
-        $totalWorkers = $has('workers') ? Worker::count() : 0;
-        $activeWorkers = $has('workers', 'status') ? Worker::where('status', 'active')->count() : $totalWorkers;
-        $recentWorkers = $has('workers') ? Worker::latest()->limit(8)->get() : collect();
+        $totalWorkers = $has('workers') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->count() : 0;
+        $activeWorkers = $has('workers', 'status') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->where('status', 'active')->count() : $totalWorkers;
+        $recentWorkers = $has('workers') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->latest()->limit(8)->get() : collect();
 
         // Tasks
-        $activeTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
-        $tasksCompleted = $has('tasks')
-            ? \App\Models\Task::where('status', 'completed')
+        $activeTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', '!=', 'completed')->count() : 0;
+        $tasksCompleted = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', 'completed')
                 ->whereBetween('updated_at', [$startOfMonth, $endOfToday])
                 ->count()
             : 0;
-        $tasksList = $has('tasks')
-            ? \App\Models\Task::where('status', '!=', 'completed')
+        $tasksList = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', '!=', 'completed')
                 ->with(['project', 'assignedWorker'])
                 ->latest()
                 ->limit(8)
@@ -472,8 +491,8 @@ class DashboardController extends Controller
             : collect();
 
         // Current project (latest active one)
-        $currentProject = $has('projects')
-            ? Project::where('status', '!=', 'completed')->latest()->first()
+        $currentProject = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->where('status', '!=', 'completed')->latest()->first()
             : null;
         $projectProgress = 0;
         if ($currentProject && $currentProject->contract_value > 0) {
@@ -482,13 +501,15 @@ class DashboardController extends Controller
         }
 
         // Site expenses
-        $siteExpenses = $has('expenses', 'total')
-            ? Expense::whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total')
+        $siteExpenses = $has('expenses', 'total') && $currentTenantId
+            ? Expense::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->sum('total')
             : 0;
-        $recentExpenses = $has('expenses') ? Expense::latest()->limit(7)->get() : collect();
+        $recentExpenses = $has('expenses') && $currentTenantId
+            ? Expense::where('tenant_id', $currentTenantId)->latest()->limit(7)->get() : collect();
 
         // Company payments
-        $recentPayments = $has('payments') ? Payment::latest()->limit(7)->get() : collect();
+        $recentPayments = $has('payments') && $currentTenantId
+            ? Payment::where('tenant_id', $currentTenantId)->latest()->limit(7)->get() : collect();
 
         // Get current tenant/company
         $company = Auth::user()->currentTenant();
@@ -524,40 +545,51 @@ class DashboardController extends Controller
         $weeklyStats = $this->statsService->getWeeklyStats(12);
         $incomeByCategory = $this->statsService->getIncomeByCategory();
 
+        // Filter by current user's tenant
+        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
+
         // Workers/Employees
-        $totalWorkers = $has('workers') ? Worker::count() : 0;
-        $activeWorkers = $has('workers', 'status')
-            ? Worker::where('status', 'active')->count()
+        $totalWorkers = $has('workers') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->count() : 0;
+        $activeWorkers = $has('workers', 'status') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->where('status', 'active')->count()
             : $totalWorkers;
-        $recentWorkers = $has('workers') ? Worker::latest()->limit(10)->get() : collect();
+        $recentWorkers = $has('workers') && $currentTenantId
+            ? Worker::where('tenant_id', $currentTenantId)->latest()->limit(10)->get() : collect();
 
         // Projects
-        $projectsCount = $has('projects') ? Project::count() : 0;
-        $projectsThisMonth = $has('projects')
-            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+        $projectsCount = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->count() : 0;
+        $projectsThisMonth = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
-        $projectsTotal = $has('projects', 'contract_value') ? Project::sum('contract_value') : 0;
-        $recentProjects = $has('projects') ? Project::with(['client', 'incomes'])->latest()->limit(10)->get() : collect();
+        $projectsTotal = $has('projects', 'contract_value') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->sum('contract_value') : 0;
+        $recentProjects = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->with(['client', 'incomes'])->latest()->limit(10)->get() : collect();
 
         // Tasks
-        $activeTasks = $has('tasks') ? \App\Models\Task::where('status', '!=', 'completed')->count() : 0;
-        $completedTasks = $has('tasks')
-            ? \App\Models\Task::where('status', 'completed')
+        $activeTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', '!=', 'completed')->count() : 0;
+        $completedTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->where('status', 'completed')
                 ->whereBetween('updated_at', [$startOfMonth, $endOfToday])
                 ->count()
             : 0;
-        $recentTasks = $has('tasks') ? \App\Models\Task::with('project')->latest()->limit(8)->get() : collect();
+        $recentTasks = $has('tasks') && $currentTenantId
+            ? \App\Models\Task::where('tenant_id', $currentTenantId)->with('project')->latest()->limit(8)->get() : collect();
 
         // Clients
-        $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
-        $activeClients = $has('clients', 'status')
-            ? \App\Models\Client::where('status', 'active')->count()
+        $totalClients = $has('clients') && $currentTenantId
+            ? \App\Models\Client::where('tenant_id', $currentTenantId)->count() : 0;
+        $activeClients = $has('clients', 'status') && $currentTenantId
+            ? \App\Models\Client::where('tenant_id', $currentTenantId)->where('status', 'active')->count()
             : $totalClients;
 
         // Project Stats with payments
         $projectStats = collect();
-        if ($has('projects') && $has('incomes', 'amount_received')) {
-            $projectStats = Project::with('incomes')
+        if ($has('projects') && $has('incomes', 'amount_received') && $currentTenantId) {
+            $projectStats = Project::where('tenant_id', $currentTenantId)->with('incomes')
                 ->latest()
                 ->limit(10)
                 ->get()
@@ -586,8 +618,8 @@ class DashboardController extends Controller
             $mStart = $dt->copy()->startOfMonth();
             $mEnd = $dt->copy()->endOfMonth();
 
-            $projectsMonthly[] = $has('projects', 'contract_value')
-                ? Project::whereBetween('created_at', [$mStart, $mEnd])->sum('contract_value')
+            $projectsMonthly[] = $has('projects', 'contract_value') && $currentTenantId
+                ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$mStart, $mEnd])->sum('contract_value')
                 : 0;
         }
 
@@ -636,9 +668,15 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
-        $companyPayments = $has('payments') ? Payment::with('employee')->latest()->limit(10)->get() : collect();
-        $recentIncomes = $has('incomes') ? Income::latest()->limit(10)->get() : collect();
-        $recentExpenses = $has('expenses') ? Expense::latest()->limit(10)->get() : collect();
+        // Recent transactions - filter by current user's tenant
+        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
+
+        $companyPayments = $has('payments') && $currentTenantId
+            ? Payment::where('tenant_id', $currentTenantId)->with('employee')->latest()->limit(10)->get() : collect();
+        $recentIncomes = $has('incomes') && $currentTenantId
+            ? Income::where('tenant_id', $currentTenantId)->latest()->limit(10)->get() : collect();
+        $recentExpenses = $has('expenses') && $currentTenantId
+            ? Expense::where('tenant_id', $currentTenantId)->latest()->limit(10)->get() : collect();
 
         // Get current tenant/company
         $company = Auth::user()->currentTenant();
@@ -668,12 +706,16 @@ class DashboardController extends Controller
             return $column ? Schema::hasColumn($table, $column) : true;
         };
 
-        // Limited project view
-        $projectsCount = $has('projects') ? Project::count() : 0;
-        $projectsThisMonth = $has('projects')
-            ? Project::whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
+        // Limited project view - filter by current user's tenant
+        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
+
+        $projectsCount = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->count() : 0;
+        $projectsThisMonth = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
-        $recentProjects = $has('projects') ? Project::latest()->limit(5)->get() : collect();
+        $recentProjects = $has('projects') && $currentTenantId
+            ? Project::where('tenant_id', $currentTenantId)->latest()->limit(5)->get() : collect();
 
         // Available tenants (for join action when user has none)
         $availableTenants = class_exists('App\\Models\\Tenant')

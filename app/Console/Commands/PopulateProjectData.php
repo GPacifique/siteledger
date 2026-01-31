@@ -48,8 +48,15 @@ class PopulateProjectData extends Command
                 'execution_phase_paid' => 150000000, // 150 Million paid out of 450M (33% progress)
                 'design_phase_status' => 'in_progress',
                 'execution_phase_status' => 'in_progress',
+                'project_type' => 'DESIGN_EXECUTION', // Make sure project_type is set correctly
             ]);
             $this->info("Project updated with payment data.");
+        }
+
+        // Ensure project_type is set for dashboard calculations
+        if (!$project->project_type) {
+            $this->info("Setting project type to DESIGN_EXECUTION...");
+            $project->update(['project_type' => 'DESIGN_EXECUTION']);
         }
 
         // Refresh and show the calculated values
