@@ -33,6 +33,12 @@
             align-items: center;
             gap: 1rem;
         }
+        .navbar .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
         .navbar button {
             background: rgba(255,255,255,0.2);
             color: white;
@@ -106,6 +112,7 @@
         .stat-card .change {
             font-size: 0.85rem;
             color: #999;
+            line-height: 1.4;
         }
         .stat-card .change.positive {
             color: #27ae60;
@@ -175,6 +182,14 @@
             font-weight: 600;
             font-size: 1rem;
             margin-bottom: 0.25rem;
+        }
+        .action-subtitle {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        .action-link:hover .action-subtitle {
+            color: rgba(255,255,255,0.9);
         }
         .action-count {
             font-size: 0.85rem;
@@ -1227,6 +1242,19 @@
 </head>
 <body>
 
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <h1>💰 SiteLedger</h1>
+        <div class="user-info">
+            <span class="role-badge">{{ auth()->user()->roles->first()->name ?? 'Admin' }}</span>
+            <span>{{ auth()->user()->name }}</span>
+            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                @csrf
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+
     @php
         // Detect if user is new (no data access)
         $isNewUser = ($projectsCount ?? 0) == 0 && ($totalClients ?? 0) == 0 && ($incomesTotal ?? 0) == 0 && ($allExpensesTotal ?? 0) == 0 && ($paymentsTotal ?? 0) == 0;
@@ -1264,9 +1292,90 @@
                 </div>
             </div>
         </div>
-    @else
-        // ...existing code...
     @endif
+
+    <div class="container">
+        <!-- Main Expense Stats Cards -->
+        <div class="stats-grid">
+            <!-- Total All Expenses Card -->
+            <div class="stat-card expense">
+                <h3>💰 Total All Expenses</h3>
+                <div class="value">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</div>
+                <div class="change">
+                    📊 Payments: RWF {{ number_format($paymentsTotal ?? 0, 2) }}<br>
+                    📊 Other Expenses: RWF {{ number_format(($allExpensesTotal ?? 0) - ($paymentsTotal ?? 0), 2) }}
+                </div>
+            </div>
+
+            <!-- This Month Expenses Card -->
+            <div class="stat-card expense">
+                <h3>📅 This Month Expenses</h3>
+                <div class="value">RWF {{ number_format($allExpensesThisMonth ?? 0, 2) }}</div>
+                <div class="change">
+                    💳 Payments: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}<br>
+                    💸 Other: RWF {{ number_format(($allExpensesThisMonth ?? 0) - ($paymentsThisMonth ?? 0), 2) }}
+                </div>
+            </div>
+
+            <!-- Today's Expenses Card -->
+            <div class="stat-card expense">
+                <h3>📆 Today's Expenses</h3>
+                <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
+                <div class="change">
+                    💳 Company Payments: RWF {{ number_format($paymentsToday ?? 0, 2) }}<br>
+                    💸 Other Expenses: RWF {{ number_format(($allExpensesToday ?? 0) - ($paymentsToday ?? 0), 2) }}
+                </div>
+            </div>
+
+            <!-- Company Payments Card -->
+            <div class="stat-card payment">
+                <h3>🏢 Company Payments</h3>
+                <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
+                <div class="change">
+                    This Month: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}<br>
+                    Today: RWF {{ number_format($paymentsToday ?? 0, 2) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        @if(!$isNewUser)
+        <div class="quick-actions">
+            <h2>⚡ Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="{{ route('projects.index') }}" class="action-link projects">
+                    <span class="action-icon">📁</span>
+                    <span class="action-title">Projects</span>
+                    <span class="action-subtitle">{{ $projectsCount ?? 0 }} total</span>
+                </a>
+                <a href="{{ route('clients.index') }}" class="action-link clients">
+                    <span class="action-icon">👥</span>
+                    <span class="action-title">Clients</span>
+                    <span class="action-subtitle">{{ $totalClients ?? 0 }} total</span>
+                </a>
+                <a href="{{ route('revenues.index') }}" class="action-link revenues">
+                    <span class="action-icon">💰</span>
+                    <span class="action-title">Revenues</span>
+                    <span class="action-subtitle">RWF {{ number_format(($incomesTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
+                <a href="{{ route('expenses.index') }}" class="action-link expenses">
+                    <span class="action-icon">💸</span>
+                    <span class="action-title">All Expenses</span>
+                    <span class="action-subtitle">RWF {{ number_format(($allExpensesTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
+                <a href="{{ route('payments.index') }}" class="action-link payments">
+                    <span class="action-icon">💳</span>
+                    <span class="action-title">Company Payments</span>
+                    <span class="action-subtitle">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
+                </a>
+                <a href="#" class="action-link staff" onclick="alert('Staff Management coming soon!')">
+                    <span class="action-icon">👔</span>
+                    <span class="action-title">Staff Management</span>
+                    <span class="action-subtitle">Manage Staff</span>
+                </a>
+            </div>
+        </div>
+        @endif
 
         <!-- Summary Sections Row -->
         <div class="two-column">
@@ -1351,6 +1460,14 @@
                     <span class="summary-label">Progress</span>
                     <span class="summary-value neutral">{{ $totalDesignValue > 0 ? round(($totalDesignPaid / $totalDesignValue) * 100, 1) : 0 }}%</span>
                 </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Expenses</span>
+                    <span class="summary-value negative">RWF {{ number_format($totalDesignExpenses ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Net Profit</span>
+                    <span class="summary-value {{ ($totalDesignPaid - ($totalDesignExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format($totalDesignPaid - ($totalDesignExpenses ?? 0), 2) }}</span>
+                </div>
             </div>
 
             <div class="summary-section">
@@ -1370,6 +1487,14 @@
                 <div class="summary-row">
                     <span class="summary-label">Progress</span>
                     <span class="summary-value neutral">{{ $totalExecutionValue > 0 ? round(($totalExecutionPaid / $totalExecutionValue) * 100, 1) : 0 }}%</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Expenses</span>
+                    <span class="summary-value negative">RWF {{ number_format($totalExecutionExpenses ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Net Profit</span>
+                    <span class="summary-value {{ ($totalExecutionPaid - ($totalExecutionExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format($totalExecutionPaid - ($totalExecutionExpenses ?? 0), 2) }}</span>
                 </div>
             </div>
         </div>

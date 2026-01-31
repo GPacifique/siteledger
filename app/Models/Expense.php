@@ -13,12 +13,19 @@ class Expense extends Model
     protected $fillable = [
         'project_id',
         'expense_category_id',
+        'client_id',
+        'expense_type',
+        'phase',
+        'item_name',
         'quantity',
+        'unit',
+        'unit_price',
         'price_per_one',
         'total',
         'date',
         'notes',
         'user_id',
+        'tenant_id',
     ];
 
     protected $casts = [
