@@ -1,359 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Project - SiteLedger</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .form-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .form-card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            color: #333;
-            border-bottom: 2px solid #27ae60;
-            padding-bottom: 0.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        @media (max-width: 600px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        button[type="submit"],
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button[type="submit"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .btn {
-            background: #95a5a6;
-            color: white;
-            display: inline-block;
-        }
-        .btn:hover {
-            opacity: 0.8;
-        }
-        .error {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-        }
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Edit Project — SiteLedger</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--accent:#667eea;--muted:#6b7280}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;color:#111}
+    .wrap{max-width:1000px;margin:24px auto;padding:18px}
+    .card{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,0.06)}
+    h1{color:var(--accent);margin:0;font-size:1.2rem}
+    .muted{color:var(--muted);font-size:0.95rem}
+    form{margin-top:12px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}}
+    label{display:block;margin-bottom:6px;font-weight:600}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #e6e9f2;border-radius:8px}
+    textarea{min-height:110px}
+    .actions{margin-top:14px;display:flex;gap:8px}
+    .btn{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#764ba2);color:#fff}
+    .btn-ghost{background:transparent;border:1px solid #e6e9f2;color:var(--accent)}
+  </style>
 </head>
 <body>
-    @include('components.navbar')
+@include('components.navbar')
+<div class="wrap">
+  <div class="card">
+    <h1>Edit Project</h1>
+    <div class="muted">Update details and phase values</div>
 
-    <div class="container">
-        <div class="form-card">
-            <h2>📁 Edit Project</h2>
+    @if($errors->any())
+      <div style="margin-top:10px;padding:10px;background:#fff1f2;border-radius:8px;color:#7f1d1d">
+        <strong>Validation issues</strong>
+        <ul style="margin:8px 0 0 16px">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+      </div>
+    @endif
 
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <strong>Please fix the following errors:</strong>
-                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+    <form action="{{ route('projects.update', $project->id) }}" method="POST">
+      @csrf @method('PUT')
 
-            <form action="{{ route('projects.update', $project->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="client_id">Client *</label>
-                        <select name="client_id" id="client_id" required>
-                            <option value="">Select a client</option>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}" {{ old('client_id', $project->client_id) == $client->id ? 'selected' : '' }}>
-                                    {{ $client->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('client_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="name">Project Name *</label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" required>
-                        @error('name')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="project_code">Project Code</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-                        <input type="text" name="project_code" id="project_code" placeholder="e.g., PRJ-001" value="{{ old('project_code', $project->project_code) }}" style="flex: 1;">
-                        <button type="button" id="generateCodeBtn" style="padding: 0.75rem 1rem; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Generate</button>
-                    </div>
-                    @error('project_code')
-                        <div class="error">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea name="description" id="description" placeholder="Project description and details...">{{ old('description', $project->description) }}</textarea>
-                    @error('description')
-                        <div class="error">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="start_date">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $project->start_date) }}">
-                        @error('start_date')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="end_date">End Date</label>
-                        <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $project->end_date) }}">
-                        @error('end_date')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="contract_value">Contract Value (RWF)</label>
-                        <input type="number" name="contract_value" id="contract_value" step="0.01" value="{{ old('contract_value', $project->contract_value) }}">
-                        @error('contract_value')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select name="status" id="status">
-                            <option value="planning" {{ old('status', $project->status) == 'planning' ? 'selected' : '' }}>Planning</option>
-                            <option value="active" {{ old('status', $project->status) == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="completed" {{ old('status', $project->status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="on_hold" {{ old('status', $project->status) == 'on_hold' ? 'selected' : '' }}>On Hold</option>
-                        </select>
-                        @error('status')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <!-- Project Phases Section -->
-                <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
-                    <h3 style="margin-bottom: 1.5rem; color: #333; font-size: 1.2rem; border-bottom: 2px solid #667eea; padding-bottom: 0.5rem;">📐 Project Phases</h3>
-
-                    <div class="form-group">
-                        <label for="current_phase">Current Phase</label>
-                        <select name="current_phase" id="current_phase">
-                            <option value="design" {{ old('current_phase', $project->current_phase) == 'design' ? 'selected' : '' }}>Design Phase</option>
-                            <option value="execution" {{ old('current_phase', $project->current_phase) == 'execution' ? 'selected' : '' }}>Execution Phase</option>
-                        </select>
-                    </div>
-
-                    <!-- Design Phase -->
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #667eea;">
-                        <h4 style="color: #667eea; margin-bottom: 1rem;">📝 Design Phase</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="design_phase_value">Design Phase Value (RWF)</label>
-                                <input type="number" name="design_phase_value" id="design_phase_value" step="0.01" value="{{ old('design_phase_value', $project->design_phase_value) }}">
-                                @error('design_phase_value')
-                                    <div class="error">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="design_phase_status">Design Phase Status</label>
-                                <select name="design_phase_status" id="design_phase_status">
-                                    <option value="pending" {{ old('design_phase_status', $project->design_phase_status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="in_progress" {{ old('design_phase_status', $project->design_phase_status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="completed" {{ old('design_phase_status', $project->design_phase_status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="design_start_date">Design Start Date</label>
-                                <input type="date" name="design_start_date" id="design_start_date" value="{{ old('design_start_date', $project->design_start_date?->format('Y-m-d')) }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="design_end_date">Design End Date</label>
-                                <input type="date" name="design_end_date" id="design_end_date" value="{{ old('design_end_date', $project->design_end_date?->format('Y-m-d')) }}">
-                            </div>
-                        </div>
-                        @if($project->design_phase_paid > 0)
-                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e9; border-radius: 4px;">
-                            <small style="color: #27ae60;"><strong>Paid:</strong> RWF {{ number_format($project->design_phase_paid, 2) }} | <strong>Remaining:</strong> RWF {{ number_format($project->design_phase_remaining, 2) }}</small>
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Execution Phase -->
-                    <div style="padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #27ae60;">
-                        <h4 style="color: #27ae60; margin-bottom: 1rem;">🔨 Execution Phase</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="execution_phase_value">Execution Phase Value (RWF)</label>
-                                <input type="number" name="execution_phase_value" id="execution_phase_value" step="0.01" value="{{ old('execution_phase_value', $project->execution_phase_value) }}">
-                                @error('execution_phase_value')
-                                    <div class="error">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="execution_phase_status">Execution Phase Status</label>
-                                <select name="execution_phase_status" id="execution_phase_status">
-                                    <option value="pending" {{ old('execution_phase_status', $project->execution_phase_status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="in_progress" {{ old('execution_phase_status', $project->execution_phase_status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="completed" {{ old('execution_phase_status', $project->execution_phase_status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="execution_start_date">Execution Start Date</label>
-                                <input type="date" name="execution_start_date" id="execution_start_date" value="{{ old('execution_start_date', $project->execution_start_date?->format('Y-m-d')) }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="execution_end_date">Execution End Date</label>
-                                <input type="date" name="execution_end_date" id="execution_end_date" value="{{ old('execution_end_date', $project->execution_end_date?->format('Y-m-d')) }}">
-                            </div>
-                        </div>
-                        @if($project->execution_phase_paid > 0)
-                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e9; border-radius: 4px;">
-                            <small style="color: #27ae60;"><strong>Paid:</strong> RWF {{ number_format($project->execution_phase_paid, 2) }} | <strong>Remaining:</strong> RWF {{ number_format($project->execution_phase_remaining, 2) }}</small>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="manager_id">Project Manager (Worker)</label>
-                    <select name="manager_id" id="manager_id">
-                        <option value="">Select a manager</option>
-                        @foreach($workers as $worker)
-                            <option value="{{ $worker->id }}" {{ old('manager_id', $project->manager_id) == $worker->id ? 'selected' : '' }}>
-                                {{ $worker->first_name }} {{ $worker->last_name }} ({{ $worker->position ?? 'N/A' }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('manager_id')
-                        <div class="error">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="button-group">
-                    <button type="submit">Update Project</button>
-                    <a href="{{ route('projects.show', $project->id) }}" class="btn">Cancel</a>
-                </div>
-            </form>
+      <div class="grid">
+        <div>
+          <label>Client</label>
+          <select name="client_id" required>
+            <option value="">— Select client —</option>
+            @foreach($clients as $c)
+              <option value="{{ $c->id }}" {{ old('client_id', $project->client_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+            @endforeach
+          </select>
         </div>
-    </div>
+        <div>
+          <label>Project Name</label>
+          <input name="name" value="{{ old('name', $project->name) }}" required>
+        </div>
+      </div>
 
-    <script>
-        function generateProjectCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = 'PRJ-';
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            document.getElementById('project_code').value = code;
-        }
+      <div style="margin-top:10px" class="grid">
+        <div>
+          <label>Project Code</label>
+          <div style="display:flex;gap:8px"><input id="project_code" name="project_code" value="{{ old('project_code', $project->project_code) }}"><button id="genCode" class="btn btn-ghost" type="button">Generate</button></div>
+        </div>
+        <div>
+          <label>Contract Value (RWF)</label>
+          <input type="number" name="contract_value" step="0.01" value="{{ old('contract_value', $project->contract_value) }}">
+        </div>
+      </div>
 
-        document.getElementById('generateCodeBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            generateProjectCode();
-        });
-    </script>
+      <div style="margin-top:10px">
+        <label>Description</label>
+        <textarea name="description">{{ old('description', $project->description) }}</textarea>
+      </div>
+
+      <div style="margin-top:12px" class="grid">
+        <div>
+          <label>Start Date</label>
+          <input type="date" name="start_date" value="{{ old('start_date', $project->start_date?->format('Y-m-d')) }}">
+        </div>
+        <div>
+          <label>End Date</label>
+          <input type="date" name="end_date" value="{{ old('end_date', $project->end_date?->format('Y-m-d')) }}">
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="grid">
+        <div>
+          <label>Design Phase Value</label>
+          <input name="design_phase_value" step="0.01" value="{{ old('design_phase_value', $project->design_phase_value) }}">
+        </div>
+        <div>
+          <label>Execution Phase Value</label>
+          <input name="execution_phase_value" step="0.01" value="{{ old('execution_phase_value', $project->execution_phase_value) }}">
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Project Manager</label>
+        <select name="manager_id">
+          <option value="">— select —</option>
+          @foreach($workers as $w)
+            <option value="{{ $w->id }}" {{ old('manager_id', $project->manager_id) == $w->id ? 'selected' : '' }}>{{ $w->first_name }} {{ $w->last_name }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Save changes</button>
+        <a href="{{ route('projects.show', $project->id) }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('genCode')?.addEventListener('click',()=>{
+    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';let out='PRJ-';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('project_code').value=out;
+  });
+</script>
 </body>
 </html>

@@ -5,159 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects - SiteLedger</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .page-header {
-            margin-bottom: 2rem;
-        }
-        .page-header h1 {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        .page-header p {
-            color: #666;
-            font-size: 1rem;
-        }
-        table {
-            width: 100%;
-            background: white;
-            border-collapse: collapse;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        thead {
-            background: #27ae60;
-            color: white;
-        }
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-        }
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        tbody tr {
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        tbody tr:hover {
-            background: #e8f5e9;
-        }
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .badge-active {
-            background: #d4edda;
-            color: #155724;
-        }
-        .badge-inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .badge-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .empty-message {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-
-        /* Responsive tables */
-        .table-wrap { width: 100%; overflow-x: auto; }
-        @media (max-width: 640px) {
-            .container { padding: 1rem; }
-            table { font-size: 0.9rem; min-width: 600px; }
-            th, td { padding: 0.6rem; }
-        }
+        :root{--bg:#f6f7fb;--card:#fff;--accent:#667eea;--accent-2:#27ae60;--muted:#666}
+        *{box-sizing:border-box}
+        body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#222}
+        .wrap{max-width:1200px;margin:24px auto;padding:20px}
+        header.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        header h1{font-size:1.4rem;color:#111}
+        .actions{display:flex;gap:8px}
+        .btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;color:#fff;font-weight:600}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),#764ba2)}
+        .btn-ghost{background:transparent;color:var(--accent);border:1px solid #e6e9f2;font-weight:600;padding:8px 12px}
+        .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(47,57,72,0.06)}
+        .table-wrap{overflow:auto;margin-top:14px}
+        table{width:100%;border-collapse:collapse;min-width:700px}
+        thead th{background:#f0f3ff;color:#123;padding:12px 14px;text-align:left;font-weight:700}
+        tbody td{padding:12px 14px;border-top:1px solid #f1f3f6}
+        tr.row-link{cursor:pointer}
+        .muted{color:var(--muted)}
+        .status{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;font-size:0.85rem}
+        .status.active{background:#e6f7ee;color:var(--accent-2)}
+        .status.completed{background:#eaf2ff;color:#2d5bd7}
+        .status.planning{background:#fff8e6;color:#b97706}
+        @media (max-width:760px){.wrap{padding:12px}.table-wrap{min-width:unset}table{font-size:13px}}
     </style>
 </head>
 <body>
-    @include('components.navbar')
+@include('components.navbar')
 
-    <div class="container">
-        <div class="page-header">
-            <h1>📁 Projects</h1>
-            <p>Manage all projects and their status</p>
+<div class="wrap">
+    <header class="page-header">
+        <div>
+            <h1>Projects</h1>
+            <div class="muted">All projects and high-level financials</div>
         </div>
-
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
-            <a href="{{ route('projects.create') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">+ Add Project</a>
+        <div class="actions">
+            <a href="{{ route('projects.create') }}" class="btn btn-primary">+ New Project</a>
         </div>
+    </header>
 
-        @if($projects->count() > 0)
+    <div class="card">
+        @if($projects->count())
             <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Project Name</th>
-                        <th>Client</th>
-                        <th>Manager</th>
-                        <th>Status</th>
-                        <th>Contract Value</th>
-                        <th>Amount Received</th>
-                        <th>Expenses + Payments</th>
-                        <th>Profit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($projects as $project)
-                        @php
-                            $totalSpent = ($project->total_expenses ?? 0) + ($project->total_payments ?? 0);
-                            $profit = $project->profit ?? (($project->contract_value ?? 0) - $totalSpent);
-                        @endphp
-                        <tr onclick="window.location.href='/projects/{{ $project->id }}';">
-                            <td><strong>{{ $project->name }}</strong></td>
-                            <td>{{ $project->client->name ?? 'N/A' }}</td>
-                            <td>{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'N/A' }}</td>
-                            <td>
-                                @php
-                                    $statusClass = match($project->status) {
-                                        'active', 'in_progress' => 'badge-active',
-                                        'completed' => 'badge-inactive',
-                                        default => 'badge-pending'
-                                    };
-                                @endphp
-                                <span class="badge {{ $statusClass }}">{{ ucfirst($project->status) }}</span>
-                            </td>
-                            <td>RWF {{ number_format($project->contract_value ?? 0, 0) }}</td>
-                            <td style="color: #27ae60; font-weight: 600;">RWF {{ number_format($project->total_received ?? 0, 0) }}</td>
-                            <td style="color: #dc3545; font-weight: 600;">RWF {{ number_format($totalSpent, 0) }}</td>
-                            <td style="color: {{ $profit >= 0 ? '#27ae60' : '#dc3545' }}; font-weight: 700;">
-                                RWF {{ number_format($profit, 0) }}
-                            </td>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Client</th>
+                            <th>Manager</th>
+                            <th>Status</th>
+                            <th style="text-align:right">Contract</th>
+                            <th style="text-align:right">Received</th>
+                            <th style="text-align:right">Spent</th>
+                            <th style="text-align:right">Profit</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach($projects as $project)
+                            @php
+                                $totalSpent = ($project->total_expenses ?? 0) + ($project->total_payments ?? 0);
+                                $profit = $project->profit ?? (($project->contract_value ?? 0) - $totalSpent);
+                            @endphp
+                            <tr class="row-link" onclick="location.href='{{ route('projects.show', $project->id) }}'">
+                                <td><strong>{{ $project->name }}</strong><div class="muted" style="font-size:0.85rem">{{ $project->project_code ?? '' }}</div></td>
+                                <td>{{ $project->client->name ?? '—' }}</td>
+                                <td>{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : '—' }}</td>
+                                <td>
+                                    @php $st = $project->status ?? 'planning'; @endphp
+                                    <span class="status {{ $st }}">{{ ucfirst($st) }}</span>
+                                </td>
+                                <td style="text-align:right">RWF {{ number_format($project->contract_value ?? 0, 0) }}</td>
+                                <td style="text-align:right;color:var(--accent-2);font-weight:700">RWF {{ number_format($project->total_received ?? 0, 0) }}</td>
+                                <td style="text-align:right;color:#d04545;font-weight:700">RWF {{ number_format($totalSpent, 0) }}</td>
+                                <td style="text-align:right;color:{{ $profit >=0 ? 'var(--accent-2)' : '#d04545' }};font-weight:800">RWF {{ number_format($profit, 0) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         @else
-            <div class="empty-message">
-                <p>No projects found. <a href="/admin/dashboard">Go to Dashboard</a></p>
+            <div style="padding:40px;text-align:center;color:var(--muted)">
+                <h3>No projects yet</h3>
+                <p>Create your first project to start tracking.</p>
+                <a href="{{ route('projects.create') }}" class="btn btn-primary">Create Project</a>
             </div>
         @endif
     </div>
+</div>
 </body>
 </html>

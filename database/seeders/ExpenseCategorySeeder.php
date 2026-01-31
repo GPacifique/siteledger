@@ -30,5 +30,27 @@ class ExpenseCategorySeeder extends Seeder
                 'active' => true
             ]);
         }
+
+        // Specific labor categories
+        $laborCategories = [
+            'Mason (Umubatsi)',
+            'Bricklayer',
+            'Stone Mason',
+            'Concrete Worker',
+            'Plasterer',
+            'Tiler (Floor & Wall tiles)',
+            'Carpenter (Formwork & Roofing)',
+            'Painter',
+            'Steel Fixer (Rebar worker)',
+            'Welder',
+        ];
+
+        foreach ($laborCategories as $laborCategory) {
+            ExpenseCategory::firstOrCreate([
+                'name' => $laborCategory
+            ], [
+                'active' => true
+            ]);
+        }
     }
 }

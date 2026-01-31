@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\Phase;
 use App\Models\Worker;
 use App\Services\BusinessQueryService;
 use App\Services\RbacFilterService;
@@ -95,18 +96,22 @@ class ProjectController extends Controller
             'priority'       => 'nullable|string|in:low,medium,high,urgent',
             'client_visible' => 'boolean',
             'notes'          => 'nullable|string',
+            // Project type field (required)
+            'project_type'            => 'required|in:DESIGN,EXECUTION,DESIGN_EXECUTION',
             // Phase fields
-            'current_phase'           => 'required|in:design,execution',
+            'current_phase'           => 'nullable|in:design,execution',
+            // Design phase fields
             'design_phase_value'      => 'nullable|numeric|min:0',
+            'design_phase_paid'       => 'nullable|numeric|min:0',
             'design_phase_status'     => 'nullable|in:pending,in_progress,completed',
             'design_start_date'       => 'nullable|date',
-            'design_end_date'         => 'nullable|date',
+            'design_end_date'         => 'nullable|date|after_or_equal:design_start_date',
+            // Execution phase fields
             'execution_phase_value'   => 'nullable|numeric|min:0',
+            'execution_phase_paid'    => 'nullable|numeric|min:0',
             'execution_phase_status'  => 'nullable|in:pending,in_progress,completed',
             'execution_start_date'    => 'nullable|date',
-            'execution_end_date'      => 'nullable|date',
-            // Project type field
-            'project_type'            => 'required|in:DESIGN,EXECUTION,DESIGN_EXECUTION',
+            'execution_end_date'      => 'nullable|date|after_or_equal:execution_start_date',
         ]);
         // Default current_phase if missing
         if (empty($validated['current_phase'])) {
@@ -118,16 +123,49 @@ class ProjectController extends Controller
         $validated['status'] = $validated['status'] ?? 'planning';
         $validated['current_phase'] = $validated['current_phase'] ?? 'design';
 
+        // Ensure phase monetary fields are never null to satisfy DB constraints
+        $validated['design_phase_value'] = isset($validated['design_phase_value']) ? $validated['design_phase_value'] : 0;
+        $validated['execution_phase_value'] = isset($validated['execution_phase_value']) ? $validated['execution_phase_value'] : 0;
+
         // Only check client if provided
         if (!empty($validated['client_id']) && !Client::where('id', $validated['client_id'])->exists()) {
             return back()->withErrors(['client_id' => 'Invalid client selected.'])->withInput();
         }
 
         $validated = $this->ensureTenantId($validated);
-        Project::create($validated);
+
+        // Create project and then create initial phases depending on project type
+        $project = Project::create($validated);
+
+        // Attach phases based on project_type
+        $type = $validated['project_type'] ?? 'EXECUTION';
+        // If design or design_execution include design phase
+        if (in_array($type, ['DESIGN', 'DESIGN_EXECUTION'])) {
+            Phase::create([
+                'project_id' => $project->id,
+                'position' => 1,
+                'name' => 'Design Phase',
+                'status' => 'pending',
+                'planned_start' => $validated['design_start_date'] ?? null,
+                'planned_end' => $validated['design_end_date'] ?? null,
+                'budget' => $validated['design_phase_value'] ?? null,
+            ]);
+        }
+        // If execution or design_execution include execution phase
+        if (in_array($type, ['EXECUTION', 'DESIGN_EXECUTION'])) {
+            Phase::create([
+                'project_id' => $project->id,
+                'position' => 2,
+                'name' => 'Execution Phase',
+                'status' => 'pending',
+                'planned_start' => $validated['execution_start_date'] ?? null,
+                'planned_end' => $validated['execution_end_date'] ?? null,
+                'budget' => $validated['execution_phase_value'] ?? null,
+            ]);
+        }
 
         return redirect()->route('projects.index')
-            ->with('success', 'Project created successfully.');
+            ->with('success', 'Project created successfully. Phases linked.');
     }
 
     // Display the specified project with role-based access
@@ -182,11 +220,13 @@ class ProjectController extends Controller
         $receivedAmount = $revenues->where('payment_status', 'Paid')->sum('amount_received');
         $remainingAmount = max(0, $project->contract_value - $receivedAmount);
 
-        // Get project expenses
+        // Get project expenses with relationships
         $expenses = \App\Models\Expense::where('project_id', $project->id)
+            ->with(['category', 'user'])
+            ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
-        $totalExpenses = $expenses->sum('amount');
+        $totalExpenses = $expenses->sum('total');
 
         // Get project worker payments (from payments table)
         $projectPayments = \App\Models\Payment::where('project_id', $project->id)

@@ -133,6 +133,44 @@
             background: #fff3cd;
             color: #856404;
         }
+        .badge-primary {
+            background: #667eea;
+            color: white;
+        }
+        .badge-success {
+            background: #27ae60;
+            color: white;
+        }
+        .badge-info {
+            background: #3498db;
+            color: white;
+        }
+        .badge-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        tbody tr[data-expense-id]:hover {
+            background-color: #e3f2fd;
+            border-left: 4px solid #667eea;
+        }
         .empty-message {
             text-align: center;
             padding: 2rem;
@@ -587,34 +625,6 @@
         </div>
         @endif
 
-        <!-- Project Statistics -->
-        <div class="detail-card">
-            <h2>📊 Project Statistics</h2>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <h3>Total Tasks</h3>
-                    <div class="value">{{ $stats['total_tasks'] ?? 0 }}</div>
-                </div>
-                <div class="stat-box">
-                    <h3>Completed Tasks</h3>
-                    <div class="value">{{ $stats['completed_tasks'] ?? 0 }}</div>
-                </div>
-                <div class="stat-box">
-                    <h3>Completion Rate</h3>
-                    <div class="value">{{ $stats['total_tasks'] > 0 ? round(($stats['completed_tasks'] / $stats['total_tasks']) * 100, 0) : 0 }}%</div>
-                </div>
-                <div class="stat-box revenue">
-                    <h3>Team Members</h3>
-                    <div class="value">{{ $totalWorkers ?? 0 }}</div>
-                </div>
-                <div class="stat-box expense">
-                    <h3>Worker Costs</h3>
-                    <div class="value">RWF {{ number_format($totalWorkerCost ?? 0, 2) }}</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Project Workers -->
         <div class="detail-card">
             <h2>👥 Project Workers ({{ $totalWorkers ?? 0 }})</h2>
@@ -711,47 +721,136 @@
 
         <!-- Project Expenses -->
         <div class="detail-card">
-            <h2>💸 Project Expenses ({{ ($expenses ?? collect())->count() }})</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>💸 Project Expenses ({{ ($expenses ?? collect())->count() }})</h2>
+                <div class="expense-summary">
+                    <span style="font-size: 1.2rem; font-weight: bold; color: #dc3545;">Total: RWF {{ number_format($totalExpenses ?? 0, 0) }}</span>
+                </div>
+            </div>
+
             @if(($expenses ?? collect())->count() > 0)
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($expenses as $expense)
-                            <tr data-expense-id="{{ $expense->id }}">
-                                <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
-                                <td>{{ $expense->description ?? 'Expense' }}</td>
-                                <td>
-                                    @if(is_object($expense->category) && isset($expense->category->name))
-                                        {{ $expense->category->name }}
-                                    @else
-                                        {{ $expense->category ?? 'General' }}
-                                    @endif
-                                </td>
-                                <td><strong>RWF {{ number_format($expense->amount ?? 0, 2) }}</strong></td>
-                                <td>
-                                    @php
-                                        $statusClass = match($expense->status ?? 'pending') {
-                                            'approved' => 'badge-completed',
-                                            'completed' => 'badge-completed',
-                                            default => 'badge-pending'
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $statusClass }}">{{ ucfirst($expense->status ?? 'Pending') }}</span>
-                                </td>
+                <!-- Expense Categories Summary -->
+                @php
+                    $expensesByCategory = ($expenses ?? collect())->groupBy(function($expense) {
+                        return $expense->category->name ?? 'Uncategorized';
+                    })->map(function($group) {
+                        return [
+                            'count' => $group->count(),
+                            'total' => $group->sum('total')
+                        ];
+                    })->sortByDesc('total');
+                @endphp
+
+                @if($expensesByCategory->count() > 1)
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 0.75rem; color: #495057;">📊 Expense Breakdown by Category</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                            @foreach($expensesByCategory as $categoryName => $data)
+                                <div style="background: white; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #dc3545;">
+                                    <div style="font-weight: 600; color: #333; font-size: 0.9rem;">{{ $categoryName }}</div>
+                                    <div style="color: #666; font-size: 0.8rem;">{{ $data['count'] }} items</div>
+                                    <div style="color: #dc3545; font-weight: bold; font-size: 1rem;">RWF {{ number_format($data['total'], 0) }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Phase</th>
+                                <th>Added By</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($expenses as $expense)
+                                <tr data-expense-id="{{ $expense->id }}" style="cursor: pointer;" title="Click to view details">
+                                    <td>{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</td>
+                                    <td>
+                                        <div style="font-weight: 600;">{{ $expense->item_name ?? 'Expense Item' }}</div>
+                                        @if($expense->notes)
+                                            <div style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">{{ Str::limit($expense->notes, 50) }}</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $categoryIcons = [
+                                                'Materials' => '🧱',
+                                                'Labor' => '👷',
+                                                'Equipment' => '🔧',
+                                                'Transport' => '🚚',
+                                                'Subcontractor' => '👔',
+                                                'Utilities' => '⚡',
+                                                'Administrative' => '📄',
+                                                'Other' => '📋'
+                                            ];
+                                            $categoryName = $expense->category->name ?? 'Uncategorized';
+                                            $icon = $categoryIcons[$categoryName] ?? '📋';
+                                        @endphp
+                                        <span title="{{ $categoryName }}">{{ $icon }} {{ $categoryName }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ $expense->expense_type === 'labor' ? 'info' : 'secondary' }}">
+                                            {{ ucfirst($expense->expense_type ?? 'general') }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $expense->quantity ?? '-' }} <small>{{ $expense->unit ?? '' }}</small></td>
+                                    <td>RWF {{ number_format($expense->price_per_one ?? 0, 0) }}</td>
+                                    <td><strong style="color: #dc3545;">RWF {{ number_format($expense->total ?? 0, 0) }}</strong></td>
+                                    <td>
+                                        @if($expense->phase)
+                                            <span class="badge badge-{{ $expense->phase === 'design' ? 'primary' : 'success' }}">
+                                                {{ ucfirst($expense->phase) }}
+                                            </span>
+                                        @else
+                                            <span class="badge badge-secondary">General</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($expense->user)
+                                            <small title="{{ $expense->user->email }}">{{ $expense->user->name }}</small>
+                                        @else
+                                            <small style="color: #999;">System</small>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Total Project Expenses: <span style="color: #dc3545;">RWF {{ number_format($totalExpenses ?? 0, 0) }}</span></strong>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
+                            {{ ($expenses ?? collect())->count() }} expense entries •
+                            Average per entry: RWF {{ $expenses->count() > 0 ? number_format($totalExpenses / $expenses->count(), 0) : 0 }}
+                        </div>
+                    </div>
+                    <a href="/expenses/create?project_id={{ $project->id }}" class="btn-secondary" style="text-decoration: none;">
+                        ➕ Add Expense
+                    </a>
+                </div>
             @else
-                <div class="empty-message">No expenses recorded for this project yet</div>
+                <div class="empty-message">
+                    <div style="text-align: center; padding: 3rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">📝</div>
+                        <h3>No expenses recorded yet</h3>
+                        <p style="color: #666; margin: 1rem 0;">Track project expenses to monitor spending and profitability.</p>
+                        <a href="/expenses/create?project_id={{ $project->id }}" class="btn-primary" style="text-decoration: none;">
+                            ➕ Add First Expense
+                        </a>
+                    </div>
+                </div>
             @endif
         </div>
     </div>

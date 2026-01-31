@@ -46,6 +46,8 @@ class Project extends Model
         'contract_value',
         'amount_paid',
         'amount_remaining',
+        'amount_spent',
+        'profit',
         'notes',
         'manager_id',
         'current_phase',
@@ -194,6 +196,14 @@ public function client()
     public function getTotalPhasePaidAttribute()
     {
         return $this->design_phase_paid + $this->execution_phase_paid;
+    }
+
+    /**
+     * Get total phase remaining amount
+     */
+    public function getTotalPhaseRemainingAttribute()
+    {
+        return $this->design_phase_remaining + $this->execution_phase_remaining;
     }
 
     /**

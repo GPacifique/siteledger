@@ -168,6 +168,10 @@
         </div>
         <p class="subtitle">Create your account to get started</p>
 
+        <div style="background: rgba(102, 126, 234, 0.12); border: 1px solid rgba(102, 126, 234, 0.4); color: #b3c5ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">
+            📧 You'll need to verify your email address before accessing your account
+        </div>
+
         @if($errors->any())
             <div class="alert">
                 @foreach($errors->all() as $error)

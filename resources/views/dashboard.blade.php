@@ -24,9 +24,37 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         .navbar h1 {
             font-size: 1.5rem;
+            margin: 0;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         .navbar .user-info {
             display: flex;
@@ -40,16 +68,35 @@
             font-size: 0.85rem;
         }
         .navbar button {
-            background: rgba(255,255,255,0.2);
+            background: #ff6b6b;
             color: white;
             border: none;
             padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         .navbar button:hover {
-            background: rgba(255,255,255,0.3);
+            background: #ee5a5a;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .navbar-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            .nav-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
         }
         .container {
             max-width: 1400px;
@@ -1133,17 +1180,14 @@
                 'Today\'s Income': '/revenues',
                 'Today\'s Expenses': '/expenses',
                 'Today\'s Net': '/admin/dashboard',
-                // Expense & Payment cards with emojis
-                '💰 Total All Expenses': '/expenses',
-                '📅 This Month Expenses': '/expenses',
+                // Expense cards with emojis
+                ' This Month Expenses': '/expenses',
                 '📆 Today\'s Expenses': '/expenses',
-                '🏢 Company Payments': '/payments',
                 // Summary cards
                 '💵 Overall Financial Summary': '/admin/dashboard',
                 '📝 Design Phase': '/projects',
                 '🔨 Execution Phase': '/projects',
-                '💳 Company Payments': '/payments',
-                '📊 Office & Project Expenses': '/expenses'
+                '📊 Total Expenses': '/expenses'
             };
 
             // Partial matches for dynamic titles
@@ -1245,6 +1289,17 @@
     <!-- Navigation Header -->
     <nav class="navbar">
         <h1>💰 SiteLedger</h1>
+        <div class="navbar-menu">
+            <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">📊 Dashboard</a>
+            <a href="/projects" class="nav-link {{ request()->is('projects*') ? 'active' : '' }}">🏗️ Projects</a>
+            <a href="/clients" class="nav-link {{ request()->is('clients*') ? 'active' : '' }}">👥 Clients</a>
+            <a href="/expenses" class="nav-link {{ request()->is('expenses*') ? 'active' : '' }}">💸 Expenses</a>
+            <a href="/revenues" class="nav-link {{ request()->is('revenues*') ? 'active' : '' }}">💰 Revenues</a>
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdminForTenant(Auth::user()->current_tenant_id ?? 0))
+                <a href="{{ route('company.staff.index') }}" class="nav-link {{ request()->is('company/staff*') ? 'active' : '' }}">👔 Staff</a>
+            @endif
+            <a href="/workers" class="nav-link {{ request()->is('workers*') ? 'active' : '' }}">👷 Workers</a>
+        </div>
         <div class="user-info">
             <span class="role-badge">{{ auth()->user()->roles->first()->name ?? 'Admin' }}</span>
             <span>{{ auth()->user()->name }}</span>
@@ -1297,16 +1352,6 @@
     <div class="container">
         <!-- Main Expense Stats Cards -->
         <div class="stats-grid">
-            <!-- Total All Expenses Card -->
-            <div class="stat-card expense">
-                <h3>💰 Total All Expenses</h3>
-                <div class="value">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</div>
-                <div class="change">
-                    📊 Payments: RWF {{ number_format($paymentsTotal ?? 0, 2) }}<br>
-                    📊 Other Expenses: RWF {{ number_format(($allExpensesTotal ?? 0) - ($paymentsTotal ?? 0), 2) }}
-                </div>
-            </div>
-
             <!-- This Month Expenses Card -->
             <div class="stat-card expense">
                 <h3>📅 This Month Expenses</h3>
@@ -1322,20 +1367,11 @@
                 <h3>📆 Today's Expenses</h3>
                 <div class="value">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</div>
                 <div class="change">
-                    💳 Company Payments: RWF {{ number_format($paymentsToday ?? 0, 2) }}<br>
-                    💸 Other Expenses: RWF {{ number_format(($allExpensesToday ?? 0) - ($paymentsToday ?? 0), 2) }}
+                    � Total Expenses: RWF {{ number_format($allExpensesToday ?? 0, 2) }}
                 </div>
             </div>
 
-            <!-- Company Payments Card -->
-            <div class="stat-card payment">
-                <h3>🏢 Company Payments</h3>
-                <div class="value">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</div>
-                <div class="change">
-                    This Month: RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}<br>
-                    Today: RWF {{ number_format($paymentsToday ?? 0, 2) }}
-                </div>
-            </div>
+
         </div>
 
         <!-- Quick Actions Section -->
@@ -1363,12 +1399,8 @@
                     <span class="action-title">All Expenses</span>
                     <span class="action-subtitle">RWF {{ number_format(($allExpensesTotal ?? 0) / 1000, 0) }}K</span>
                 </a>
-                <a href="{{ route('payments.index') }}" class="action-link payments">
-                    <span class="action-icon">💳</span>
-                    <span class="action-title">Company Payments</span>
-                    <span class="action-subtitle">RWF {{ number_format(($paymentsTotal ?? 0) / 1000, 0) }}K</span>
-                </a>
-                <a href="#" class="action-link staff" onclick="alert('Staff Management coming soon!')">
+
+                <a href="{{ route('company.staff.index') }}" class="action-link staff">
                     <span class="action-icon">👔</span>
                     <span class="action-title">Staff Management</span>
                     <span class="action-subtitle">Manage Staff</span>
@@ -1390,7 +1422,7 @@
                     <span class="summary-label">Total All Expenses</span>
                     <span class="summary-value negative">RWF {{ number_format($allExpensesToday ?? 0, 2) }}</span>
                     <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
-                        Company Payments: RWF {{ number_format($paymentsToday ?? 0, 0) }} + Other: RWF {{ number_format($expensesToday ?? 0, 0) }}
+                        Office + Project expenses
                     </small>
                 </div>
                 <div class="summary-row">
@@ -1449,6 +1481,10 @@
                     <span class="summary-value neutral">RWF {{ number_format($totalDesignValue, 2) }}</span>
                 </div>
                 <div class="summary-row">
+                    <span class="summary-label">Total Revenue</span>
+                    <span class="summary-value positive">RWF {{ number_format(($totalDesignRevenue ?? 0) + ($designPhaseRevenue ?? 0), 2) }}</span>
+                </div>
+                <div class="summary-row">
                     <span class="summary-label">Amount Paid</span>
                     <span class="summary-value positive">RWF {{ number_format($totalDesignPaid, 2) }}</span>
                 </div>
@@ -1466,7 +1502,7 @@
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Net Profit</span>
-                    <span class="summary-value {{ ($totalDesignPaid - ($totalDesignExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format($totalDesignPaid - ($totalDesignExpenses ?? 0), 2) }}</span>
+                    <span class="summary-value {{ ((($totalDesignRevenue ?? 0) + ($designPhaseRevenue ?? 0)) - ($totalDesignExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format((($totalDesignRevenue ?? 0) + ($designPhaseRevenue ?? 0)) - ($totalDesignExpenses ?? 0), 2) }}</span>
                 </div>
             </div>
 
@@ -1475,6 +1511,10 @@
                 <div class="summary-row">
                     <span class="summary-label">Total Value</span>
                     <span class="summary-value neutral">RWF {{ number_format($totalExecutionValue, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Revenue</span>
+                    <span class="summary-value positive">RWF {{ number_format(($totalExecutionRevenue ?? 0) + ($executionPhaseRevenue ?? 0), 2) }}</span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Amount Paid</span>
@@ -1494,40 +1534,132 @@
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Net Profit</span>
-                    <span class="summary-value {{ ($totalExecutionPaid - ($totalExecutionExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format($totalExecutionPaid - ($totalExecutionExpenses ?? 0), 2) }}</span>
+                    <span class="summary-value {{ ((($totalExecutionRevenue ?? 0) + ($executionPhaseRevenue ?? 0)) - ($totalExecutionExpenses ?? 0)) >= 0 ? 'positive' : 'negative' }}">RWF {{ number_format((($totalExecutionRevenue ?? 0) + ($executionPhaseRevenue ?? 0)) - ($totalExecutionExpenses ?? 0), 2) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Types Breakdown -->
+        <div class="two-column">
+            <div class="summary-section">
+                <h3>🎯 Project Types Overview</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Total Projects</span>
+                    <span class="summary-value neutral">{{ $totalProjectsByType ?? 0 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📝 Design Only</span>
+                    <span class="summary-value positive">{{ $designOnlyProjects ?? 0 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🔨 Execution Only</span>
+                    <span class="summary-value neutral">{{ $executionOnlyProjects ?? 0 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🎯 Design + Execution</span>
+                    <span class="summary-value negative">{{ $designExecutionProjects ?? 0 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Project Distribution</span>
+                    <span class="summary-value neutral">
+                        @if($totalProjectsByType > 0)
+                            {{ round(($designOnlyProjects / $totalProjectsByType) * 100, 1) }}% Design,
+                            {{ round(($executionOnlyProjects / $totalProjectsByType) * 100, 1) }}% Execution,
+                            {{ round(($designExecutionProjects / $totalProjectsByType) * 100, 1) }}% Combined
+                        @else
+                            No projects yet
+                        @endif
+                    </span>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <h3>📊 Type Performance</h3>
+                <div class="summary-row">
+                    <span class="summary-label">Design Value</span>
+                    <span class="summary-value positive">RWF {{ number_format($totalDesignValue ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Execution Value</span>
+                    <span class="summary-value neutral">RWF {{ number_format($totalExecutionValue ?? 0, 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Project Value</span>
+                    <span class="summary-value positive">RWF {{ number_format(($totalDesignValue ?? 0) + ($totalExecutionValue ?? 0), 2) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Average per Project</span>
+                    <span class="summary-value neutral">
+                        @if($totalProjectsByType > 0)
+                            RWF {{ number_format((($totalDesignValue ?? 0) + ($totalExecutionValue ?? 0)) / $totalProjectsByType, 2) }}
+                        @else
+                            RWF 0.00
+                        @endif
+                    </span>
                 </div>
             </div>
         </div>
 
         <!-- Expense Breakdown -->
-        <div class="two-column">
+        <div class="one-column">
             <div class="summary-section">
-                <h3>💳 Company Payments</h3>
-                <div class="summary-row">
-                    <span class="summary-label">Total</span>
-                    <span class="summary-value negative">RWF {{ number_format($paymentsTotal ?? 0, 2) }}</span>
-                </div>
-                <div class="summary-row">
-                    <span class="summary-label">This Month</span>
-                    <span class="summary-value negative">RWF {{ number_format($paymentsThisMonth ?? 0, 2) }}</span>
-                </div>
-            </div>
-            <div class="summary-section">
-                <h3>📊 Office & Project Expenses</h3>
+                <h3>📊 Total Expenses</h3>
                 <div class="summary-row">
                     <span class="summary-label">Total</span>
                     <span class="summary-value negative">RWF {{ number_format($allExpensesTotal ?? 0, 2) }}</span>
                     <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
-                        Payments: RWF {{ number_format($paymentsTotal ?? 0, 0) }} + Office: RWF {{ number_format($officeExpenses ?? 0, 0) }} + Project: RWF {{ number_format($projectExpenses ?? 0, 0) }}
+                        Office: RWF {{ number_format($officeExpenses ?? 0, 0) }} + Project: RWF {{ number_format($projectExpenses ?? 0, 0) }}
                     </small>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">This Month</span>
                     <span class="summary-value negative">RWF {{ number_format($allExpensesThisMonth ?? 0, 2) }}</span>
                     <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
-                        Payments: RWF {{ number_format($paymentsThisMonth ?? 0, 0) }} + Office: RWF {{ number_format($officeExpensesThisMonth ?? 0, 0) }} + Project: RWF {{ number_format($projectExpensesThisMonth ?? 0, 0) }}
+                        Office: RWF {{ number_format($officeExpensesThisMonth ?? 0, 0) }} + Project: RWF {{ number_format($projectExpensesThisMonth ?? 0, 0) }}
                     </small>
                 </div>
+            </div>
+        </div>
+
+        <!-- Expense Breakdown by Category -->
+        <div class="one-column">
+            <div class="summary-section">
+                <h3>📊 Expense Breakdown by Category</h3>
+                @if(isset($expensesByCategory) && count($expensesByCategory) > 0)
+                    @foreach($expensesByCategory as $category)
+                        <div class="summary-row">
+                            <span class="summary-label">
+                                @if($category['category_name'] == 'Materials') 🧱 @endif
+                                @if($category['category_name'] == 'Labor') 👷 @endif
+                                @if($category['category_name'] == 'Equipment') 🔧 @endif
+                                @if($category['category_name'] == 'Transport') 🚚 @endif
+                                @if($category['category_name'] == 'Subcontractor') 🤝 @endif
+                                @if($category['category_name'] == 'Utilities') ⚡ @endif
+                                @if($category['category_name'] == 'Administrative') 📄 @endif
+                                @if($category['category_name'] == 'Other') 📦 @endif
+                                {{ $category['category_name'] }}
+                            </span>
+                            <span class="summary-value negative">RWF {{ number_format($category['total'], 2) }}</span>
+                            <small style="display: block; color: #999; margin-top: 0.25rem; font-size: 0.8rem;">
+                                @php
+                                    $totalExpenses = collect($expensesByCategory)->sum('total');
+                                    $percentage = $totalExpenses > 0 ? round(($category['total'] / $totalExpenses) * 100, 1) : 0;
+                                @endphp
+                                {{ $percentage }}% of total expenses
+                            </small>
+                        </div>
+                    @endforeach
+                    <div class="summary-row" style="border-top: 2px solid #e0e0e0; margin-top: 1rem; padding-top: 1rem;">
+                        <span class="summary-label" style="font-weight: bold;">Total All Categories</span>
+                        <span class="summary-value negative" style="font-weight: bold; font-size: 1.1rem;">
+                            RWF {{ number_format(collect($expensesByCategory)->sum('total'), 2) }}
+                        </span>
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <p>No expense data available</p>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -1656,37 +1788,7 @@
 
         </div>
 
-        <div class="table-section">
-            <h2>Recent Company Payments</h2>
-            @if(($recentPayments ?? collect())->count() > 0)
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Amount</th>
-                            <th>Method</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($recentPayments as $payment)
-                            <tr onclick="window.location.href='/payments/{{ $payment->id }}';" style="cursor: pointer;">
-                                <td>{{ $payment->payment_date?->format('M d, Y') ?? $payment->created_at?->format('M d, Y') ?? 'N/A' }}</td>
-                                <td>{{ ucwords(str_replace('_', ' ', $payment->category ?? 'Other')) }}</td>
-                                <td>RWF {{ number_format($payment->amount ?? 0, 2) }}</td>
-                                <td>{{ ucfirst($payment->method ?? 'Transfer') }}</td>
-                                <td><span class="badge success">{{ ucfirst($payment->status ?? 'Completed') }}</span></td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <div class="empty-state">
-                    <p>No payments yet</p>
-                </div>
-            @endif
-        </div>
+
     </div>
 
     <script>

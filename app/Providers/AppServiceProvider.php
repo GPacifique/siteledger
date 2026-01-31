@@ -6,6 +6,8 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Expense;
+use App\Observers\ExpenseObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,5 +35,10 @@ class AppServiceProvider extends ServiceProvider
                 'email' => $user->getEmailForPasswordReset(),
             ], false));
         });
+
+        // Register model observers for CPM modules
+        if (class_exists(Expense::class) && class_exists(ExpenseObserver::class)) {
+            Expense::observe(ExpenseObserver::class);
+        }
     }
 }

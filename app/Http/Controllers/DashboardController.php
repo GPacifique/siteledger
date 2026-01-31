@@ -197,6 +197,85 @@ class DashboardController extends Controller
             $totalExecutionExpenses = Expense::where('phase', 'execution')->sum('total');
         }
 
+        // Expense breakdown by category
+        $expensesByCategory = [];
+        if ($has('expenses', 'expense_category_id')) {
+            $expensesByCategory = \App\Models\Expense::with('category')
+                ->selectRaw('expense_category_id, SUM(total) as total_amount')
+                ->groupBy('expense_category_id')
+                ->get()
+                ->map(function($expense) {
+                    return [
+                        'category_name' => $expense->category->name ?? 'Unknown',
+                        'total' => $expense->total_amount
+                    ];
+                })
+                ->sortByDesc('total')
+                ->values()
+                ->toArray();
+        }
+
+        // Calculate revenue by phases (from project relationships)
+        $totalDesignRevenue = 0;
+        $totalExecutionRevenue = 0;
+        $designPhaseRevenue = 0;
+        $executionPhaseRevenue = 0;
+
+        if ($has('projects')) {
+            // Revenue from design-only projects (use Income if available, otherwise use amount_paid)
+            $designOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN);
+            if ($has('incomes')) {
+                $designOnlyProjectIds = $designOnlyProjects->pluck('id');
+                $totalDesignRevenue = Income::whereIn('project_id', $designOnlyProjectIds)->sum('amount_received');
+
+                // Fallback to project amount_paid if no income records exist
+                if ($totalDesignRevenue == 0) {
+                    $totalDesignRevenue = $designOnlyProjects->sum('amount_paid');
+                }
+            } else {
+                $totalDesignRevenue = $designOnlyProjects->sum('amount_paid');
+            }
+
+            // Revenue from execution-only projects (use Income if available, otherwise use amount_paid)
+            $executionOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_EXECUTION);
+            if ($has('incomes')) {
+                $executionOnlyProjectIds = $executionOnlyProjects->pluck('id');
+                $totalExecutionRevenue = Income::whereIn('project_id', $executionOnlyProjectIds)->sum('amount_received');
+
+                // Fallback to project amount_paid if no income records exist
+                if ($totalExecutionRevenue == 0) {
+                    $totalExecutionRevenue = $executionOnlyProjects->sum('amount_paid');
+                }
+            } else {
+                $totalExecutionRevenue = $executionOnlyProjects->sum('amount_paid');
+            }
+
+            // For combined projects, use phase payments (with fallback to 50/50 split of amount_paid)
+            $designExecutionProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION);
+            $designPhaseRevenue = $designExecutionProjects->sum('design_phase_paid');
+            $executionPhaseRevenue = $designExecutionProjects->sum('execution_phase_paid');
+
+            // If phase-specific payments are zero, split the amount_paid 50/50
+            if ($designPhaseRevenue == 0 && $executionPhaseRevenue == 0) {
+                $combinedProjectsPaid = $designExecutionProjects->sum('amount_paid');
+                $designPhaseRevenue = $combinedProjectsPaid * 0.5; // 50% for design
+                $executionPhaseRevenue = $combinedProjectsPaid * 0.5; // 50% for execution
+            }
+        }
+
+        // Project Type Statistics
+        $designOnlyProjects = 0;
+        $executionOnlyProjects = 0;
+        $designExecutionProjects = 0;
+        $totalProjectsByType = 0;
+
+        if ($has('projects') && $has('projects', 'project_type')) {
+            $designOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN)->count();
+            $executionOnlyProjects = Project::where('project_type', Project::PROJECT_TYPE_EXECUTION)->count();
+            $designExecutionProjects = Project::where('project_type', Project::PROJECT_TYPE_DESIGN_EXECUTION)->count();
+            $totalProjectsByType = $designOnlyProjects + $executionOnlyProjects + $designExecutionProjects;
+        }
+
         // Clients (using clients table)
         $totalClients = $has('clients') ? \App\Models\Client::count() : 0;
         $activeClients = $has('clients', 'status')
@@ -295,8 +374,10 @@ class DashboardController extends Controller
             'projectStats', 'months', 'paymentsMonthly', 'expensesMonthly', 'incomeMonthly',
             'dailyDates', 'dailyRevenue', 'dailyExpenses', 'dailyTasks',
             'totalDesignValue', 'totalDesignPaid', 'totalExecutionValue', 'totalExecutionPaid',
-            'totalDesignExpenses', 'totalExecutionExpenses',
-            'totalDesignPhases', 'completedDesignPhases', 'inProgressDesignPhases', 'pendingDesignPhases'
+            'totalDesignExpenses', 'totalExecutionExpenses', 'expensesByCategory',
+            'totalDesignPhases', 'completedDesignPhases', 'inProgressDesignPhases', 'pendingDesignPhases',
+            'designOnlyProjects', 'executionOnlyProjects', 'designExecutionProjects', 'totalProjectsByType',
+            'totalDesignRevenue', 'totalExecutionRevenue', 'designPhaseRevenue', 'executionPhaseRevenue'
         ));
     }
 

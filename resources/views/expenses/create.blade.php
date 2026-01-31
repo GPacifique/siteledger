@@ -198,52 +198,6 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-
-        /* Conditional Sections */
-        .materials-fields,
-        .labor-fields {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .materials-fields.visible,
-        .labor-fields.visible {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Phase Selector */
-        .phase-selector {
-            display: flex;
-            gap: 1rem;
-        }
-        .phase-option {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .phase-option:hover {
-            border-color: #667eea;
-        }
-        .phase-option.design.selected {
-            border-color: #6c5ce7;
-            background: #f3f0ff;
-        }
-        .phase-option.execution.selected {
-            border-color: #fdcb6e;
-            background: #fffbf0;
-        }
-        .phase-option input {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -281,15 +235,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="project_id">Project <span class="required">*</span></label>
-                            <select name="project_id" id="project_id" required>
-                                <option value="">-- Select Project --</option>
+                            <label for="project_id">Project (optional)</label>
+                            <select name="project_id" id="project_id">
+                                <option value="">-- General Expense (No Project) --</option>
                                 @foreach($projects as $project)
                                     <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
                                         {{ $project->name }}
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="help-text">Leave unselected for office or general company expenses</div>
                             @error('project_id')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -352,6 +307,24 @@
                     @enderror
                 </div>
 
+                <!-- Category Selection -->
+                <div class="form-section">
+                    <h3>📋 Category</h3>
+
+                    <div class="form-group">
+                        <label for="expense_category_id">Category <span class="required">*</span></label>
+                        <select name="expense_category_id" id="expense_category_id" required style="font-size: 1rem; padding: 0.875rem;">
+                            <option value="">-- Select Category --</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('expense_category_id')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
                 <!-- Materials Fields (shown when materials is selected) -->
 
                 <div class="form-section" id="dynamicFieldsSection">
@@ -377,17 +350,10 @@
                             <select name="unit" id="unit">
                                 <option value="">Select unit</option>
                                 <option class="unit-material" value="pieces" {{ old('unit') == 'pieces' ? 'selected' : '' }}>Pieces</option>
-                                <option class="unit-material" value="kg" {{ old('unit') == 'kg' ? 'selected' : '' }}>Kilograms (kg)</option>
+                                <option class="unit-material" value="kg" {{ old('unit') == 'kg' ? 'selected' : '' }}>Kilograms</option>
                                 <option class="unit-material" value="bags" {{ old('unit') == 'bags' ? 'selected' : '' }}>Bags</option>
-                                <option class="unit-material" value="tons" {{ old('unit') == 'tons' ? 'selected' : '' }}>Tons</option>
-                                <option class="unit-material" value="liters" {{ old('unit') == 'liters' ? 'selected' : '' }}>Liters</option>
                                 <option class="unit-material" value="meters" {{ old('unit') == 'meters' ? 'selected' : '' }}>Meters</option>
                                 <option class="unit-material" value="sqm" {{ old('unit') == 'sqm' ? 'selected' : '' }}>Square Meters</option>
-                                <option class="unit-material" value="cbm" {{ old('unit') == 'cbm' ? 'selected' : '' }}>Cubic Meters</option>
-                                <option class="unit-material" value="rolls" {{ old('unit') == 'rolls' ? 'selected' : '' }}>Rolls</option>
-                                <option class="unit-material" value="sheets" {{ old('unit') == 'sheets' ? 'selected' : '' }}>Sheets</option>
-                                <option class="unit-material" value="boxes" {{ old('unit') == 'boxes' ? 'selected' : '' }}>Boxes</option>
-                                <option class="unit-material" value="trips" {{ old('unit') == 'trips' ? 'selected' : '' }}>Trips</option>
                                 <option class="unit-labor" value="person" {{ old('unit') == 'person' ? 'selected' : '' }} style="display:none;">Person</option>
                                 <option class="unit-labor" value="day" {{ old('unit') == 'day' ? 'selected' : '' }} style="display:none;">Day</option>
                                 <option class="unit-labor" value="hour" {{ old('unit') == 'hour' ? 'selected' : '' }} style="display:none;">Hour</option>
@@ -414,28 +380,13 @@
                         For labor, <b>Quantity</b> = number of labors, <b>Unit Price</b> = amount for one labor. For materials, use the number of items and price per item.
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expense_category_id">Category <span class="required">*</span></label>
-                            <select name="expense_category_id" id="expense_category_id" required>
-                                <option value="">-- Select Category --</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('expense_category_id')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="total" style="font-weight: bold; color: #2d3436;">Total Amount (RWF) <span class="required">*</span></label>
-                            <input type="number" name="total" id="total" step="0.01" value="{{ old('total') }}" required placeholder="0.00" readonly style="background: #eafaf1; color: #09804a; font-weight: bold; font-size: 1.2rem; border: 2px solid #55efc4;">
-                            <div class="help-text" id="calculatedAmount" style="color: #09804a; font-weight: 600; margin-top: 0.25rem;">This value is auto-calculated from Quantity × Unit Price.</div>
-                            @error('total')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    <div class="form-group">
+                        <label for="total" style="font-weight: bold; color: #2d3436;">Total Amount (RWF) <span class="required">*</span></label>
+                        <input type="number" name="total" id="total" step="0.01" value="{{ old('total') }}" required placeholder="0.00" readonly style="background: #eafaf1; color: #09804a; font-weight: bold; font-size: 1.2rem; border: 2px solid #55efc4;">
+                        <div class="help-text" id="calculatedAmount" style="color: #09804a; font-weight: 600; margin-top: 0.25rem;">This value is auto-calculated from Quantity × Unit Price.</div>
+                        @error('total')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
@@ -446,33 +397,20 @@
                         @enderror
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="method">Payment Method</label>
-                            <select name="method" id="method">
-                                <option value="cash" {{ old('method', 'cash') == 'cash' ? 'selected' : '' }}>Cash</option>
-                                <option value="bank_transfer" {{ old('method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                                <option value="mobile_money" {{ old('method') == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
-                                <option value="cheque" {{ old('method') == 'cheque' ? 'selected' : '' }}>Cheque</option>
-                                <option value="credit" {{ old('method') == 'credit' ? 'selected' : '' }}>Credit</option>
-                            </select>
-                            @error('method')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select name="status" id="status">
-                                <option value="completed" {{ old('status', 'completed') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                            </select>
-                            @error('status')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    <div class="form-group">
+                        <label for="method">Payment Method</label>
+                        <select name="method" id="method">
+                            <option value="cash" {{ old('method', 'cash') == 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="mobile_money" {{ old('method') == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
+                            <option value="bank_transfer" {{ old('method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                        </select>
+                        @error('method')
+                            <div class="error">{{ $message }}</div>
+                        @enderror
                     </div>
+
+                    <!-- Hidden fields -->
+                    <input type="hidden" name="status" value="completed">
                 </div>
 
                 <div class="button-group">
@@ -503,14 +441,21 @@
                 errorDiv.textContent = '';
             }
         });
+
         document.addEventListener('DOMContentLoaded', function() {
             const expenseTypeOptions = document.querySelectorAll('.expense-type-option');
-            const materialsFields = document.getElementById('materialsFields');
-            const laborFields = document.getElementById('laborFields');
-            const categorySelect = document.getElementById('category');
             const projectSelect = document.getElementById('project_id');
             const projectPhaseSection = document.getElementById('projectPhaseSection');
             const phaseSelect = document.getElementById('phase');
+            const categorySelect = document.getElementById('expense_category_id');
+            const dynamicFieldsTitle = document.getElementById('dynamicFieldsTitle');
+            const itemNameGroup = document.getElementById('itemNameGroup');
+            const quantityLabel = document.getElementById('quantityLabel');
+            const quantityHelp = document.getElementById('quantityHelp');
+            const unitLabel = document.getElementById('unitLabel');
+            const unitSelect = document.getElementById('unit');
+            const unitPriceLabel = document.getElementById('unitPriceLabel');
+            const unitPriceHelp = document.getElementById('unitPriceHelp');
 
             // Show/hide phase section based on project selection
             function togglePhaseSection() {
@@ -518,7 +463,6 @@
                     projectPhaseSection.style.display = 'block';
                 } else {
                     projectPhaseSection.style.display = 'none';
-                    // Clear phase selection when no project
                     if (phaseSelect) {
                         phaseSelect.value = '';
                     }
@@ -526,8 +470,77 @@
             }
 
             projectSelect.addEventListener('change', togglePhaseSection);
-            // Check initial state
-            togglePhaseSection();
+            togglePhaseSection(); // Check initial state
+
+            // Update category selection based on expense type
+            function updateCategoryForType(type) {
+                const typeToCategory = {
+                    'materials': 'Materials',
+                    'labor': 'Labor',
+                    'equipment': 'Equipment',
+                    'transport': 'Transport',
+                    'subcontractor': 'Subcontractor',
+                    'miscellaneous': 'Other'
+                };
+
+                const categoryName = typeToCategory[type];
+                for (let option of categorySelect.options) {
+                    if (option.text.trim() === categoryName) {
+                        categorySelect.value = option.value;
+                        break;
+                    }
+                }
+                // Force update of fields and units
+                updateFieldsForCategory();
+            }
+
+            // Update fields based on expense type directly
+            function updateFieldsForType(type) {
+                if (type === 'labor') {
+                    dynamicFieldsTitle.textContent = '👷 Labor Details';
+                    itemNameGroup.style.display = 'none';
+                    quantityLabel.innerHTML = 'Number of Workers <span class="required">*</span>';
+                    quantityHelp.textContent = 'Enter the number of workers. For example, if 5 workers worked, enter 5.';
+                    unitLabel.textContent = 'Unit';
+                    // Show only labor units
+                    Array.from(unitSelect.options).forEach(opt => {
+                        if (opt.classList.contains('unit-labor')) {
+                            opt.style.display = '';
+                        } else if (opt.value !== '') {
+                            opt.style.display = 'none';
+                        }
+                    });
+                    unitPriceLabel.innerHTML = 'Rate per Worker (RWF) <span class="required">*</span>';
+                    unitPriceHelp.textContent = 'Enter the payment per worker (per person, per day, or per hour).';
+                    unitSelect.value = 'person'; // Set default for labor
+                } else {
+                    // Materials, Equipment, Transport, Subcontractor, Other
+                    const typeNames = {
+                        'materials': '🧱 Material Details',
+                        'equipment': '🔧 Equipment Details',
+                        'transport': '🚚 Transport Details',
+                        'subcontractor': '🤝 Subcontractor Details',
+                        'miscellaneous': '📦 Other Details'
+                    };
+                    dynamicFieldsTitle.textContent = typeNames[type] || '📦 Item Details';
+                    itemNameGroup.style.display = '';
+                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
+                    quantityHelp.textContent = 'Enter the number of items. For example, 40 bags of cement.';
+                    unitLabel.textContent = 'Unit';
+                    // Show only material units
+                    Array.from(unitSelect.options).forEach(opt => {
+                        if (opt.classList.contains('unit-material')) {
+                            opt.style.display = '';
+                        } else if (opt.value !== '') {
+                            opt.style.display = 'none';
+                        }
+                    });
+                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
+                    unitPriceHelp.textContent = 'Enter the price for one item.';
+                    unitSelect.value = 'pieces'; // Set default for materials
+                }
+                calculateAmount(); // Recalculate when type changes
+            }
 
             // Expense type selection
             expenseTypeOptions.forEach(option => {
@@ -538,71 +551,42 @@
                     this.classList.add('selected');
 
                     const type = this.dataset.type;
-
-                    // Show/hide conditional fields
-                    if (type === 'materials') {
-                        materialsFields.classList.add('visible');
-                        laborFields.classList.remove('visible');
-                        categorySelect.value = 'Materials';
-                    } else if (type === 'labor') {
-                        materialsFields.classList.remove('visible');
-                        laborFields.classList.add('visible');
-                        categorySelect.value = 'Labor';
-                    } else {
-                        materialsFields.classList.remove('visible');
-                        laborFields.classList.remove('visible');
-                        // Set category based on expense type
-                        const categoryMap = {
-                            'equipment': 'Equipment',
-                            'transport': 'Transport',
-                            'subcontractor': 'Subcontractor',
-                            'miscellaneous': 'Miscellaneous'
-                        };
-                        if (categoryMap[type]) {
-                            categorySelect.value = categoryMap[type];
-                        }
-                    }
+                    // Update category dropdown
+                    updateCategoryForType(type);
+                    // Update fields and units immediately
+                    updateFieldsForType(type);
                 });
 
                 // Check initial state
                 if (option.querySelector('input').checked) {
                     option.classList.add('selected');
                     const type = option.dataset.type;
-                    if (type === 'materials') {
-                        materialsFields.classList.add('visible');
-                    } else if (type === 'labor') {
-                        laborFields.classList.add('visible');
-                    }
+                    updateCategoryForType(type);
+                    updateFieldsForType(type);
                 }
             });
 
-            // Auto-calculate amount from quantity * unit_price
-            // Dynamic field logic for single set of fields
-            const dynamicFieldsTitle = document.getElementById('dynamicFieldsTitle');
-            const itemNameGroup = document.getElementById('itemNameGroup');
-            const quantityLabel = document.getElementById('quantityLabel');
-            const quantityHelp = document.getElementById('quantityHelp');
-            const unitLabel = document.getElementById('unitLabel');
-            const unitSelect = document.getElementById('unit');
-            const unitPriceLabel = document.getElementById('unitPriceLabel');
-            const unitPriceHelp = document.getElementById('unitPriceHelp');
+            // Update fields based on category selection
+            function updateFieldsForCategory() {
+                const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+                const categoryName = selectedOption.text.trim();
 
-            function setFieldsForType(type) {
-                if (type === 'labor') {
+                if (categoryName === 'Labor') {
                     dynamicFieldsTitle.textContent = '👷 Labor Details';
                     itemNameGroup.style.display = 'none';
-                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
-                    quantityHelp.textContent = 'Enter the number of labors. For example, if 40 labors worked, enter 40.';
+                    quantityLabel.innerHTML = 'Number of Workers <span class="required">*</span>';
+                    quantityHelp.textContent = 'Enter the number of workers. For example, if 5 workers worked, enter 5.';
                     unitLabel.textContent = 'Unit';
                     // Show only labor units
                     Array.from(unitSelect.options).forEach(opt => {
                         if (opt.classList.contains('unit-labor')) opt.style.display = '';
                         else if (opt.value !== '') opt.style.display = 'none';
                     });
-                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the amount for one labor (per person, per day, or per hour).';
+                    unitPriceLabel.innerHTML = 'Rate per Worker (RWF) <span class="required">*</span>';
+                    unitPriceHelp.textContent = 'Enter the payment per worker (per person, per day, or per hour).';
+                    unitSelect.value = 'person'; // Set default for labor
                 } else {
-                    dynamicFieldsTitle.textContent = '🧱 Material Details';
+                    dynamicFieldsTitle.textContent = `${categoryName} Details` || '📦 Item Details';
                     itemNameGroup.style.display = '';
                     quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
                     quantityHelp.textContent = 'Enter the number of items. For example, 40 bags of cement.';
@@ -613,24 +597,15 @@
                         else if (opt.value !== '') opt.style.display = 'none';
                     });
                     unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the amount for one item.';
+                    unitPriceHelp.textContent = 'Enter the price for one item.';
+                    unitSelect.value = 'pieces'; // Set default for materials
                 }
+                calculateAmount(); // Recalculate when category changes
             }
 
-            // Expense type selection logic
-            expenseTypeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const type = this.dataset.type;
-                    setFieldsForType(type);
-                    setTimeout(calculateAmount, 50);
-                });
-                // On page load, set correct fields
-                if (option.querySelector('input').checked) {
-                    setFieldsForType(option.dataset.type);
-                }
-            });
+            categorySelect.addEventListener('change', updateFieldsForCategory);
 
-            // Auto-calculate amount from quantity * unit_price (single logic)
+            // Auto-calculate amount from quantity * unit_price
             function calculateAmount() {
                 const quantity = document.getElementById('quantity');
                 const unitPrice = document.getElementById('unit_price');
@@ -638,19 +613,22 @@
                 const calculatedAmount = document.getElementById('calculatedAmount');
                 const qty = parseFloat(quantity.value) || 0;
                 const price = parseFloat(unitPrice.value) || 0;
+
                 if (qty > 0 && price > 0) {
                     const totalVal = qty * price;
                     total.value = totalVal.toFixed(2);
-                    calculatedAmount.textContent = `Calculated: ${qty} × ${price.toLocaleString()} = RWF ${totalVal.toLocaleString()}`;
+                    calculatedAmount.textContent = `Calculated: ${qty} × RWF ${price.toLocaleString()} = RWF ${totalVal.toLocaleString()}`;
+                    calculatedAmount.style.color = '#09804a';
                 } else {
                     total.value = '';
-                    calculatedAmount.textContent = '';
+                    calculatedAmount.textContent = 'This value is auto-calculated from Quantity × Unit Price.';
+                    calculatedAmount.style.color = '#666';
                 }
             }
+
             document.getElementById('quantity').addEventListener('input', calculateAmount);
             document.getElementById('unit_price').addEventListener('input', calculateAmount);
-            // Initial calculation on page load
-            calculateAmount();
+            calculateAmount(); // Initial calculation on page load
         });
     </script>
 </body>

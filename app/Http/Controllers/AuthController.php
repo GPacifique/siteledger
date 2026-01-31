@@ -42,7 +42,16 @@ class AuthController extends Controller
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $request->session()->regenerate();
-            return $this->redirectToRoleDashboard(Auth::user());
+
+            $user = Auth::user();
+
+            // Check if user's email is verified
+            if (!$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice')
+                    ->with('message', 'Please verify your email address before accessing your account.');
+            }
+
+            return $this->redirectToRoleDashboard($user);
         }
 
         throw ValidationException::withMessages([
@@ -65,7 +74,6 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'email_verified_at' => now(),
             'current_tenant_id' => 1, // Assign to default tenant
         ]);
 
@@ -82,7 +90,12 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return $this->redirectToRoleDashboard($user);
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
+        // Redirect to email verification notice
+        return redirect()->route('verification.notice')
+            ->with('message', 'Registration successful! Please check your email to verify your account.');
     }
 
     /**
