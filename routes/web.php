@@ -85,6 +85,26 @@ Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
+    // Debug route to check available projects
+    Route::get('/debug/projects', function() {
+        $user = auth()->user();
+        $tenantId = $user->current_tenant_id ?? $user->tenants()->first()?->id;
+        $projects = \App\Models\Project::where('tenant_id', $tenantId)->get();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'current_tenant_id' => $tenantId,
+            'projects_count' => $projects->count(),
+            'projects' => $projects->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'tenant_id' => $p->tenant_id,
+                'edit_url' => route('projects.edit', $p->id)
+            ])
+        ]);
+    });
+
     // Project Phase Payments
     Route::get('/projects/{project}/phase-payments/{phase}/create', [ProjectPhasePaymentController::class, 'create'])->name('projects.phase-payments.create');
     Route::post('/projects/{project}/phase-payments', [ProjectPhasePaymentController::class, 'store'])->name('projects.phase-payments.store');

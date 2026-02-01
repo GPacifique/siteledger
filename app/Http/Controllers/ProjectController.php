@@ -261,25 +261,44 @@ class ProjectController extends Controller
     // Show the form for editing the specified project
     public function edit(Project $project)
     {
-        // Ensure project belongs to current tenant and user has access
-        $projectData = $this->queryService->buildRoleBasedQuery('projects')
-                            ->where('id', $project->id)
-                            ->first();
+        try {
+            // Check if user has current tenant
+            $user = auth()->user();
+            $currentTenantId = $user->current_tenant_id ?? $user->tenants()->first()?->id;
 
-        if (!$projectData) {
-            abort(404, 'Project not found or access denied.');
+            if (!$currentTenantId) {
+                return redirect()->route('user.dashboard')
+                    ->with('error', 'You need to be assigned to a company to access projects.');
+            }
+
+            // Check if project exists and belongs to current tenant
+            $project = Project::where('id', $project->id)
+                              ->where('tenant_id', $currentTenantId)
+                              ->first();
+
+            if (!$project) {
+                return redirect()->route('projects.index')
+                    ->with('error', 'Project not found or you do not have access to it.');
+            }
+
+            // Get clients for the current tenant
+            $clients = Client::where('tenant_id', $currentTenantId)
+                            ->orderBy('name')
+                            ->get();
+
+            // Get workers to select as project manager
+            $workers = Worker::where('tenant_id', $currentTenantId)
+                            ->where('status', 'active')
+                            ->orderBy('first_name')
+                            ->get();
+
+            return view('projects.edit', compact('project', 'clients', 'workers'));
+
+        } catch (\Exception $e) {
+            \Log::error('Project edit error: ' . $e->getMessage());
+            return redirect()->route('projects.index')
+                ->with('error', 'Unable to load project for editing. Please try again.');
         }
-
-        $tenantId = auth()->user()->current_tenant_id;
-        $clients = Client::where('tenant_id', $tenantId)->orderBy('name')->get();
-
-        // Get workers to select as project manager
-        $workers = Worker::where('tenant_id', $tenantId)
-                         ->where('status', 'active')
-                         ->orderBy('first_name')
-                         ->get();
-
-        return view('projects.edit', compact('project', 'clients', 'workers'));
     }
 
     // Update the specified project with role-based validation
