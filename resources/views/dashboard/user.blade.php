@@ -61,89 +61,77 @@
 <body>
     <div class="container">
         <div class="topbar">
-            <div class="brand">User Dashboard</div>
+            <div class="brand" style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">S</div>
+                <div>
+                    <div style="font-weight: 600; color: #1f2937; font-size: 1.1rem;">SiteLedger</div>
+                    <div style="font-size: 0.8rem; color: #6b7280;">Personal Dashboard</div>
+                </div>
+            </div>
             <div class="user-actions">
-                <span style="font-size:0.9rem; color:#4b5563;">{{ auth()->user()->name ?? 'User' }}</span>
-                <form class="logout-form" method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit">Logout</button>
-                </form>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="text-align: right;">
+                        <div style="font-size:0.9rem; font-weight: 500; color:#1f2937;">{{ auth()->user()->name ?? 'User' }}</div>
+                        <div style="font-size:0.75rem; color:#6b7280;">
+                            @if(auth()->user()->tenants()->exists())
+                                {{ auth()->user()->currentTenant()->name ?? 'Company Member' }}
+                            @else
+                                Pending Access
+                            @endif
+                        </div>
+                    </div>
+                    <form class="logout-form" method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem;">🚪 Logout</button>
+                    </form>
+                </div>
             </div>
         </div>
 
         <div class="hero">
-            <h1>Welcome to SiteLedger</h1>
-            <p>SiteLedger helps your company track projects, payments, expenses, and workers with complete tenant-based data isolation.</p>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-title">1. Multi-tenant setup</div>
-                    <div class="step-desc">Each company is a tenant. Admins assign users to their company to enable access.</div>
-                </div>
-                <div class="step">
-                    <div class="step-title">2. Role-based access</div>
-                    <div class="step-desc">Admins and managers can create projects and manage finances; regular users see a read-only overview.</div>
-                </div>
-                <div class="step">
-                    <div class="step-title">3. Secure data</div>
-                    <div class="step-desc">All business data is isolated per tenant. You only see your company’s records.</div>
-                </div>
-            </div>
+            <h1>Welcome to SiteLedger, {{ auth()->user()->name ?? 'User' }}! 👋</h1>
+            <p>Thank you for joining SiteLedger. Your account has been created successfully.</p>
         </div>
 
         @php($hasTenant = auth()->user()->tenants()->exists())
         @if(!$hasTenant)
-            <div class="card" style="margin-bottom:1rem;">
-                <div class="label" style="font-weight:600; color:#b45309;">Pending approval</div>
-                <p style="margin-top:0.5rem; color:#6b7280;">Your account is created. A company administrator will assign you to a tenant and approve your access. Once approved, you will see your company’s projects and finances here.</p>
-                <div class="alert" style="margin-top:0.75rem;">
-                    Please wait for approval. If you believe this is taking too long, contact your administrator to be added to your company.
+            <div class="card" style="margin-bottom:1rem; border-left: 4px solid #3b82f6; text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                <h2 style="color: #1f2937; font-size: 1.5rem; margin-bottom: 1rem;">Account Pending Approval</h2>
+                <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    Your account is currently pending approval from your company administrator.
+                    Once approved, you'll have full access to your company's projects, data, and features.
+                </p>
+
+                <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; text-align: left;">
+                    <h3 style="color: #1d4ed8; margin: 0 0 1rem 0; font-size: 1.1rem;">📋 What happens next?</h3>
+                    <ul style="color: #1e40af; margin: 0; padding-left: 1.5rem; line-height: 1.8;">
+                        <li>Your company administrator will review and approve your account</li>
+                        <li>You'll receive an email notification once approved</li>
+                        <li>After approval, you can access all company projects and data</li>
+                        <li>If you're waiting longer than expected, contact your administrator</li>
+                    </ul>
+                </div>
+
+                <div style="background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; text-align: left;">
+                    <h3 style="color: #059669; margin: 0 0 1rem 0; font-size: 1.1rem;">💡 In the meantime...</h3>
+                    <p style="color: #047857; margin: 0; line-height: 1.6;">
+                        Feel free to bookmark this page and check back later. Your account is secure and ready -
+                        we're just waiting for the final approval step!
+                    </p>
                 </div>
             </div>
-        @endif
-
-        @if($hasTenant)
-            <div class="grid">
-                <div class="card">
-                    <div class="label">Total Projects</div>
-                    <div class="value">{{ number_format($projectsCount) }}</div>
-                </div>
-                <div class="card">
-                    <div class="label">Projects This Month</div>
-                    <div class="value">{{ number_format($projectsThisMonth) }}</div>
-                </div>
-                <div class="card">
-                    <div class="label">Quick Actions</div>
-                    <div class="actions">
-                        <a href="{{ route('projects.index') }}" class="btn-primary">View Projects</a>
-                        <a href="{{ route('notifications.index') }}" class="btn-secondary">Notifications</a>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        @if($hasTenant)
-            <div class="list">
-                <div class="list-header">
-                    <h2>Recent Projects</h2>
-                    <a href="{{ route('projects.index') }}">View all</a>
-                </div>
-                <div class="list-content">
-                    @if($recentProjects->isEmpty())
-                        <p class="item-meta">No recent projects found.</p>
-                    @else
-                        @foreach($recentProjects as $project)
-                            <div class="list-item">
-                                <div>
-                                    <div class="item-title">{{ $project->name }}</div>
-                                    <div class="item-meta">Created {{ optional($project->created_at)->diffForHumans() }}</div>
-                                </div>
-                                <div class="item-actions">
-                                    <a href="{{ route('projects.show', $project) }}">Open</a>
-                                    <a href="{{ route('projects.edit', $project) }}">Edit</a>
-                                </div>
-                            </div>
-                        @endforeach
-                    @endif
+        @else
+            <!-- User has been approved and has tenant access -->
+            <div class="card" style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+                <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1rem;">Account Approved!</h2>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 2rem;">
+                    Congratulations! Your account has been approved. You now have access to your company's workspace.
+                </p>
+                <div class="actions">
+                    <a href="{{ route('projects.index') }}" style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 0.5rem;">📊 View Projects</a>
+                    <a href="{{ route('dashboard') }}" style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 0.5rem;">🏠 Go to Dashboard</a>
                 </div>
             </div>
         @endif

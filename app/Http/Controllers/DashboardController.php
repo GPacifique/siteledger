@@ -691,39 +691,23 @@ class DashboardController extends Controller
     }
 
     /**
-     * Regular user sees limited overview
+     * Regular user sees approval status and basic welcome
      */
     public function userDashboard()
     {
-        $today = Carbon::today();
-        $startOfMonth = $today->copy()->startOfMonth();
-        $endOfToday = $today->endOfDay();
+        // Check if user has tenant access (approved)
+        $user = auth()->user();
+        $hasTenant = $user->tenants()->exists();
 
-        $has = function (string $table, ?string $column = null): bool {
-            if (! Schema::hasTable($table)) {
-                return false;
-            }
-            return $column ? Schema::hasColumn($table, $column) : true;
-        };
-
-        // Limited project view - filter by current user's tenant
-        $currentTenantId = auth()->user()->current_tenant_id ?? auth()->user()->tenants()->first()->id ?? null;
-
-        $projectsCount = $has('projects') && $currentTenantId
-            ? Project::where('tenant_id', $currentTenantId)->count() : 0;
-        $projectsThisMonth = $has('projects') && $currentTenantId
-            ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
-            : 0;
-        $recentProjects = $has('projects') && $currentTenantId
-            ? Project::where('tenant_id', $currentTenantId)->latest()->limit(5)->get() : collect();
-
-        // Available tenants (for join action when user has none)
-        $availableTenants = class_exists('App\\Models\\Tenant')
-            ? \App\Models\Tenant::select('id','name')->orderBy('name')->get()
-            : collect();
+        // If user is approved and has tenant access, they can access main features
+        if ($hasTenant) {
+            $currentTenant = $user->currentTenant();
+        } else {
+            $currentTenant = null;
+        }
 
         return view('dashboard.user', compact(
-            'projectsCount', 'projectsThisMonth', 'recentProjects', 'availableTenants'
+            'hasTenant', 'currentTenant'
         ));
     }
 
