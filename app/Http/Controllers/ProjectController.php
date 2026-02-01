@@ -171,12 +171,34 @@ class ProjectController extends Controller
     // Display the specified project with role-based access
     public function show($project)
     {
-        // Handle both model binding and ID parameter
-        if (is_numeric($project)) {
-            $project = Project::findOrFail($project);
-        }
+        try {
+            // Check if user has current tenant
+            $user = auth()->user();
+            $currentTenantId = $user->current_tenant_id ?? $user->tenants()->first()?->id;
 
-        $project->load('client');
+            if (!$currentTenantId) {
+                return redirect()->route('user.dashboard')
+                    ->with('error', 'You need to be assigned to a company to access projects.');
+            }
+
+            // Handle both model binding and ID parameter
+            if (is_numeric($project)) {
+                $project = Project::where('id', $project)
+                                 ->where('tenant_id', $currentTenantId)
+                                 ->first();
+            } else {
+                // If it's already a model, validate tenant
+                $project = Project::where('id', $project->id)
+                                 ->where('tenant_id', $currentTenantId)
+                                 ->first();
+            }
+
+            if (!$project) {
+                return redirect()->route('projects.index')
+                    ->with('error', 'Project not found or you do not have access to it.');
+            }
+
+            $project->load('client');
 
         // Get project statistics
         $stats = [
@@ -256,6 +278,12 @@ class ProjectController extends Controller
             'projectPayments', 'totalPayments', 'designPayments', 'executionPayments',
             'agreedBudget', 'amountReceived', 'amountSpent', 'budgetRemaining'
         ));
+
+        } catch (\Exception $e) {
+            \Log::error('Project show error: ' . $e->getMessage());
+            return redirect()->route('projects.index')
+                ->with('error', 'Unable to load project details. Please try again.');
+        }
     }
 
     // Show the form for editing the specified project
