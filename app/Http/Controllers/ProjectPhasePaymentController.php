@@ -68,6 +68,22 @@ class ProjectPhasePaymentController extends Controller
         $validated['received_by'] = Auth::id();
         $validated['status'] = $validated['status'] ?? 'completed';
 
+        // Validate payment doesn't exceed phase budget
+        $phaseColumn = $validated['phase'] === 'design' ? 'design_phase_value' : 'execution_phase_value';
+        $currentPaidColumn = $validated['phase'] === 'design' ? 'design_phase_paid' : 'execution_phase_paid';
+
+        $phaseValue = (float) $project->{$phaseColumn};
+        $currentPaid = (float) $project->{$currentPaidColumn};
+        $newPaymentAmount = (float) $validated['amount'];
+
+        if (($currentPaid + $newPaymentAmount) > $phaseValue) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors([
+                    'amount' => "Payment amount (" . number_format($newPaymentAmount) . ") would exceed the {$validated['phase']} phase budget. Maximum allowed: " . number_format($phaseValue - $currentPaid) . " RWF"
+                ]);
+        }
+
         // Create the payment
         ProjectPhasePayment::create($validated);
 

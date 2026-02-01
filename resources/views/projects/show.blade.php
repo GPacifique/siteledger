@@ -353,7 +353,18 @@
                 </div>
                 <div class="financial-item revenue">
                     <h4>💵 Amount Received</h4>
-                    <div class="amount" style="color: #27ae60;">RWF {{ number_format($amountReceived ?? $receivedAmount ?? 0, 0) }}</div>
+                    <div class="amount" style="color: #27ae60;">RWF {{ number_format($amountReceived ?? 0, 0) }}</div>
+                    @if(($incomeReceived ?? 0) > 0 || ($phasePaymentsReceived ?? 0) > 0)
+                        <small style="color: #666; display: block; margin-top: 0.3rem;">
+                            @if(($incomeReceived ?? 0) > 0)
+                                Income: RWF {{ number_format($incomeReceived, 0) }}
+                            @endif
+                            @if(($phasePaymentsReceived ?? 0) > 0)
+                                @if(($incomeReceived ?? 0) > 0) + @endif
+                                Phase: RWF {{ number_format($phasePaymentsReceived, 0) }}
+                            @endif
+                        </small>
+                    @endif
                 </div>
                 <div class="financial-item" style="border-left-color: #3498db;">
                     <h4>📊 Budget Remaining</h4>
@@ -628,6 +639,7 @@
         <!-- Project Workers -->
         <div class="detail-card">
             <h2>👥 Project Workers ({{ $totalWorkers ?? 0 }})</h2>
+
             @if(($workers ?? collect())->count() > 0)
                 <table>
                     <thead>
@@ -650,11 +662,63 @@
                     </tbody>
                 </table>
             @else
-                <div class="empty-message">No workers assigned to this project yet</div>
+                <div class="empty-message">
+                    <div style="text-align: center; padding: 2rem; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+                        <h3 style="color: #374151; margin-bottom: 1rem;">No workers assigned yet</h3>
+                        <p style="margin-bottom: 2rem;">Workers can be assigned to this project by:</p>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">👔</div>
+                                <h4 style="color: #1f2937; margin-bottom: 0.5rem;">Project Manager</h4>
+                                <p style="font-size: 0.9rem; color: #6b7280;">
+                                    @if($project->manager_id)
+                                        ✅ Manager assigned
+                                    @else
+                                        <a href="{{ route('projects.edit', $project->id) }}" style="color: #3b82f6; text-decoration: none;">Assign a manager →</a>
+                                    @endif
+                                </p>
+                            </div>
+
+                            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📋</div>
+                                <h4 style="color: #1f2937; margin-bottom: 0.5rem;">Create Tasks</h4>
+                                <p style="font-size: 0.9rem; color: #6b7280;">
+                                    <a href="{{ route('projects.tasks.create', $project->id) }}" style="color: #3b82f6; text-decoration: none;">Create task & assign workers →</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        @if(($availableWorkers ?? collect())->count() > 0)
+                            <div style="text-align: left; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+                                <h4 style="color: #059669; margin-bottom: 1rem;">📋 Available Workers in {{ auth()->user()->currentTenant()->name ?? 'Company' }}</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+                                    @foreach($availableWorkers->take(6) as $worker)
+                                        <div style="background: white; padding: 0.75rem; border-radius: 6px; border: 1px solid #d1fae5;">
+                                            <strong style="color: #1f2937;">{{ $worker->first_name }} {{ $worker->last_name }}</strong><br>
+                                            <small style="color: #6b7280;">{{ $worker->position ?? 'Worker' }} • {{ $worker->email }}</small>
+                                        </div>
+                                    @endforeach
+                                    @if($availableWorkers->count() > 6)
+                                        <div style="color: #6b7280; font-style: italic; padding: 0.75rem;">
+                                            +{{ $availableWorkers->count() - 6 }} more workers available
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+                                <p style="color: #92400e; margin: 0;">
+                                    <strong>No workers available.</strong> You may need to add workers to your company first.
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endif
         </div>
 
-        <!-- Payments by Position -->
         <div class="detail-card">
             <h2>📊 Worker Costs by Position</h2>
             @if(($paymentsByPosition ?? collect())->count() > 0)

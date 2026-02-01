@@ -38,9 +38,17 @@ class ProjectController extends Controller
         // Calculate financial data for each project
         $filteredProjects->each(function($project) {
             // Get revenues (amount received from client) - payment_status = 'Paid'
-            $project->total_received = \App\Models\Income::where('project_id', $project->id)
+            $incomeReceived = \App\Models\Income::where('project_id', $project->id)
                 ->where('payment_status', 'Paid')
                 ->sum('amount_received');
+
+            // Get phase payments received - status = 'completed'
+            $phasePaymentsReceived = \App\Models\ProjectPhasePayment::where('project_id', $project->id)
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            // Total received is sum of both income and phase payments
+            $project->total_received = $incomeReceived + $phasePaymentsReceived;
 
             // Get expenses
             $project->total_expenses = \App\Models\Expense::where('project_id', $project->id)
@@ -208,9 +216,35 @@ class ProjectController extends Controller
             'total_expenses' => 0,
         ];
 
-        // Get project workers through tasks
-        $workerIds = $project->tasks()->whereNotNull('assigned_to')->pluck('assigned_to')->unique();
-        $workers = \App\Models\Worker::whereIn('id', $workerIds)->get();
+        // Get project workers through multiple sources
+        $workerIds = collect();
+
+        // Get workers assigned through tasks (check both field names)
+        $taskWorkerIds = $project->tasks()
+            ->where(function($query) {
+                $query->whereNotNull('worker_id')
+                      ->orWhereNotNull('assigned_to');
+            })
+            ->get()
+            ->map(function($task) {
+                return $task->worker_id ?: $task->assigned_to;
+            })
+            ->filter()
+            ->unique();
+
+        $workerIds = $workerIds->merge($taskWorkerIds);
+
+        // Include project manager if assigned
+        if ($project->manager_id) {
+            $workerIds->push($project->manager_id);
+        }
+
+        // Remove duplicates and get workers
+        $workerIds = $workerIds->unique()->filter();
+
+        $workers = \App\Models\Worker::whereIn('id', $workerIds)
+                                   ->where('tenant_id', $currentTenantId)
+                                   ->get();
 
         // Load project-specific payments for each worker
         $workers->each(function($worker) use ($project) {
@@ -223,6 +257,12 @@ class ProjectController extends Controller
         $totalWorkerCost = $workers->sum(function($worker) {
             return $worker->projectPayments->sum('amount');
         });
+
+        // Get available workers from current tenant for potential assignment
+        $availableWorkers = \App\Models\Worker::where('tenant_id', $currentTenantId)
+                                            ->where('status', 'active')
+                                            ->orderBy('first_name')
+                                            ->get();
 
         // Calculate payments and worker counts by position (project-specific)
         $paymentsByPosition = $workers->groupBy('position')->map(function($group) {
@@ -263,7 +303,14 @@ class ProjectController extends Controller
 
         // Budget calculations
         $agreedBudget = $project->contract_value ?? 0;
-        $amountReceived = $receivedAmount; // From incomes (client payments)
+
+        // Amount received should include both income payments and phase payments
+        $incomeReceived = $receivedAmount; // From incomes (client payments)
+        $phasePaymentsReceived = \App\Models\ProjectPhasePayment::where('project_id', $project->id)
+            ->where('status', 'completed')
+            ->sum('amount');
+        $amountReceived = $incomeReceived + $phasePaymentsReceived; // Total from all sources
+
         $amountSpent = $totalExpenses + $totalPayments; // Expenses + Worker Payments
         $budgetRemaining = max(0, $agreedBudget - $amountReceived); // Budget minus what client has paid
 
@@ -272,11 +319,12 @@ class ProjectController extends Controller
 
         return view('projects.show', compact(
             'project', 'stats', 'workers', 'totalWorkers', 'totalWorkerCost',
-            'paymentsByPosition',
+            'paymentsByPosition', 'availableWorkers',
             'revenues', 'totalRevenue', 'receivedAmount', 'remainingAmount',
             'expenses', 'totalExpenses', 'profit',
             'projectPayments', 'totalPayments', 'designPayments', 'executionPayments',
-            'agreedBudget', 'amountReceived', 'amountSpent', 'budgetRemaining'
+            'agreedBudget', 'amountReceived', 'amountSpent', 'budgetRemaining',
+            'incomeReceived', 'phasePaymentsReceived'
         ));
 
         } catch (\Exception $e) {

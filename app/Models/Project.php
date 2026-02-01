@@ -265,9 +265,44 @@ public function client()
 
         // Also update total amount_paid
         $this->amount_paid = $this->design_phase_paid + $this->execution_phase_paid;
-        $this->amount_remaining = $this->contract_value - $this->amount_paid;
+        $calculatedRemaining = $this->contract_value - $this->amount_paid;
+
+        // Ensure amount_remaining doesn't go negative due to DB constraint
+        // Use max(0, calculated) to respect the constraint while tracking overpayments
+        $this->amount_remaining = max(0, $calculatedRemaining);
+
+        // If there's an overpayment, we can track it in profit calculation
+        if ($calculatedRemaining < 0) {
+            // Overpayment scenario - profit may be affected
+            $this->profit = $this->amount_paid - $this->amount_spent;
+        }
 
         $this->save();
+    }
+
+    /**
+     * Get the actual remaining amount (can be negative for overpayments)
+     */
+    public function getActualRemainingAttribute()
+    {
+        return $this->contract_value - $this->amount_paid;
+    }
+
+    /**
+     * Check if project has overpayments
+     */
+    public function hasOverpayment()
+    {
+        return $this->amount_paid > $this->contract_value;
+    }
+
+    /**
+     * Get overpayment amount
+     */
+    public function getOverpaymentAmount()
+    {
+        $overpayment = $this->amount_paid - $this->contract_value;
+        return max(0, $overpayment);
     }
 
     /**
