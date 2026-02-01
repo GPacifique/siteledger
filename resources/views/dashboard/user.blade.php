@@ -100,7 +100,7 @@
                 <h2 style="color: #1f2937; font-size: 1.5rem; margin-bottom: 1rem;">Account Pending Approval</h2>
                 <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
                     Your account is currently pending approval from your company administrator.
-                    Once approved, you'll have full access to your company's projects, data, and features.
+                    Once approved, you'll have full access to your company's data and features.
                 </p>
 
                 <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; text-align: left;">
@@ -108,7 +108,7 @@
                     <ul style="color: #1e40af; margin: 0; padding-left: 1.5rem; line-height: 1.8;">
                         <li>Your company administrator will review and approve your account</li>
                         <li>You'll receive an email notification once approved</li>
-                        <li>After approval, you can access all company projects and data</li>
+                        <li>After approval, you can access all company data and features</li>
                         <li>If you're waiting longer than expected, contact your administrator</li>
                     </ul>
                 </div>
@@ -130,7 +130,6 @@
                     Congratulations! Your account has been approved. You now have access to your company's workspace.
                 </p>
                 <div class="actions">
-                    <a href="{{ route('projects.index') }}" style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 0.5rem;">📊 View Projects</a>
                     <a href="{{ route('dashboard') }}" style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 0.5rem;">🏠 Go to Dashboard</a>
                 </div>
             </div>
