@@ -422,7 +422,7 @@
                             <td>{{ $expense->project->name ?? 'N/A' }}</td>
                             <td>{{ $expense->category->name ?? 'N/A' }}</td>
                             <td>{{ $expense->quantity }}</td>
-                            <td>RWF {{ number_format($expense->price_per_one, 2) }}</td>
+                            <td>RWF {{ number_format($expense->expense_type === 'labor' ? ($expense->price_per_one ?? 0) : ($expense->unit_price ?? 0), 2) }}</td>
                             <td><strong style="color: #d63031;">RWF {{ number_format($expense->total, 2) }}</strong></td>
                             <td>{{ $expense->notes }}</td>
                             <td>

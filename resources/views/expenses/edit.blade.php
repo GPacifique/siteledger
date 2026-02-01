@@ -401,7 +401,7 @@
 
                         <div class="form-group">
                             <label for="unit_price">Unit Price (RWF)</label>
-                            <input type="number" name="unit_price" id="unit_price" step="0.01" value="{{ old('unit_price', $expense->unit_price) }}" placeholder="0.00">
+                            <input type="number" name="unit_price" id="unit_price" step="0.01" value="{{ old('unit_price', $expense->expense_type === 'labor' ? $expense->price_per_one : $expense->unit_price) }}" placeholder="0.00">
                             @error('unit_price')
                                 <div class="error">{{ $message }}</div>
                             @enderror

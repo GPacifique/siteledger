@@ -287,8 +287,8 @@
 
             <div class="expense-header">
                 <div class="expense-item">
-                    <span class="expense-label">Amount</span>
-                    <span class="expense-amount">RWF {{ number_format($expense->amount ?? 0, 2) }}</span>
+                    <span class="expense-label">Total Amount</span>
+                    <span class="expense-amount">RWF {{ number_format($expense->total ?? 0, 2) }}</span>
                 </div>
 
                 <div class="expense-item">
@@ -301,6 +301,20 @@
                         @endif
                     </span>
                 </div>
+
+                @if($expense->quantity)
+                <div class="expense-item">
+                    <span class="expense-label">Quantity</span>
+                    <span class="expense-value">{{ $expense->quantity }} {{ $expense->unit ?? '' }}</span>
+                </div>
+                @endif
+
+                @if($expense->expense_type === 'labor' ? $expense->price_per_one : $expense->unit_price)
+                <div class="expense-item">
+                    <span class="expense-label">Unit Price</span>
+                    <span class="expense-value">RWF {{ number_format($expense->expense_type === 'labor' ? ($expense->price_per_one ?? 0) : ($expense->unit_price ?? 0), 2) }}</span>
+                </div>
+                @endif
 
                 <div class="expense-item">
                     <span class="expense-label">Status</span>
