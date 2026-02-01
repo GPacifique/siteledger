@@ -1461,10 +1461,6 @@
             <div class="summary-section">
                 <h3>📝 Design Phase</h3>
                 <div class="summary-row">
-                    <span class="summary-label">Total Phases</span>
-                    <span class="summary-value neutral">{{ $totalDesignPhases }}</span>
-                </div>
-                <div class="summary-row">
                     <span class="summary-label">Completed</span>
                     <span class="summary-value positive">{{ $completedDesignPhases }}</span>
                 </div>
