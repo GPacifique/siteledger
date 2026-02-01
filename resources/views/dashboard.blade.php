@@ -390,6 +390,18 @@
             margin-bottom: 2rem;
         }
 
+        /* Recent Projects Table Specific Styling */
+        .table-section table {
+            min-width: 800px;
+        }
+        .table-section th:nth-child(1) { width: 25%; } /* Project Name */
+        .table-section th:nth-child(2) { width: 15%; } /* Client */
+        .table-section th:nth-child(3) { width: 15%; } /* Manager */
+        .table-section th:nth-child(4) { width: 12%; } /* Contract Value */
+        .table-section th:nth-child(5) { width: 15%; } /* Progress */
+        .table-section th:nth-child(6) { width: 10%; } /* Status */
+        .table-section th:nth-child(7) { width: 8%; }  /* Created */
+
         /* ========== Responsive Styles ========== */
         @media (max-width: 1024px) {
             .stats-grid {
@@ -1761,16 +1773,38 @@
                         <thead>
                             <tr>
                                 <th>Project Name</th>
-                                <th>Value</th>
+                                <th>Client</th>
+                                <th>Manager</th>
+                                <th>Contract Value</th>
+                                <th>Progress</th>
                                 <th>Status</th>
+                                <th>Created</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($recentProjects as $project)
                                 <tr onclick="window.location.href='/projects/{{ $project->id }}';" style="cursor: pointer;">
-                                    <td>{{ $project->name ?? 'N/A' }}</td>
-                                    <td>RWF {{ number_format($project->contract_value ?? 0, 2) }}</td>
-                                    <td><span class="badge info">Active</span></td>
+                                    <td><strong>{{ $project->name ?? 'N/A' }}</strong></td>
+                                    <td>{{ $project->client->name ?? 'No Client' }}</td>
+                                    <td>{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'Unassigned' }}</td>
+                                    <td>RWF {{ number_format($project->contract_value ?? 0, 0) }}</td>
+                                    <td>
+                                        @php
+                                            $progress = $project->contract_value > 0 ? round(($project->amount_paid / $project->contract_value) * 100, 1) : 0;
+                                        @endphp
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="flex: 1; background: #f0f0f0; border-radius: 10px; height: 6px; overflow: hidden;">
+                                                <div style="height: 100%; background: {{ $progress > 75 ? '#27ae60' : ($progress > 50 ? '#f39c12' : '#e74c3c') }}; width: {{ $progress }}%; border-radius: 10px;"></div>
+                                            </div>
+                                            <span style="font-size: 0.8rem; color: #666; min-width: 35px;">{{ $progress }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ $project->status === 'completed' ? 'success' : ($project->status === 'active' ? 'info' : 'warning') }}">
+                                            {{ ucfirst($project->status ?? 'Planning') }}
+                                        </span>
+                                    </td>
+                                    <td style="color: #666; font-size: 0.9rem;">{{ $project->created_at ? $project->created_at->format('M d, Y') : 'N/A' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

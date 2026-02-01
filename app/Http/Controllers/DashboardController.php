@@ -163,7 +163,7 @@ class DashboardController extends Controller
             ? Project::withoutGlobalScope('tenant')->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
         $projectsTotal = $has('projects', 'contract_value') ? Project::withoutGlobalScope('tenant')->sum('contract_value') : 0;
-        $recentProjects = $has('projects') ? Project::withoutGlobalScope('tenant')->latest()->limit(7)->get() : collect();
+        $recentProjects = $has('projects') ? Project::withoutGlobalScope('tenant')->with(['client', 'manager'])->latest()->limit(7)->get() : collect();
 
         // Design Phase Summary Variables
         $totalDesignValue = 0;
@@ -416,7 +416,7 @@ class DashboardController extends Controller
             ? Project::where('tenant_id', $currentTenantId)->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
         $recentProjects = $has('projects') && $currentTenantId
-            ? Project::where('tenant_id', $currentTenantId)->with('client')->latest()->limit(7)->get() : collect();
+            ? Project::where('tenant_id', $currentTenantId)->with(['client', 'manager'])->latest()->limit(7)->get() : collect();
 
         // Tasks
         $pendingTasks = $has('tasks') && $currentTenantId
@@ -566,7 +566,7 @@ class DashboardController extends Controller
         $projectsTotal = $has('projects', 'contract_value') && $currentTenantId
             ? Project::where('tenant_id', $currentTenantId)->sum('contract_value') : 0;
         $recentProjects = $has('projects') && $currentTenantId
-            ? Project::where('tenant_id', $currentTenantId)->with(['client', 'incomes'])->latest()->limit(10)->get() : collect();
+            ? Project::where('tenant_id', $currentTenantId)->with(['client', 'manager', 'incomes'])->latest()->limit(10)->get() : collect();
 
         // Tasks
         $activeTasks = $has('tasks') && $currentTenantId
