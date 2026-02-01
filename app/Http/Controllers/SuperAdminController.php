@@ -81,8 +81,8 @@ class SuperAdminController extends Controller
             $workerCount = Schema::hasTable('workers') ? Worker::where('tenant_id', $tenantId)->count() : 0;
 
             // Financial metrics per tenant
-            $totalIncome = Schema::hasTable('incomes') ? Income::where('tenant_id', $tenantId)->sum('amount') : 0;
-            $totalExpense = Schema::hasTable('expenses') ? Expense::where('tenant_id', $tenantId)->sum('amount') : 0;
+            $totalIncome = Schema::hasTable('incomes') ? Income::where('tenant_id', $tenantId)->sum('amount_received') : 0;
+            $totalExpense = Schema::hasTable('expenses') ? Expense::where('tenant_id', $tenantId)->sum('total') : 0;
 
             $tenantStats[$tenantId] = [
                 'tenant' => $tenant,
@@ -99,8 +99,8 @@ class SuperAdminController extends Controller
         // =============================================
         // PLATFORM-WIDE BUSINESS METRICS
         // =============================================
-        $platformTotalIncome = Schema::hasTable('incomes') ? Income::sum('amount') : 0;
-        $platformTotalExpense = Schema::hasTable('expenses') ? Expense::sum('amount') : 0;
+        $platformTotalIncome = Schema::hasTable('incomes') ? Income::sum('amount_received') : 0;
+        $platformTotalExpense = Schema::hasTable('expenses') ? Expense::sum('total') : 0;
         $platformTotalProjects = Schema::hasTable('projects') ? Project::count() : 0;
         $platformTotalClients = Schema::hasTable('clients') ? Client::count() : 0;
         $platformTotalEmployees = Schema::hasTable('employees') ? Employee::count() : 0;
