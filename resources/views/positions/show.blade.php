@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $position->name }} - SiteLedger</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', '$position->name - SiteLedger')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -203,9 +202,9 @@
             }
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
+
+@section('content')
 
     <div class="container">
         <a href="{{ route('positions.index') }}" class="back-link">← Back to Positions</a>
@@ -316,5 +315,4 @@
             </div>
         @endif
     </div>
-</body>
-</html>
+@endsection

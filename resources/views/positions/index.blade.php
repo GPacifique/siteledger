@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker Positions - SiteLedger</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', 'Worker Positions - SiteLedger')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -230,12 +229,10 @@
             }
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
 
-    <div class="container">
-        <div class="page-header">
+@section('content')
+    <div class="page-header">
             <div>
                 <h1>👔 Worker Positions</h1>
                 <p>Manage job positions and roles</p>
@@ -326,5 +323,4 @@
             </div>
         @endforelse
     </div>
-</body>
-</html>
+@endsection

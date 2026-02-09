@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Worker Position - SiteLedger</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', 'Edit Worker Position - SiteLedger')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -141,9 +140,9 @@
             }
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
+
+@section('content')
 
     <div class="container">
         <a href="{{ route('positions.show', $position) }}" class="back-link">← Back to Position</a>
@@ -226,5 +225,4 @@
             </form>
         </div>
     </div>
-</body>
-</html>
+@endsection

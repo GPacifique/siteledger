@@ -8,16 +8,16 @@
     <!-- DNS Prefetch for faster loading -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    
+
     <!-- Critical CSS inlined for instant rendering -->
     <style>
         {{ file_get_contents(public_path('css/critical.css')) }}
     </style>
-    
+
     <!-- Modern CSS loaded asynchronously for better performance -->
     <link rel="preload" href="{{ asset('css/modern.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{{ asset('css/modern.css') }}"></noscript>
-    
+
     <!-- Optimized Google Fonts with font-display: swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,38 +33,8 @@
     @yield('styles')
 </head>
 <body class="page-wrapper">
-    <!-- Modern Navbar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="navbar-brand">
-                <span>🏗️</span>
-                <span>SiteLedger</span>
-            </a>
-            <div class="navbar-menu">
-                @auth
-                    <a href="/dashboard" class="navbar-link">Dashboard</a>
-                    <a href="/projects" class="navbar-link">Projects</a>
-                    <a href="/clients" class="navbar-link">Clients</a>
-                @endauth
-            </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                @auth
-                    <div class="badge badge-primary">
-                        {{ auth()->user()->roles->first()->name ?? 'User' }}
-                    </div>
-                    <span style="color: white;">{{ auth()->user()->name }}</span>
-                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-ghost" style="color: white; border-color: rgba(255,255,255,0.3);">
-                            Logout
-                        </button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="navbar-link">Login</a>
-                @endauth
-            </div>
-        </div>
-    </nav>
+    <!-- Enhanced Navigation with Dropdowns -->
+    @include('components.navbar')
 
     <!-- Main Content -->
     <main class="page-content fade-in">

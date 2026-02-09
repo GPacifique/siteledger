@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $worker->first_name }} {{ $worker->last_name }} - Worker Profile</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', '$worker->first_name $worker->last_name - Worker Profile')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -246,9 +245,9 @@
             border-radius: 3px;
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
+
+@section('content')
 
     <div class="container">
         <a href="{{ route('workers.index') }}" class="back-link">← Back to Workers</a>
@@ -499,5 +498,4 @@
             </div>
         @endif
     </div>
-</body>
-</html>
+@endsection

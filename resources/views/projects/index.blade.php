@@ -1,22 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects - SiteLedger</title>
+@extends('layouts.admin')
 
-    <!-- Modern Design System -->
-    <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
+@section('title', 'Projects - SiteLedger')
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="page-wrapper" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-    @include('components.navbar')
+@section('styles')
+@endsection
 
-    <main class="page-content" style="padding: 3rem 0;">
+@section('content')
         <div class="container" style="max-width: 1400px;">
             <!-- Professional Header Section -->
             <div class="card-colorful" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%); margin-bottom: 2rem; backdrop-filter: blur(20px);">
@@ -321,5 +310,4 @@
             </div>
         </div>
     </main>
-</body>
-</html>
+@endsection

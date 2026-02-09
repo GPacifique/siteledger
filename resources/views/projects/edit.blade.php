@@ -1,10 +1,9 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Edit Project — SiteLedger</title>
-  <style>
+@extends('layouts.admin')
+
+@section('title', 'Edit Project — SiteLedger')
+
+@section('styles')
+<style>
     :root {
       --primary: #667eea;
       --primary-dark: #5a67d8;
@@ -284,13 +283,12 @@
       margin: 0;
       opacity: 0.9;
       font-size: 0.95rem;
-    }
-  </style>
-</head>
-<body>
-  @include('components.navbar')
+    </style>
+@endsection
 
-  <div class="container">
+@section('content')
+
+    <div class="container">
     <div class="header">
       <h1>📝 Edit Project</h1>
       <p>Update project details, phase values, and assignments</p>
@@ -476,7 +474,5 @@
         e.preventDefault();
         alert('Please fill in all required fields');
       }
-    });
-  </script>
-</body>
-</html>
+    </script>
+@endsection

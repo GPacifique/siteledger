@@ -1,33 +1,28 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Create Project — SiteLedger</title>
-  <style>
-    :root{--bg:#f6f7fb;--card:#fff;--accent:#667eea;--muted:#6b7280}
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;color:#111}
-    .wrap{max-width:900px;margin:28px auto;padding:18px}
-    .card{background:var(--card);padding:20px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,0.06)}
-    h1{margin:0 0 8px;font-size:1.3rem;color:var(--accent)}
-    .muted{color:var(--muted);font-size:0.95rem}
-    form{margin-top:14px}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    @media(max-width:720px){.grid{grid-template-columns:1fr}}
-    label{display:block;font-weight:600;margin-bottom:6px}
-    input,select,textarea{width:100%;padding:10px;border:1px solid #e6e9f2;border-radius:8px}
-    textarea{min-height:110px}
-    .row{display:flex;gap:10px;align-items:center}
-    .actions{display:flex;gap:10px;margin-top:16px}
-    .btn{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),#764ba2);color:#fff}
-    .btn-ghost{background:transparent;border:1px solid #e6e9f2;color:var(--accent)}
-    .note{font-size:0.9rem;color:var(--muted);margin-top:6px}
-  </style>
-</head>
-<body>
-@include('components.navbar')
+@extends('layouts.admin')
+
+@section('title', 'Create Project — SiteLedger')
+
+@section('styles')
+<style>
+  .wrap{max-width:900px;margin:28px auto;padding:18px}
+  h1{margin:0 0 8px;font-size:1.3rem;color:var(--primary)}
+  .muted{color:var(--text-muted);font-size:0.95rem}
+  form{margin-top:14px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-weight:600;margin-bottom:6px}
+  input,select,textarea{width:100%;padding:10px;border:1px solid #e6e9f2;border-radius:8px}
+  textarea{min-height:110px}
+  .row{display:flex;gap:10px;align-items:center}
+  .actions{display:flex;gap:10px;margin-top:16px}
+  .btn{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#764ba2);color:#fff}
+  .btn-ghost{background:transparent;border:1px solid #e6e9f2;color:var(--primary)}
+  .note{font-size:0.9rem;color:var(--text-muted);margin-top:6px}
+</style>
+@endsection
+
+@section('content')
 <div class="wrap">
   <div class="card">
     <h1>New Project</h1>
@@ -130,5 +125,4 @@
   }
   document.addEventListener('DOMContentLoaded',togglePhases);
 </script>
-</body>
-</html>
+@endsection

@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Tasks - SiteLedger</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', 'All Tasks - SiteLedger')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -259,11 +258,10 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
 
-    <div class="container">
+@section('content')
+    <div>
         <div class="header">
             <div>
                 <h1>📋 All Tasks</h1>
@@ -557,5 +555,4 @@
         // Handle form submission - simple server-side form
         // No need for custom JS, form will post normally
     </script>
-</body>
-</html>
+@endsection

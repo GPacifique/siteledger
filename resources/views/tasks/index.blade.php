@@ -1,20 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Tasks - SiteLedger</title>
+@extends('layouts.admin')
 
-    <!-- Modern Design System -->
-    <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
+@section('title', 'Project Tasks - SiteLedger')
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="page-wrapper" style="background: var(--gradient-ocean);">
-    <div class="container" style="padding: 2rem;">
+@section('content')
         <div class="card-colorful purple" style="margin-bottom: 2rem;">
             <div class="card-body">
                 <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -171,6 +159,4 @@
                 </div>
             </div>
         @endif
-    </div>
-</body>
-</html>
+@endsection
