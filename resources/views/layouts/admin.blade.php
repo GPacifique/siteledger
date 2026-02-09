@@ -14,6 +14,9 @@
         {{ file_get_contents(public_path('css/critical.css')) }}
     </style>
 
+    <!-- Colorful Theme CSS - Loaded synchronously for consistent colors -->
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+
     <!-- Modern CSS loaded asynchronously for better performance -->
     <link rel="preload" href="{{ asset('css/modern.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{{ asset('css/modern.css') }}"></noscript>

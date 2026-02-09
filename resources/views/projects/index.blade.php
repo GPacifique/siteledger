@@ -2,8 +2,7 @@
 
 @section('title', 'Projects - SiteLedger')
 
-@section('styles')
-@endsection
+@section('styles')<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">@endsection
 
 @section('content')
         <div class="container" style="max-width: 1400px;">

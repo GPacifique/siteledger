@@ -2,8 +2,7 @@
 
 @section('title', 'Edit Worker Position - SiteLedger')
 
-@section('styles')
-<style>
+@section('styles')<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}"><style>
         * {
             margin: 0;
             padding: 0;

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Task - SiteLedger</title>
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -11,47 +13,74 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: #333;
+            padding: 2rem 0;
         }
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 2rem;
         }
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         .form-card {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
         }
-        .form-card h2 {
-            font-size: 1.6rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 0.75rem;
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            border-radius: 16px 16px 0 0;
         }
         .form-section {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
+            margin-bottom: 2.5rem;
+            padding: 1.75rem;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0efff 100%);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
         }
         .form-section h3 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #667eea;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
         }
         label {
             display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #333;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+            font-size: 0.95rem;
         }
         input[type="text"],
         input[type="number"],
@@ -59,107 +88,162 @@
         select,
         textarea {
             width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 0.95rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
             font-family: inherit;
             font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder,
+        textarea::placeholder {
+            color: #9ca3af;
+        }
+        input:hover,
+        select:hover,
+        textarea:hover {
+            border-color: #d1d5db;
+            background: #ffffff;
         }
         input:focus,
         select:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
         input[readonly] {
-            background-color: #f8f9fa;
+            background-color: #f3f4f6;
             cursor: not-allowed;
             opacity: 0.85;
         }
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
+            font-family: inherit;
         }
         .form-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            gap: 1.5rem;
         }
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            .form-card {
+                padding: 1.5rem;
+            }
         }
         .button-group {
             display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
+            gap: 1.25rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
             border-top: 2px solid #f0f0f0;
         }
-        button[type="submit"],
-        .btn {
-            padding: 0.875rem 2rem;
-            border-radius: 8px;
+        button[type="submit"] {
+            flex: 1;
+            padding: 1.125rem 2rem;
+            border-radius: 10px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-        button[type="submit"] {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         }
         button[type="submit"]:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+        }
+        button[type="submit"]:active {
+            transform: translateY(0);
         }
         .btn {
-            background: #95a5a6;
-            color: white;
+            flex: 1;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            color: #374151;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 1.125rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 2px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .btn:hover {
-            background: #7f8c8d;
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
         .error {
-            color: #d63031;
+            color: #ef4444;
             font-size: 0.85rem;
-            margin-top: 0.25rem;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .error::before {
+            content: '⚠';
+            font-size: 1rem;
         }
         .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            animation: slideIn 0.3s ease;
         }
         .alert-danger {
-            background: #ffe6e6;
-            color: #c0392b;
-            border: 1px solid #fab1a0;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+            border-left: 4px solid #dc2626;
         }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .alert strong {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 1.05rem;
+        }
+        .alert ul {
+            margin-left: 1.75rem;
+            margin-top: 0.5rem;
+        }
+        .alert li {
+            margin-bottom: 0.35rem;
         }
         .project-info {
-            background: #e8f4fd;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid #3498db;
+            background: linear-gradient(135deg, #e8f4fd 0%, #e0f2fe 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #06b6d4;
+            font-weight: 500;
+            color: #0c4a6e;
         }
         .worker-card {
             background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem;
             margin-bottom: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -172,6 +256,7 @@
         .worker-card.selected {
             border-color: #667eea;
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
         }
         .worker-card input[type="radio"] {
             display: none;
@@ -179,12 +264,22 @@
         .worker-name {
             font-weight: 700;
             font-size: 1.1rem;
-            color: #333;
+            color: #1f2937;
         }
         .worker-info {
             font-size: 0.9rem;
-            color: #666;
+            color: #6b7280;
             margin-top: 0.5rem;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -192,18 +287,20 @@
     @include('components.navbar')
 
     <div class="container">
-        <div class="form-card">
-            <h2>📋 Assign Task to Worker</h2>
+        <div class="page-header">
+            <h1><i class="fas fa-tasks"></i> Assign Task to Worker</h1>
+            <p>Create and manage project tasks</p>
+        </div>
 
+        <div class="form-card">
             <div class="project-info">
-                <strong>📁 Project:</strong> {{ $project->name }} |
-                <strong>👤 Client:</strong> {{ $project->client->name ?? 'N/A' }}
+                <strong>📁 Project:</strong> {{ $project->name }} | <strong>👤 Client:</strong> {{ $project->client->name ?? 'N/A' }}
             </div>
 
             @if($errors->any())
                 <div class="alert alert-danger">
-                    <strong>Please fix the following errors:</strong>
-                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <strong><i class="fas fa-exclamation-circle"></i> Please fix the following errors:</strong>
+                    <ul>
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -216,10 +313,10 @@
 
                 <!-- Task Information -->
                 <div class="form-section">
-                    <h3>📝 Task Information</h3>
+                    <h3><i class="fas fa-pen-fancy"></i> Task Information</h3>
 
                     <div class="form-group">
-                        <label for="title">Task Title <span style="color: #d63031;">*</span></label>
+                        <label for="title">Task Title <span style="color: #ef4444;">*</span></label>
                         <input type="text" name="title" id="title" value="{{ old('title') }}" placeholder="e.g., Foundation Excavation, Wall Painting" required>
                         @error('title')
                             <div class="error">{{ $message }}</div>
@@ -228,7 +325,7 @@
 
                     <div class="form-group">
                         <label for="description">Description</label>
-                        <textarea name="description" id="description" placeholder="Detailed description of the task...">{{ old('description') }}</textarea>
+                        <textarea name="description" id="description" placeholder="📝 Detailed description of the task...">{{ old('description') }}</textarea>
                         @error('description')
                             <div class="error">{{ $message }}</div>
                         @enderror
@@ -282,23 +379,22 @@
 
                 <!-- Assignment & Estimates -->
                 <div class="form-section">
-                    <h3>👷 Assign to Worker</h3>
+                    <h3><i class="fas fa-person-hiking"></i> Assign to Worker</h3>
 
                     <div class="form-group">
-                        <label>Select Worker <span style="color: #d63031;">*</span></label>
+                        <label>Select Worker <span style="color: #ef4444;">*</span></label>
                         <div style="max-height: 400px; overflow-y: auto;">
                             @forelse($workers as $worker)
                                 <label class="worker-card" data-worker-id="{{ $worker->id }}">
                                     <input type="radio" name="worker_id" value="{{ $worker->id }}" {{ old('worker_id') == $worker->id ? 'checked' : '' }}>
-                                    <div class="worker-name">{{ $worker->first_name }} {{ $worker->last_name }}</div>
+                                    <div class="worker-name">👤 {{ $worker->first_name }} {{ $worker->last_name }}</div>
                                     <div class="worker-info">
-                                        📍 {{ $worker->position ?? 'N/A' }} |
-                                        📞 {{ $worker->phone ?? 'N/A' }}
+                                        📍 {{ $worker->position ?? 'N/A' }} | 📞 {{ $worker->phone ?? 'N/A' }}
                                     </div>
                                 </label>
                             @empty
                                 <div class="alert alert-danger">
-                                    No active workers available. Please add workers first.
+                                    ⚠️ No active workers available. Please add workers first.
                                 </div>
                             @endforelse
                         </div>
@@ -310,7 +406,7 @@
 
                 <!-- Estimates -->
                 <div class="form-section">
-                    <h3>⏰ Estimates & Costs</h3>
+                    <h3><i class="fas fa-hourglass-end"></i> Estimates & Costs</h3>
 
                     <div class="form-row">
                         <div class="form-group">
@@ -332,7 +428,7 @@
 
                     <div class="form-group">
                         <label for="notes">Additional Notes</label>
-                        <textarea name="notes" id="notes" placeholder="Any special instructions or notes...">{{ old('notes') }}</textarea>
+                        <textarea name="notes" id="notes" placeholder="✍️ Any special instructions or notes...">{{ old('notes') }}</textarea>
                         @error('notes')
                             <div class="error">{{ $message }}</div>
                         @enderror
@@ -340,8 +436,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="submit">✅ Assign Task</button>
-                    <a href="{{ route('projects.show', $project) }}" class="btn">Cancel</a>
+                    <button type="submit"><i class="fas fa-check"></i> Assign Task</button>
+                    <a href="{{ route('projects.show', $project) }}" class="btn"><i class="fas fa-times"></i> Cancel</a>
                 </div>
             </form>
         </div>

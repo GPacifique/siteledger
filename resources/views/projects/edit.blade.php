@@ -3,6 +3,7 @@
 @section('title', 'Edit Project — SiteLedger')
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
 <style>
     :root {
       --primary: #667eea;

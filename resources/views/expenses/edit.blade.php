@@ -2,6 +2,10 @@
 
 @section('title', 'Edit Expense')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+@endsection
+
 @section('content')
 <div class="page-container">
     <!-- Page Header -->

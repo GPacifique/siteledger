@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revenues - SiteLedger</title>
-    <style>
+@extends('layouts.admin')
+
+@section('title', 'Revenues - SiteLedger')
+
+@section('styles')
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -356,10 +355,9 @@
             .container { padding: 1rem; }
         }
     </style>
-</head>
-<body>
-    @include('components.navbar')
+@endsection
 
+@section('content')
     @php
         // Group revenues by project
         $allRevenues = \App\Models\Income::with('project')->orderBy('received_at', 'desc')->get();
@@ -547,5 +545,4 @@
             }
         }
     </script>
-</body>
-</html>
+@endsection

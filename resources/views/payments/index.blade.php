@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Payments - SiteLedger</title>
-    <style>
+    <title>Company Payments - SiteLedger</title>    <!-- Colorful Theme CSS -->
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">    <style>
         * {
             margin: 0;
             padding: 0;

@@ -4,6 +4,8 @@
 
 @section('head')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Colorful Theme CSS -->
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
 @endsection
 
 @section('styles')

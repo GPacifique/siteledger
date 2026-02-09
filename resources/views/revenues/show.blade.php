@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Revenue Details - SiteLedger</title>
+    <!-- Colorful Theme CSS -->
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
     <style>
         * {
             margin: 0;

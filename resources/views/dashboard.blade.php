@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - SiteLedger</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Colorful Theme CSS - For consistent vibrant colors across dashboard -->
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
     <style>
         :root {
             /* Professional Color Palette */

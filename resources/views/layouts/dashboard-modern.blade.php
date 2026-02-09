@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SiteLedger</title>
 
+    <!-- Colorful Theme CSS - For consistent vibrant colors -->
+    <link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+
     <!-- Modern Design System -->
     <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
 

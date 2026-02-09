@@ -190,7 +190,7 @@ class ExpenseController extends Controller
         // Set additional fields
         $data['user_id'] = Auth::id();
         $data['tenant_id'] = Auth::user()->tenant_id;
-        $data['phase'] = $data['phase'] ?? null;
+        $data['phase'] = $data['phase'] ?? 'design';
 
         // Handle price storage based on expense type
         if ($data['expense_type'] === 'labor') {
@@ -286,7 +286,7 @@ class ExpenseController extends Controller
         // Set additional fields
         $data['user_id'] = $expense->user_id; // Keep original user
         $data['tenant_id'] = $expense->tenant_id; // Keep original tenant
-        $data['phase'] = $data['phase'] ?? null;
+        $data['phase'] = $data['phase'] ?? 'design';
 
         // Handle price storage based on expense type
         if ($data['expense_type'] === 'labor') {

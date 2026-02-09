@@ -3,6 +3,7 @@
 @section('title', 'Edit Worker - SiteLedger')
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
 <style>
         * {
             margin: 0;

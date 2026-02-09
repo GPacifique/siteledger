@@ -2,6 +2,10 @@
 
 @section('title', 'Project Tasks - SiteLedger')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+@endsection
+
 @section('content')
         <div class="card-colorful purple" style="margin-bottom: 2rem;">
             <div class="card-body">

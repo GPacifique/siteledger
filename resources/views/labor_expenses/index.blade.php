@@ -1,4 +1,9 @@
 @extends('layouts.admin')
+
+@section('styles')
+<link rel="stylesheet" href="{{ asset('css/colorful-theme.css') }}">
+@endsection
+
 @section('content')
 <div class="container">
     <h2>Labor Expenses</h2>
