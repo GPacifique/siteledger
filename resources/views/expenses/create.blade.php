@@ -1,635 +1,625 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Expense - SiteLedger</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .form-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .form-card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: #333;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 0.75rem;
-        }
-        .form-section {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        .form-section h3 {
-            font-size: 1.1rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        label .required {
-            color: #d63031;
-        }
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        .form-row-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-        @media (max-width: 768px) {
-            .form-row, .form-row-3 {
-                grid-template-columns: 1fr;
-            }
-        }
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 2px solid #f0f0f0;
-        }
-        button[type="submit"],
-        .btn {
-            padding: 0.875rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-        button[type="submit"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .btn {
-            background: #95a5a6;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn:hover {
-            background: #7f8c8d;
-        }
-        .error {
-            color: #d63031;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-        }
-        .alert-danger {
-            background: #ffe6e6;
-            color: #c0392b;
-            border: 1px solid #fab1a0;
-        }
-        .help-text {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 0.25rem;
-        }
-        @media (max-width: 640px) {
-            .container { padding: 1rem; }
-            .button-group { flex-direction: column; }
-            .button-group .btn, .button-group button[type="submit"] { width: 100%; }
-        }
+@extends('layouts.app')
 
-        /* Expense Type Cards */
-        .expense-type-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-        .expense-type-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        .expense-type-option:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-        .expense-type-option.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .expense-type-option input {
-            display: none;
-        }
-        .expense-type-option .icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .expense-type-option .label {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    @include('components.navbar')
+@section('title', 'Add New Expense')
 
-    <div class="container">
-        <div class="form-card">
-            <h2>💸 Add New Expense</h2>
+@section('content')
+<div class="page-container">
+    <!-- Professional Gradient Page Header -->
+    <div class="page-header-pro" style="background: linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #f97316 100%); border-radius: 24px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 20px 50px rgba(220, 38, 38, 0.3); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -50%; right: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -30%; left: -5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%); pointer-events: none;"></div>
 
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <a href="{{ route('dashboard') }}" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">🏠 Dashboard</a>
+                    <span style="color: rgba(255,255,255,0.6);">/</span>
+                    <a href="{{ route('expenses.index') }}" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">💸 Expenses</a>
+                    <span style="color: rgba(255,255,255,0.6);">/</span>
+                    <span style="color: white; font-weight: 600;">Add New</span>
+                </div>
+                <h1 style="color: white; font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                    <span style="font-size: 3rem; animation: bounce 2s infinite;">➕</span>
+                    Add New Expense
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 1.1rem;">Record a new expense entry</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: none;">
+        <div class="card-header" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.5rem 2rem; border-bottom: 2px solid #fbbf24;">
+            <h3 class="card-title" style="color: #92400e; margin: 0; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem; animation: bounce 2s infinite;">💸</span>
+                Expense Information
+            </h3>
+        </div>
+        <div class="card-body">
             @if($errors->any())
-                <div class="alert alert-danger">
-                    <strong>Please fix the following errors:</strong>
-                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div class="alert alert-error mb-lg">
+                    <div class="alert-content">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mt-sm">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
             @endif
 
-            <form action="{{ route('expenses.store') }}" method="POST" id="expenseForm" novalidate>
+            <form action="{{ route('expenses.store') }}" method="POST" id="expenseForm">
                 @csrf
 
-                <!-- Basic Information -->
-                <div class="form-section">
-                    <h3>📋 Basic Information</h3>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="date">Date <span class="required">*</span></label>
-                            <input type="date" name="date" id="date" value="{{ old('date', date('Y-m-d')) }}" required>
-                            @error('date')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="project_id">Project (optional)</label>
-                            <select name="project_id" id="project_id">
-                                <option value="">-- General Expense (No Project) --</option>
-                                @foreach($projects as $project)
-                                    <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
-                                        {{ $project->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="help-text">Leave unselected for office or general company expenses</div>
-                            @error('project_id')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Project Phase Section - Shown when project is selected -->
-                    <div class="form-group" id="projectPhaseSection" style="display: none; margin-top: 1rem;">
-                        <label for="phase">Project Phase</label>
-                        <select name="phase" id="phase">
-                            <option value="">-- Select Phase --</option>
-                            <option value="design" {{ old('phase') == 'design' ? 'selected' : '' }}>📝 Design Phase - Planning, drawings, permits</option>
-                            <option value="execution" {{ old('phase') == 'execution' ? 'selected' : '' }}>🔨 Execution Phase - Construction, installation</option>
-                        </select>
-                        <div class="help-text">Select which project phase this expense belongs to</div>
-                        @error('phase')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
                 <!-- Expense Type Selection -->
-                <div class="form-section" id="expenseTypeSection">
-                    <h3>📦 Expense Type</h3>
-
-                    <div class="expense-type-selector">
-                        <label class="expense-type-option" data-type="materials">
+                <div class="form-section mb-xl">
+                    <h4 class="section-title">
+                        <span class="icon">📦</span>
+                        Expense Type
+                    </h4>
+                    <div class="expense-type-grid">
+                        <label class="expense-type-card {{ old('expense_type') == 'materials' ? 'selected' : '' }}" data-type="materials">
                             <input type="radio" name="expense_type" value="materials" {{ old('expense_type') == 'materials' ? 'checked' : '' }}>
-                            <span class="icon">🧱</span>
-                            <span class="label">Materials</span>
+                            <div class="card-icon">🧱</div>
+                            <div class="card-title">Materials</div>
+                            <div class="card-description">Construction materials, supplies</div>
                         </label>
-                        <label class="expense-type-option" data-type="labor">
+
+                        <label class="expense-type-card {{ old('expense_type') == 'labor' ? 'selected' : '' }}" data-type="labor">
                             <input type="radio" name="expense_type" value="labor" {{ old('expense_type') == 'labor' ? 'checked' : '' }}>
-                            <span class="icon">👷</span>
-                            <span class="label">Labor</span>
+                            <div class="card-icon">👷</div>
+                            <div class="card-title">Labor</div>
+                            <div class="card-description">Workforce, contractors</div>
                         </label>
-                        <label class="expense-type-option" data-type="equipment">
+
+                        <label class="expense-type-card {{ old('expense_type') == 'equipment' ? 'selected' : '' }}" data-type="equipment">
                             <input type="radio" name="expense_type" value="equipment" {{ old('expense_type') == 'equipment' ? 'checked' : '' }}>
-                            <span class="icon">🔧</span>
-                            <span class="label">Equipment</span>
+                            <div class="card-icon">🔧</div>
+                            <div class="card-title">Equipment</div>
+                            <div class="card-description">Tools, machinery rental</div>
                         </label>
-                        <label class="expense-type-option" data-type="transport">
+
+                        <label class="expense-type-card {{ old('expense_type') == 'transport' ? 'selected' : '' }}" data-type="transport">
                             <input type="radio" name="expense_type" value="transport" {{ old('expense_type') == 'transport' ? 'checked' : '' }}>
-                            <span class="icon">🚚</span>
-                            <span class="label">Transport</span>
+                            <div class="card-icon">🚚</div>
+                            <div class="card-title">Transport</div>
+                            <div class="card-description">Delivery, fuel, logistics</div>
                         </label>
-                        <label class="expense-type-option" data-type="subcontractor">
-                            <input type="radio" name="expense_type" value="subcontractor" {{ old('expense_type') == 'subcontractor' ? 'checked' : '' }}>
-                            <span class="icon">🤝</span>
-                            <span class="label">Subcontractor</span>
-                        </label>
-                        <label class="expense-type-option" data-type="miscellaneous">
-                            <input type="radio" name="expense_type" value="miscellaneous" {{ old('expense_type', 'miscellaneous') == 'miscellaneous' ? 'checked' : '' }}>
-                            <span class="icon">📦</span>
-                            <span class="label">Other</span>
+
+                        <label class="expense-type-card {{ old('expense_type') == 'office' ? 'selected' : '' }}" data-type="office">
+                            <input type="radio" name="expense_type" value="office" {{ old('expense_type', 'office') == 'office' ? 'checked' : '' }}>
+                            <div class="card-icon">🏢</div>
+                            <div class="card-title">Office</div>
+                            <div class="card-description">Administrative, utilities</div>
                         </label>
                     </div>
                     @error('expense_type')
-                        <div class="error">{{ $message }}</div>
+                        <div class="form-error">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <!-- Category Selection -->
-                <div class="form-section">
-                    <h3>📋 Category</h3>
+                <div class="grid grid-cols-2 gap-xl">
+                    <!-- Left Column -->
+                    <div class="space-y-lg">
+                        <!-- Basic Information -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <span class="icon">📋</span>
+                                Basic Information
+                            </h4>
 
-                    <div class="form-group">
-                        <label for="expense_category_id">Category <span class="required">*</span></label>
-                        <select name="expense_category_id" id="expense_category_id" required style="font-size: 1rem; padding: 0.875rem;">
-                            <option value="">-- Select Category --</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('expense_category_id')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
+                            <div class="space-y-md">
+                                <div class="form-group">
+                                    <label for="date" class="form-label required">Date</label>
+                                    <input type="date"
+                                           name="date"
+                                           id="date"
+                                           value="{{ old('date', date('Y-m-d')) }}"
+                                           class="form-input"
+                                           required>
+                                    @error('date')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="item_name" class="form-label required">Item/Service Name</label>
+                                    <input type="text"
+                                           name="item_name"
+                                           id="item_name"
+                                           value="{{ old('item_name') }}"
+                                           placeholder="Enter item or service name"
+                                           class="form-input"
+                                           required>
+                                    @error('item_name')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="expense_category_id" class="form-label required">Category</label>
+                                    <select name="expense_category_id" id="expense_category_id" class="form-select" required>
+                                        <option value="">Select a category</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}"
+                                                    {{ old('expense_category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('expense_category_id')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea name="notes"
+                                              id="notes"
+                                              rows="3"
+                                              placeholder="Additional notes or description..."
+                                              class="form-input">{{ old('notes') }}</textarea>
+                                    @error('notes')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-lg">
+                        <!-- Project & Phase -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <span class="icon">🏗️</span>
+                                Project Assignment
+                            </h4>
+
+                            <div class="space-y-md">
+                                <div class="form-group">
+                                    <label for="project_id" class="form-label">Project</label>
+                                    <select name="project_id" id="project_id" class="form-select">
+                                        <option value="">General Company Expense</option>
+                                        @foreach($projects as $project)
+                                            <option value="{{ $project->id }}"
+                                                    {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                                {{ $project->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-help">Leave unselected for general company expenses</div>
+                                    @error('project_id')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group" id="phase-group" style="display: none;">
+                                    <label for="phase" class="form-label">Project Phase</label>
+                                    <select name="phase" id="phase" class="form-select">
+                                        <option value="">Select Phase</option>
+                                        <option value="design" {{ old('phase') == 'design' ? 'selected' : '' }}>
+                                            📝 Design Phase
+                                        </option>
+                                        <option value="execution" {{ old('phase') == 'execution' ? 'selected' : '' }}>
+                                            🔨 Execution Phase
+                                        </option>
+                                    </select>
+                                    @error('phase')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity & Pricing -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <span class="icon">💰</span>
+                                Quantity & Pricing
+                            </h4>
+
+                            <div class="space-y-md">
+                                <div class="grid grid-cols-2 gap-md">
+                                    <div class="form-group">
+                                        <label for="quantity" class="form-label">Quantity</label>
+                                        <input type="number"
+                                               name="quantity"
+                                               id="quantity"
+                                               value="{{ old('quantity') }}"
+                                               step="0.01"
+                                               min="0"
+                                               placeholder="0.00"
+                                               class="form-input">
+                                        @error('quantity')
+                                            <div class="form-error">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="unit" class="form-label">Unit</label>
+                                        <input type="text"
+                                               name="unit"
+                                               id="unit"
+                                               value="{{ old('unit') }}"
+                                               placeholder="pcs, kg, m², etc."
+                                               class="form-input">
+                                        @error('unit')
+                                            <div class="form-error">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="unit_price" class="form-label">Unit Price (RWF)</label>
+                                    <input type="number"
+                                           name="unit_price"
+                                           id="unit_price"
+                                           value="{{ old('unit_price') }}"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0.00"
+                                           class="form-input">
+                                    @error('unit_price')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="total" class="form-label required">Total Amount (RWF)</label>
+                                    <input type="number"
+                                           name="total"
+                                           id="total"
+                                           value="{{ old('total') }}"
+                                           step="0.01"
+                                           min="0.01"
+                                           placeholder="0.00"
+                                           class="form-input total-input"
+                                           required>
+                                    <div class="form-help">Will auto-calculate if quantity × unit price is provided</div>
+                                    @error('total')
+                                        <div class="form-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Materials Fields (shown when materials is selected) -->
-
-                <div class="form-section" id="dynamicFieldsSection">
-                    <h3 id="dynamicFieldsTitle">🧱 Material Details</h3>
-                    <div class="form-group" id="itemNameGroup">
-                        <label for="item_name">Item Name <span class="required">*</span></label>
-                        <input type="text" name="item_name" id="item_name" value="{{ old('item_name') }}" placeholder="e.g., Cement, Sand, Iron rods">
-                        @error('item_name')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="form-row-3">
-                        <div class="form-group">
-                            <label for="quantity" id="quantityLabel">Quantity <span class="required">*</span></label>
-                            <div class="help-text" id="quantityHelp">Enter the number of items. For example, 40 bags of cement.</div>
-                            <input type="number" name="quantity" id="quantity" step="0.01" value="{{ old('quantity') }}" placeholder="0" required>
-                            @error('quantity')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="unit" id="unitLabel">Unit</label>
-                            <select name="unit" id="unit">
-                                <option value="">Select unit</option>
-                                <option class="unit-material" value="pieces" {{ old('unit') == 'pieces' ? 'selected' : '' }}>Pieces</option>
-                                <option class="unit-material" value="kg" {{ old('unit') == 'kg' ? 'selected' : '' }}>Kilograms</option>
-                                <option class="unit-material" value="bags" {{ old('unit') == 'bags' ? 'selected' : '' }}>Bags</option>
-                                <option class="unit-material" value="meters" {{ old('unit') == 'meters' ? 'selected' : '' }}>Meters</option>
-                                <option class="unit-material" value="sqm" {{ old('unit') == 'sqm' ? 'selected' : '' }}>Square Meters</option>
-                                <option class="unit-labor" value="person" {{ old('unit') == 'person' ? 'selected' : '' }} style="display:none;">Person</option>
-                                <option class="unit-labor" value="day" {{ old('unit') == 'day' ? 'selected' : '' }} style="display:none;">Day</option>
-                                <option class="unit-labor" value="hour" {{ old('unit') == 'hour' ? 'selected' : '' }} style="display:none;">Hour</option>
-                            </select>
-                            @error('unit')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="unit_price" id="unitPriceLabel">Unit Price (RWF) <span class="required">*</span></label>
-                            <div class="help-text" id="unitPriceHelp">Enter the amount for one item.</div>
-                            <input type="number" name="unit_price" id="unit_price" step="0.01" value="{{ old('unit_price') }}" placeholder="0.00" required>
-                            @error('unit_price')
-                                <div class="error">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Amount & Description -->
-                <div class="form-section">
-                    <h3>💰 Amount & Details</h3>
-                    <div class="help-text" style="margin-bottom: 10px; color: #444;">
-                        For labor, <b>Quantity</b> = number of labors, <b>Unit Price</b> = amount for one labor. For materials, use the number of items and price per item.
-                    </div>
-
-                    <div class="form-group">
-                        <label for="total" style="font-weight: bold; color: #2d3436;">Total Amount (RWF) <span class="required">*</span></label>
-                        <input type="number" name="total" id="total" step="0.01" value="{{ old('total') }}" required placeholder="0.00" readonly style="background: #eafaf1; color: #09804a; font-weight: bold; font-size: 1.2rem; border: 2px solid #55efc4;">
-                        <div class="help-text" id="calculatedAmount" style="color: #09804a; font-weight: 600; margin-top: 0.25rem;">This value is auto-calculated from Quantity × Unit Price.</div>
-                        @error('total')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea name="description" id="description" placeholder="Describe this expense (optional)...">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="method">Payment Method</label>
-                        <select name="method" id="method">
-                            <option value="cash" {{ old('method', 'cash') == 'cash' ? 'selected' : '' }}>Cash</option>
-                            <option value="mobile_money" {{ old('method') == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
-                            <option value="bank_transfer" {{ old('method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        </select>
-                        @error('method')
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Hidden fields -->
-                    <input type="hidden" name="status" value="completed">
-                </div>
-
-                <div class="button-group">
-                    <button type="submit">💾 Save Expense</button>
-                    <a href="{{ route('expenses.index') }}" class="btn">Cancel</a>
+                <!-- Form Actions -->
+                <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #fef3c7;">
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%); color: white; font-weight: 700; padding: 1rem 2.5rem; border-radius: 50px; display: flex; align-items: center; gap: 0.75rem; border: none; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3); transition: all 0.3s ease; cursor: pointer;">
+                        <span style="font-size: 1.3rem;">💾</span>
+                        Create Expense
+                    </button>
+                    <a href="{{ route('expenses.index') }}" class="btn" style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); color: #374151; font-weight: 600; padding: 1rem 2rem; border-radius: 50px; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #d1d5db; transition: all 0.3s ease;">
+                        ❌ Cancel
+                    </a>
                 </div>
             </form>
         </div>
     </div>
+</div>
 
-            <script>
-        // Prevent submit if total is empty or zero
-        document.getElementById('expenseForm').addEventListener('submit', function(e) {
-            const total = document.getElementById('total');
-            const totalVal = parseFloat(total.value) || 0;
-            let errorDiv = document.getElementById('totalRequiredError');
-            if (!errorDiv) {
-                errorDiv = document.createElement('div');
-                errorDiv.id = 'totalRequiredError';
-                errorDiv.className = 'error';
-                total.parentNode.appendChild(errorDiv);
-            }
-            if (totalVal <= 0) {
-                errorDiv.textContent = 'Total amount is required and must be greater than zero.';
-                total.focus();
-                e.preventDefault();
-            } else {
-                errorDiv.textContent = '';
-            }
+<style>
+/* Expense Type Selection */
+.expense-type-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+}
+
+.expense-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.expense-type-card:hover {
+    transform: translateY(-8px);
+}
+
+.expense-type-card.selected {
+    transform: translateY(-8px) scale(1.02);
+}
+
+.expense-type-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.expense-type-card .card-icon {
+    font-size: 2.75rem;
+    margin-bottom: 0.75rem;
+    animation: bounce 2s infinite;
+}
+
+.expense-type-card .card-title {
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--space-xs);
+    font-size: 1.1rem;
+}
+
+.expense-type-card .card-description {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+}
+
+/* Colorful type cards */
+.expense-type-card[data-type="materials"] { border-color: #fed7aa; background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); }
+.expense-type-card[data-type="materials"]:hover, .expense-type-card[data-type="materials"].selected { border-color: #f97316; background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); box-shadow: 0 8px 25px rgba(249, 115, 22, 0.25); }
+
+.expense-type-card[data-type="labor"] { border-color: #a7f3d0; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+.expense-type-card[data-type="labor"]:hover, .expense-type-card[data-type="labor"].selected { border-color: #10b981; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25); }
+
+.expense-type-card[data-type="equipment"] { border-color: #fde68a; background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); }
+.expense-type-card[data-type="equipment"]:hover, .expense-type-card[data-type="equipment"].selected { border-color: #f59e0b; background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25); }
+
+.expense-type-card[data-type="transport"] { border-color: #ddd6fe; background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); }
+.expense-type-card[data-type="transport"]:hover, .expense-type-card[data-type="transport"].selected { border-color: #8b5cf6; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.25); }
+
+.expense-type-card[data-type="office"] { border-color: #bfdbfe; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+.expense-type-card[data-type="office"]:hover, .expense-type-card[data-type="office"].selected { border-color: #3b82f6; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25); }
+
+/* Professional form section styling */
+.form-section {
+    padding: 1.75rem;
+    background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+    border-radius: 20px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #dc2626, #ea580c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #fef3c7;
+}
+
+.section-title .icon {
+    font-size: 1.5rem;
+    -webkit-text-fill-color: initial;
+}
+
+/* Enhanced form input styling */
+.form-input,
+.form-select,
+.form-textarea {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+/* Enhanced form input focus states */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+    background: white;
+}
+
+/* Form label styling */
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.95rem;
+}
+
+/* Required field indicators */
+.form-label.required::after {
+    content: " *";
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* Form help text */
+.form-help {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Alert styling - colorful */
+.alert-error {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 2px solid #fca5a5;
+    color: #991b1b;
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.alert-error strong {
+    color: #7f1d1d;
+}
+
+/* Enhanced form styles */
+.total-input {
+    font-weight: 700;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 2px solid #fca5a5;
+    color: #dc2626;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+}
+
+.total-input:focus {
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+    border-color: #dc2626;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+/* Animation keyframes */
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        animation-timing-function: cubic-bezier(.215,.61,.355,1);
+        transform: translateY(0);
+    }
+    40%, 43% {
+        animation-timing-function: cubic-bezier(.755,.05,.855,.06);
+        transform: translateY(-6px);
+    }
+    70% {
+        animation-timing-function: cubic-bezier(.755,.05,.855,.06);
+        transform: translateY(-3px);
+    }
+    90% {
+        transform: translateY(-1px);
+    }
+}
+
+/* Phase group animation */
+#phase-group {
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+#phase-group.show {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Form actions */
+.form-actions {
+    display: flex;
+    gap: var(--space-md);
+    padding-top: var(--space-xl);
+    margin-top: var(--space-xl);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .expense-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .expense-type-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Expense type selection
+    const expenseTypeCards = document.querySelectorAll('.expense-type-card');
+    expenseTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove selected class from all cards
+            expenseTypeCards.forEach(c => c.classList.remove('selected'));
+
+            // Add selected class to clicked card
+            this.classList.add('selected');
+
+            // Check the radio input
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+
+            // Handle phase visibility for labor
+            handlePhaseVisibility();
         });
+    });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const expenseTypeOptions = document.querySelectorAll('.expense-type-option');
-            const projectSelect = document.getElementById('project_id');
-            const projectPhaseSection = document.getElementById('projectPhaseSection');
-            const phaseSelect = document.getElementById('phase');
-            const categorySelect = document.getElementById('expense_category_id');
-            const dynamicFieldsTitle = document.getElementById('dynamicFieldsTitle');
-            const itemNameGroup = document.getElementById('itemNameGroup');
-            const quantityLabel = document.getElementById('quantityLabel');
-            const quantityHelp = document.getElementById('quantityHelp');
-            const unitLabel = document.getElementById('unitLabel');
-            const unitSelect = document.getElementById('unit');
-            const unitPriceLabel = document.getElementById('unitPriceLabel');
-            const unitPriceHelp = document.getElementById('unitPriceHelp');
+    // Project selection change handler
+    const projectSelect = document.getElementById('project_id');
+    const phaseGroup = document.getElementById('phase-group');
 
-            // Show/hide phase section based on project selection
-            function togglePhaseSection() {
-                if (projectSelect.value) {
-                    projectPhaseSection.style.display = 'block';
-                } else {
-                    projectPhaseSection.style.display = 'none';
-                    if (phaseSelect) {
-                        phaseSelect.value = '';
-                    }
-                }
-            }
+    projectSelect.addEventListener('change', handlePhaseVisibility);
 
-            projectSelect.addEventListener('change', togglePhaseSection);
-            togglePhaseSection(); // Check initial state
+    function handlePhaseVisibility() {
+        const selectedType = document.querySelector('input[name="expense_type"]:checked')?.value;
+        const hasProject = projectSelect.value !== '';
 
-            // Update category selection based on expense type
-            function updateCategoryForType(type) {
-                const typeToCategory = {
-                    'materials': 'Materials',
-                    'labor': 'Labor',
-                    'equipment': 'Equipment',
-                    'transport': 'Transport',
-                    'subcontractor': 'Subcontractor',
-                    'miscellaneous': 'Other'
-                };
+        if (selectedType === 'labor' && hasProject) {
+            phaseGroup.style.display = 'block';
+            phaseGroup.classList.add('show');
+            document.getElementById('phase').required = true;
+        } else {
+            phaseGroup.style.display = 'none';
+            phaseGroup.classList.remove('show');
+            document.getElementById('phase').required = false;
+        }
+    }
 
-                const categoryName = typeToCategory[type];
-                for (let option of categorySelect.options) {
-                    if (option.text.trim() === categoryName) {
-                        categorySelect.value = option.value;
-                        break;
-                    }
-                }
-                // Force update of fields and units
-                updateFieldsForCategory();
-            }
+    // Auto-calculate total
+    const quantityInput = document.getElementById('quantity');
+    const unitPriceInput = document.getElementById('unit_price');
+    const totalInput = document.getElementById('total');
 
-            // Update fields based on expense type directly
-            function updateFieldsForType(type) {
-                if (type === 'labor') {
-                    dynamicFieldsTitle.textContent = '👷 Labor Details';
-                    itemNameGroup.style.display = 'none';
-                    quantityLabel.innerHTML = 'Number of Workers <span class="required">*</span>';
-                    quantityHelp.textContent = 'Enter the number of workers. For example, if 5 workers worked, enter 5.';
-                    unitLabel.textContent = 'Unit';
-                    // Show only labor units
-                    Array.from(unitSelect.options).forEach(opt => {
-                        if (opt.classList.contains('unit-labor')) {
-                            opt.style.display = '';
-                        } else if (opt.value !== '') {
-                            opt.style.display = 'none';
-                        }
-                    });
-                    unitPriceLabel.innerHTML = 'Rate per Worker (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the payment per worker (per person, per day, or per hour).';
-                    unitSelect.value = 'person'; // Set default for labor
-                } else {
-                    // Materials, Equipment, Transport, Subcontractor, Other
-                    const typeNames = {
-                        'materials': '🧱 Material Details',
-                        'equipment': '🔧 Equipment Details',
-                        'transport': '🚚 Transport Details',
-                        'subcontractor': '🤝 Subcontractor Details',
-                        'miscellaneous': '📦 Other Details'
-                    };
-                    dynamicFieldsTitle.textContent = typeNames[type] || '📦 Item Details';
-                    itemNameGroup.style.display = '';
-                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
-                    quantityHelp.textContent = 'Enter the number of items. For example, 40 bags of cement.';
-                    unitLabel.textContent = 'Unit';
-                    // Show only material units
-                    Array.from(unitSelect.options).forEach(opt => {
-                        if (opt.classList.contains('unit-material')) {
-                            opt.style.display = '';
-                        } else if (opt.value !== '') {
-                            opt.style.display = 'none';
-                        }
-                    });
-                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the price for one item.';
-                    unitSelect.value = 'pieces'; // Set default for materials
-                }
-                calculateAmount(); // Recalculate when type changes
-            }
+    function calculateTotal() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const unitPrice = parseFloat(unitPriceInput.value) || 0;
 
-            // Expense type selection
-            expenseTypeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove selected from all
-                    expenseTypeOptions.forEach(opt => opt.classList.remove('selected'));
-                    // Add selected to clicked
-                    this.classList.add('selected');
+        if (quantity > 0 && unitPrice > 0) {
+            const total = quantity * unitPrice;
+            totalInput.value = total.toFixed(2);
+        }
+    }
 
-                    const type = this.dataset.type;
-                    // Update category dropdown
-                    updateCategoryForType(type);
-                    // Update fields and units immediately
-                    updateFieldsForType(type);
-                });
+    quantityInput.addEventListener('input', calculateTotal);
+    unitPriceInput.addEventListener('input', calculateTotal);
 
-                // Check initial state
-                if (option.querySelector('input').checked) {
-                    option.classList.add('selected');
-                    const type = option.dataset.type;
-                    updateCategoryForType(type);
-                    updateFieldsForType(type);
-                }
-            });
+    // Form validation enhancement
+    const form = document.getElementById('expenseForm');
+    form.addEventListener('submit', function(e) {
+        const expenseType = document.querySelector('input[name="expense_type"]:checked');
+        if (!expenseType) {
+            e.preventDefault();
+            alert('Please select an expense type');
+            return false;
+        }
 
-            // Update fields based on category selection
-            function updateFieldsForCategory() {
-                const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-                const categoryName = selectedOption.text.trim();
+        // Validate phase for labor with project
+        const selectedType = expenseType.value;
+        const hasProject = projectSelect.value !== '';
+        const phase = document.getElementById('phase').value;
 
-                if (categoryName === 'Labor') {
-                    dynamicFieldsTitle.textContent = '👷 Labor Details';
-                    itemNameGroup.style.display = 'none';
-                    quantityLabel.innerHTML = 'Number of Workers <span class="required">*</span>';
-                    quantityHelp.textContent = 'Enter the number of workers. For example, if 5 workers worked, enter 5.';
-                    unitLabel.textContent = 'Unit';
-                    // Show only labor units
-                    Array.from(unitSelect.options).forEach(opt => {
-                        if (opt.classList.contains('unit-labor')) opt.style.display = '';
-                        else if (opt.value !== '') opt.style.display = 'none';
-                    });
-                    unitPriceLabel.innerHTML = 'Rate per Worker (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the payment per worker (per person, per day, or per hour).';
-                    unitSelect.value = 'person'; // Set default for labor
-                } else {
-                    dynamicFieldsTitle.textContent = `${categoryName} Details` || '📦 Item Details';
-                    itemNameGroup.style.display = '';
-                    quantityLabel.innerHTML = 'Quantity <span class="required">*</span>';
-                    quantityHelp.textContent = 'Enter the number of items. For example, 40 bags of cement.';
-                    unitLabel.textContent = 'Unit';
-                    // Show only material units
-                    Array.from(unitSelect.options).forEach(opt => {
-                        if (opt.classList.contains('unit-material')) opt.style.display = '';
-                        else if (opt.value !== '') opt.style.display = 'none';
-                    });
-                    unitPriceLabel.innerHTML = 'Unit Price (RWF) <span class="required">*</span>';
-                    unitPriceHelp.textContent = 'Enter the price for one item.';
-                    unitSelect.value = 'pieces'; // Set default for materials
-                }
-                calculateAmount(); // Recalculate when category changes
-            }
+        if (selectedType === 'labor' && hasProject && !phase) {
+            e.preventDefault();
+            alert('Please select a project phase for labor expenses');
+            return false;
+        }
+    });
 
-            categorySelect.addEventListener('change', updateFieldsForCategory);
-
-            // Auto-calculate amount from quantity * unit_price
-            function calculateAmount() {
-                const quantity = document.getElementById('quantity');
-                const unitPrice = document.getElementById('unit_price');
-                const total = document.getElementById('total');
-                const calculatedAmount = document.getElementById('calculatedAmount');
-                const qty = parseFloat(quantity.value) || 0;
-                const price = parseFloat(unitPrice.value) || 0;
-
-                if (qty > 0 && price > 0) {
-                    const totalVal = qty * price;
-                    total.value = totalVal.toFixed(2);
-                    calculatedAmount.textContent = `Calculated: ${qty} × RWF ${price.toLocaleString()} = RWF ${totalVal.toLocaleString()}`;
-                    calculatedAmount.style.color = '#09804a';
-                } else {
-                    total.value = '';
-                    calculatedAmount.textContent = 'This value is auto-calculated from Quantity × Unit Price.';
-                    calculatedAmount.style.color = '#666';
-                }
-            }
-
-            document.getElementById('quantity').addEventListener('input', calculateAmount);
-            document.getElementById('unit_price').addEventListener('input', calculateAmount);
-            calculateAmount(); // Initial calculation on page load
-        });
-    </script>
-</body>
-</html>
+    // Initialize phase visibility
+    handlePhaseVisibility();
+});
+</script>
+@endsection

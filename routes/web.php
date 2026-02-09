@@ -194,6 +194,9 @@ Route::middleware(['auth', 'verified', 'tenant.data'])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
     Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy'])->name('notifications.destroy');
 
+    // API endpoint for notification count (AJAX)
+    Route::get('/api/notifications/unread-count', [NotificationsController::class, 'getUnreadCount'])->name('api.notifications.unread-count');
+
     // Company Staff Management (for tenant/company admins)
     Route::prefix('company')->name('company.')->group(function () {
         Route::get('/staff', [CompanyStaffController::class, 'index'])->name('staff.index');

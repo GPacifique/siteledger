@@ -4,184 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clients - SiteLedger</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .page-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .page-header h1 {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        .page-header p {
-            color: #666;
-            margin: 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        thead {
-            background: #27ae60;
-            color: white;
-        }
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-        }
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-        tbody tr {
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        tbody tr:hover {
-            background: #f9f9f9;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
-        }
-        .btn-edit {
-            background: #3498db;
-            color: white;
-        }
-        .btn-edit:hover {
-            background: #2980b9;
-        }
-        .btn-delete {
-            background: #e74c3c;
-            color: white;
-        }
-        .btn-delete:hover {
-            background: #c0392b;
-        }
-        .no-data {
-            text-align: center;
-            padding: 3rem;
-            color: #999;
-        }
-        .add-button-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1.5rem;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
 
-        /* Responsive tables */
-        .table-wrap { width: 100%; overflow-x: auto; }
-        @media (max-width: 640px) {
-            .container { padding: 1rem; }
-            .page-header { padding: 1rem; }
-            .add-button-container { justify-content: stretch; }
-            .btn-primary { display: block; width: 100%; text-align: center; }
-            table { font-size: 0.9rem; min-width: 700px; }
-            th, td { padding: 0.6rem; }
-        }
-    </style>
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="page-wrapper" style="background: var(--gradient-blue);">
     @include('components.navbar')
 
-    <div class="container">
-        <div class="page-header">
-            <h1>👥 Clients</h1>
-            <p>Manage all clients and their information</p>
+    <div class="container" style="padding: 2rem;">
+        <!-- Enhanced Colorful Page Header -->
+        <div class="card-colorful ocean" style="margin-bottom: 2rem;">
+            <div class="card-body" style="text-align: center;">
+                <h1 style="font-size: 3rem; color: var(--primary); margin-bottom: 0.5rem;">
+                    <span class="icon-bounce">👥</span> Our Valued Clients
+                </h1>
+                <p style="color: var(--gray-700); margin: 0; font-size: 1.2rem;">
+                    Building relationships and managing client portfolios
+                </p>
+            </div>
         </div>
+    </div>
 
-        <div class="add-button-container">
-            <a href="{{ route('clients.create') }}" class="btn-primary">+ Add Client</a>
+    <div class="container" style="padding: 2rem;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+            <a href="{{ route('clients.create') }}" class="btn-rainbow">
+                <span class="icon-bounce">✨</span> Add New Client
+            </a>
         </div>
 
         @if($clients->count() > 0)
-            <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Contact Person</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Address</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($clients as $client)
-                        <tr onclick="window.location='{{ route('clients.show', $client->id) }}'">
-                            <td><strong>{{ $client->name }}</strong></td>
-                            <td>{{ $client->contact_person ?? '-' }}</td>
-                            <td>{{ $client->email ?? '-' }}</td>
-                            <td>{{ $client->phone ?? '-' }}</td>
-                            <td>{{ $client->address ?? '-' }}</td>
-                            <td onclick="event.stopPropagation()">
-                                <div class="action-buttons">
-                                    <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-edit">Edit</a>
-                                    <form action="{{ route('clients.destroy', $client->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-delete">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="card-colorful purple">
+                <div class="card-body" style="padding: 0;">
+                    <div style="overflow-x: auto;">
+                        <table class="table-enhanced">
+                            <thead>
+                                <tr>
+                                    <th><span class="icon-pulse">🏢</span> Client Name</th>
+                                    <th><span class="icon-pulse">👤</span> Contact Person</th>
+                                    <th><span class="icon-pulse">📧</span> Email</th>
+                                    <th><span class="icon-pulse">📱</span> Phone</th>
+                                    <th><span class="icon-pulse">📍</span> Address</th>
+                                    <th><span class="icon-pulse">⚡</span> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($clients as $client)
+                                    <tr onclick="window.location='{{ route('clients.show', $client->id) }}'" style="cursor: pointer;">
+                                        <td><strong>{{ $client->name }}</strong></td>
+                                        <td>{{ $client->contact_person ?? '-' }}</td>
+                                        <td>{{ $client->email ?? '-' }}</td>
+                                        <td>{{ $client->phone ?? '-' }}</td>
+                                        <td>{{ $client->address ?? '-' }}</td>
+                                        <td onclick="event.stopPropagation()">
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <a href="{{ route('clients.edit', $client->id) }}" class="btn-ocean" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">Edit</a>
+                                                <form action="{{ route('clients.destroy', $client->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-sunset" style="padding: 0.375rem 0.75rem; font-size: 0.875rem; border: none;">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         @else
-            <div style="background: white; padding: 3rem; border-radius: 8px; text-align: center; color: #999;">
-                <p>No clients found. <a href="{{ route('clients.create') }}" style="color: #667eea; text-decoration: none;">Create one now</a></p>
+            <div class="card-colorful ocean" style="text-align: center; padding: 3rem;">
+                <div class="card-body">
+                    <span class="icon-bounce" style="font-size: 3rem;">👥</span>
+                    <p style="margin: 1rem 0; color: var(--gray-600);">No clients found.</p>
+                    <a href="{{ route('clients.create') }}" class="btn-rainbow">Create New Client</a>
+                </div>
             </div>
         @endif
     </div>

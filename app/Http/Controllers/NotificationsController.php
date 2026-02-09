@@ -64,4 +64,15 @@ class NotificationsController extends Controller
         $notification->delete();
         return redirect()->back()->with('success', 'Notification deleted');
     }
+
+    /**
+     * Get unread notification count as JSON (for navbar badge).
+     */
+    public function getUnreadCount()
+    {
+        $user = Auth::user();
+        $count = $user->notifications()->whereNull('read_at')->count();
+
+        return response()->json(['count' => $count]);
+    }
 }

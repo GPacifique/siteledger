@@ -163,7 +163,7 @@ class DashboardController extends Controller
             ? Project::withoutGlobalScope('tenant')->whereBetween('created_at', [$startOfMonth, $endOfToday])->count()
             : 0;
         $projectsTotal = $has('projects', 'contract_value') ? Project::withoutGlobalScope('tenant')->sum('contract_value') : 0;
-        $recentProjects = $has('projects') ? Project::withoutGlobalScope('tenant')->with(['client', 'manager'])->latest()->limit(7)->get() : collect();
+        $recentProjects = $has('projects') ? Project::withoutGlobalScope('tenant')->with(['client', 'manager'])->latest()->limit(20)->get() : collect();
 
         // Design Phase Summary Variables
         $totalDesignValue = 0;

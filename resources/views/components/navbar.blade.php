@@ -1,12 +1,12 @@
-<!-- Navigation Menu -->
-<nav class="navbar">
+<!-- Enhanced Colorful Navigation Menu -->
+<nav class="navbar" style="background: var(--gradient-primary); box-shadow: var(--shadow-lg);">
     <div class="navbar-container">
         <div class="navbar-brand">
-            <a href="/" class="logo">
-                <span class="logo-icon">🏗️</span>
+            <a href="/" class="logo" style="color: white; text-decoration: none;">
+                <span class="logo-icon icon-bounce" style="font-size: 2rem;">🏗️</span>
                 <span class="logo-text">
-                    <span class="logo-name">SiteLedger</span>
-                    <span class="logo-tagline">Construction Sites Management</span>
+                    <span class="logo-name" style="font-weight: 800; font-size: 1.5rem;">SiteLedger</span>
+                    <span class="logo-tagline" style="font-size: 0.8rem; opacity: 0.9;">Construction Sites Management</span>
                 </span>
             </a>
         </div>
@@ -18,17 +18,51 @@
             <span class="hamburger-line"></span>
         </button>
 
-        <ul class="navbar-menu" id="navbarMenu">
+        <ul class="nav-colorful navbar-menu" id="navbarMenu" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
             @auth
-                <li><a href="/dashboard" class="nav-link">📊 Dashboard</a></li>
-                <li><a href="/projects" class="nav-link">🏗️ Projects</a></li>
-                <li><a href="/clients" class="nav-link">👥 Clients</a></li>
-                <li><a href="/workers" class="nav-link">👷 Workers</a></li>
-                <li><a href="/payments" class="nav-link">💳 Company Payments</a></li>
-                <li><a href="/revenues" class="nav-link">💰 Revenues</a></li>
-                <li><a href="/expenses" class="nav-link">💸 Expenses</a></li>
+                <li><a href="/dashboard" class="nav-link"><span class="icon-pulse">📈</span> Dashboard</a></li>
+
+                <!-- Projects & Tasks Dropdown -->
+                <li class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" data-dropdown="projects-menu">
+                        <span class="icon-pulse">🏗️</span> Projects <span class="dropdown-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu" id="projects-menu">
+                        <li><a href="/projects" class="dropdown-item"><span>📋</span> All Projects</a></li>
+                        <li><a href="/tasks" class="dropdown-item"><span>✓</span> All Tasks</a></li>
+                    </ul>
+                </li>
+
+                <!-- People Management Dropdown -->
+                <li class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" data-dropdown="people-menu">
+                        <span class="icon-pulse">👥</span> People <span class="dropdown-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu" id="people-menu">
+                        <li><a href="/clients" class="dropdown-item"><span>👥</span> Clients</a></li>
+                        <li><a href="/workers" class="dropdown-item"><span>👷</span> Workers</a></li>
+                        <li><a href="/positions" class="dropdown-item"><span>🎯</span> Positions</a></li>
+                        <li><a href="/laborers" class="dropdown-item"><span>🧰</span> Laborers</a></li>
+                    </ul>
+                </li>
+
+                <!-- Finance Dropdown -->
+                <li class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" data-dropdown="finance-menu">
+                        <span class="icon-pulse">💰</span> Finance <span class="dropdown-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu" id="finance-menu">
+                        <li><a href="/payments" class="dropdown-item"><span>💳</span> Payments</a></li>
+                        <li><a href="/revenues" class="dropdown-item"><span>💰</span> Revenues</a></li>
+                        <li><a href="/expenses" class="dropdown-item"><span>💸</span> Expenses</a></li>
+                        <li><a href="/labor_expenses" class="dropdown-item"><span>👷‍♂️</span> Labor Expenses</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="/notifications" class="nav-link notification-link" id="notificationLink"><span class="icon-pulse">🔔</span> Notifications</a></li>
+
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdminForTenant(Auth::user()->current_tenant_id ?? 0))
-                    <li><a href="{{ route('company.staff.index') }}" class="nav-link admin-link">👔 Staff</a></li>
+                    <li><a href="{{ route('company.staff.index') }}" class="nav-link admin-link"><span class="icon-pulse">👔</span> Staff</a></li>
                 @endif
             @endauth
 
@@ -606,6 +640,145 @@
             display: flex !important;
         }
     }
+
+    /* Notification link styling */
+    .notification-link {
+        position: relative;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ff4757;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        border: 2px solid white;
+    }
+
+    /* Improved responsive navbar menu */
+    @media (max-width: 1400px) {
+        .navbar-menu {
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .navbar-container {
+            padding: 0 1.5rem;
+        }
+
+        .navbar-menu {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        .logo-text {
+            display: none;
+        }
+
+        .navbar-container {
+            height: 60px;
+        }
+    }
+
+    /* Dropdown menu styles */
+    .nav-dropdown {
+        position: relative;
+    }
+
+    .dropdown-toggle {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .dropdown-toggle:hover {
+        opacity: 1;
+    }
+
+    .dropdown-icon {
+        font-size: 0.7rem;
+        transition: transform 0.2s ease;
+        display: inline-block;
+    }
+
+    .nav-dropdown.active .dropdown-icon {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        min-width: 200px;
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+        z-index: 1001;
+    }
+
+    .nav-dropdown.active .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item {
+        padding: 0.875rem 1rem;
+        color: #333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.95rem;
+    }
+
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+        background: #f8f9fa;
+        color: #27ae60;
+        padding-left: 1.25rem;
+    }
+
+    .dropdown-item span {
+        font-size: 1.1rem;
+        min-width: 1.5rem;
+        text-align: center;
+    }
 </style>
 
 <script>
@@ -614,6 +787,45 @@
         const dropdownMenu = document.getElementById('dropdownMenu');
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
         const navbarMenu = document.getElementById('navbarMenu');
+
+        // Setup dropdown toggles
+        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const dropdownId = toggle.getAttribute('data-dropdown');
+                const navDropdown = toggle.closest('.nav-dropdown');
+
+                // Close other dropdowns
+                document.querySelectorAll('.nav-dropdown.active').forEach(dropdown => {
+                    if (dropdown !== navDropdown) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+
+                // Toggle current dropdown
+                navDropdown.classList.toggle('active');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-dropdown') && !e.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.nav-dropdown.active').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Close dropdown when a menu item is clicked
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-dropdown.active').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            });
+        });
 
         // Mobile menu toggle
         if (mobileMenuToggle && navbarMenu) {
@@ -663,5 +875,41 @@
                 });
             });
         }
+
+        // Load notification count
+        loadNotificationCount();
+
+        // Refresh notification count every 30 seconds
+        setInterval(loadNotificationCount, 30000);
     });
+
+    function loadNotificationCount() {
+        const notificationLink = document.getElementById('notificationLink');
+        if (!notificationLink) return;
+
+        fetch('/api/notifications/unread-count', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove existing badge if present
+            const existingBadge = notificationLink.querySelector('.notification-badge');
+            if (existingBadge) {
+                existingBadge.remove();
+            }
+
+            // Add badge if there are unread notifications
+            if (data.count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'notification-badge';
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                notificationLink.appendChild(badge);
+            }
+        })
+        .catch(error => console.log('Could not load notification count:', error));
+    }
 </script>

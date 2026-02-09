@@ -6,48 +6,221 @@
     <title>Admin Dashboard - SiteLedger</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            /* Professional Color Palette */
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --primary-light: #e6efff;
+            --success-color: #27ae60;
+            --success-light: #d4edda;
+            --success-dark: #1e8449;
+            --warning-color: #f39c12;
+            --warning-light: #fff3cd;
+            --warning-dark: #d68910;
+            --danger-color: #e74c3c;
+            --danger-light: #f8d7da;
+            --danger-dark: #c0392b;
+            --info-color: #3498db;
+            --info-light: #d1ecf1;
+            --info-dark: #2980b9;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --white: #ffffff;
+
+            /* Enhanced Gradients */
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #48cae4 0%, #023e8a 100%);
+            --gradient-warning: linear-gradient(135deg, #ffd60a 0%, #ff8500 100%);
+            --gradient-danger: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            --gradient-info: linear-gradient(135deg, #06ffa5 0%, #0077be 100%);
+            --gradient-rainbow: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            --gradient-sunset: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --gradient-ocean: linear-gradient(135deg, #209cff 0%, #68e0cf 100%);
+            --gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-green: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+
+            /* Professional Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.2);
+            --shadow-colorful: 0 10px 30px rgba(102, 126, 234, 0.3);
+
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 50px;
+
+            /* Transitions */
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             color: white;
-            padding: 1rem 2rem;
+            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
+
+        .navbar h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            animation: slideInLeft 0.6s ease-out;
+        }
+
         .navbar h1 {
             font-size: 1.5rem;
             margin: 0;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .navbar-menu {
             display: flex;
             gap: 1.5rem;
             align-items: center;
         }
+
         .nav-link {
             color: white;
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            transition: var(--transition);
             font-weight: 500;
-            border: 1px solid transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
         }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
         .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
             text-decoration: none;
             color: white;
             transform: translateY(-2px);
@@ -102,16 +275,75 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
+            animation: fadeInUp 0.6s ease-out;
         }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
+
+        /* Enhanced Stat Cards */
         .stat-card {
-            background: white;
-            padding: 1.5rem;
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-primary);
+            transition: var(--transition);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: rotate(45deg);
+            transition: var(--transition);
+            opacity: 0;
+        }
+
+        .stat-card:hover::before {
+            height: 8px;
+            background: var(--gradient-rainbow);
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+            animation: shimmer 1.5s ease-in-out;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .stat-card.success::before { background: var(--gradient-success); }
+        .stat-card.warning::before { background: var(--gradient-warning); }
+        .stat-card.danger::before { background: var(--gradient-danger); }
+        .stat-card.info::before { background: var(--gradient-info); }
+        .stat-card.expense::before { background: var(--gradient-sunset); }
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border-left: 4px solid #667eea;
@@ -144,17 +376,32 @@
         }
         .stat-card h3 {
             color: #666;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-card .value {
-            font-size: 1.8rem;
+            font-size: 1rem;
             font-weight: 700;
-            color: #667eea;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .stat-card .change {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: 500;
+            line-height: 1.4;
         }
         .stat-card .change {
             font-size: 0.85rem;
@@ -262,50 +509,139 @@
         .action-link.payments:hover { background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); }
         .action-link.tasks { border-left: 4px solid #9b59b6; }
         .action-link.tasks:hover { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
-        /* Summary Section */
+        /* Professional Summary Sections */
         .summary-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
             margin-bottom: 2rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: var(--transition);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.2);
         }
+
+        .summary-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-ocean);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
         .summary-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
+
         .summary-section h3 {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
             border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         .summary-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
+            padding: 1rem 0;
             border-bottom: 1px solid #f5f5f5;
+            transition: var(--transition);
         }
+
+        .summary-row:hover {
+            background: linear-gradient(90deg, #f8f9ff 0%, transparent 100%);
+            padding-left: 1rem;
+            margin: 0 -1rem;
+            border-radius: var(--radius-sm);
+        }
+
         .summary-row:last-child {
             border-bottom: none;
         }
+
         .summary-label {
             color: #666;
             font-size: 0.95rem;
+            font-weight: 500;
         }
+
         .summary-value {
             font-weight: 700;
             font-size: 1.1rem;
         }
-        .summary-value.positive { color: #27ae60; }
-        .summary-value.negative { color: #dc3545; }
-        .summary-value.neutral { color: #667eea; }
+
+        .summary-value.positive {
+            color: var(--success-color);
+            text-shadow: 0 1px 2px rgba(39, 174, 96, 0.2);
+        }
+        .summary-value.negative {
+            color: var(--danger-color);
+            text-shadow: 0 1px 2px rgba(231, 76, 60, 0.2);
+        }
+        .summary-value.neutral {
+            color: var(--info-color);
+            text-shadow: 0 1px 2px rgba(52, 152, 219, 0.2);
+        }
+        <!-- Enhanced Chart Section -->
         .chart-section {
-            background: white;
-            padding: 2rem;
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-rainbow);
+        }
+
+        .chart-section:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .chart-section h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: 0 auto;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: var(--radius-lg);
+            border: 1px solid #f0f0f0;
+        }
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
@@ -323,65 +659,177 @@
             margin-bottom: 2rem;
         }
         .table-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow-x: auto;
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
         }
+
+        .table-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--bg-gradient);
+        }
+
         .table-section h2 {
-            font-size: 1.2rem;
-            margin-bottom: 1.5rem;
-            color: #333;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 1rem;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--dark-color);
+            font-weight: 700;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
+
+        .table-section h2::before {
+            content: '📊';
+            font-size: 1.2rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+            background: var(--white);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--white);
         }
+
         th {
-            background: #27ae60;
-            padding: 1rem;
+            background: var(--gradient-primary);
+            padding: 1.5rem;
             text-align: left;
-            font-weight: 600;
+            font-weight: 700;
             color: white;
-            border-bottom: 2px solid #229954;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            border: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
+
+        th:first-child {
+            border-radius: 0;
+        }
+
+        th:last-child {
+            border-radius: 0;
+        }
+
         td {
-            padding: 1rem;
+            padding: 1.5rem;
             border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--white);
         }
+
         tbody tr {
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            position: relative;
         }
+
+        tbody tr::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: transparent;
+            transition: var(--transition);
+        }
+
+        tbody tr:hover::before {
+            background: var(--gradient-primary);
+        }
+
         tbody tr:hover {
-            background: #e8f5e9;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
         }
+
+        tbody tr:nth-child(even) {
+            background: linear-gradient(90deg, #fafbff 0%, #ffffff 100%);
+        }
+
+        tbody tr:nth-child(even):hover {
+            background: linear-gradient(90deg, #f0f2ff 0%, #ffffff 100%);
+        }
+
         .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            box-shadow: var(--shadow-sm);
         }
+
+        .badge:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+
         .badge.success {
-            background: #d4edda;
-            color: #155724;
+            background: var(--gradient-success);
+            color: white;
+            border-color: var(--success-color);
         }
-        .badge.danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .badge.warning {
-            background: #fff3cd;
-            color: #856404;
-        }
+
         .badge.info {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: var(--gradient-info);
+            color: white;
+            border-color: var(--info-color);
+        }
+
+        .badge.warning {
+            background: var(--gradient-warning);
+            color: white;
+            border-color: var(--warning-color);
+        }
+
+        .badge.danger {
+            background: var(--gradient-danger);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        .badge.danger {
+            background: var(--danger-light);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .badge.warning {
+            background: var(--warning-light);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .badge.info {
+            background: var(--info-light);
+            color: var(--info-color);
+            border: 1px solid var(--info-color);
         }
         .two-column {
             display: grid;
@@ -390,22 +838,121 @@
             margin-bottom: 2rem;
         }
 
+        .full-width-section {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .full-width-section .table-section {
+            background: var(--white);
+            padding: 1.75rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .full-width-section .table-section h2 {
+            margin-bottom: 1.5rem;
+            color: var(--dark-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .full-width-section .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .full-width-section table {
+            width: 100%;
+            min-width: 1000px; /* Increased from 800px for better spacing */
+        }
+
         /* Recent Projects Table Specific Styling */
         .table-section table {
             min-width: 800px;
         }
-        .table-section th:nth-child(1) { width: 25%; } /* Project Name */
-        .table-section th:nth-child(2) { width: 15%; } /* Client */
-        .table-section th:nth-child(3) { width: 15%; } /* Manager */
-        .table-section th:nth-child(4) { width: 12%; } /* Contract Value */
-        .table-section th:nth-child(5) { width: 15%; } /* Progress */
-        .table-section th:nth-child(6) { width: 10%; } /* Status */
-        .table-section th:nth-child(7) { width: 8%; }  /* Created */
+        .table-section th:nth-child(1) { width: 25%; text-align: left; } /* Project Name */
+        .table-section th:nth-child(2) { width: 15%; text-align: left; } /* Client */
+        .table-section th:nth-child(3) { width: 15%; text-align: left; } /* Manager */
+        .table-section th:nth-child(4) { width: 12%; text-align: right; } /* Contract Value */
+        .table-section th:nth-child(5) { width: 15%; text-align: center; } /* Progress */
+        .table-section th:nth-child(6) { width: 10%; text-align: center; } /* Status */
+        .table-section th:nth-child(7) { width: 8%; text-align: center; }  /* Created */
 
-        /* ========== Responsive Styles ========== */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+        /* Align table data cells to match headers */
+        .table-section td:nth-child(1) { text-align: left; } /* Project Name */
+        .table-section td:nth-child(2) { text-align: left; } /* Client */
+        .table-section td:nth-child(3) { text-align: left; } /* Manager */
+        .table-section td:nth-child(4) { text-align: right; } /* Contract Value */
+        .table-section td:nth-child(5) { text-align: center; } /* Progress */
+        .table-section td:nth-child(6) { text-align: center; } /* Status */
+        .table-section td:nth-child(7) { text-align: center; } /* Created */
+
+        /* Professional Footer */
+        .dashboard-footer {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-footer::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .dashboard-footer h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .dashboard-footer p {
+            opacity: 0.9;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-stat {
+            text-align: center;
+        }
+
+        .footer-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .footer-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            .footer-stats {
+                gap: 1.5rem;
             }
         }
 
@@ -1382,11 +1929,32 @@
                     � Total Expenses: RWF {{ number_format($allExpensesToday ?? 0, 2) }}
                 </div>
             </div>
+    </div>
 
+    <!-- Professional Dashboard Footer -->
+    <footer class="dashboard-footer">
+        <h3>🏆 SiteLedger Dashboard Overview</h3>
+        <p>Your comprehensive construction project management solution</p>
 
+        <div class="footer-stats">
+            <div class="footer-stat">
+                <span class="footer-stat-value">{{ $projectsCount ?? 0 }}</span>
+                <span class="footer-stat-label">Projects</span>
+            </div>
+            <div class="footer-stat">
+                <span class="footer-stat-value">{{ $totalClients ?? 0 }}</span>
+                <span class="footer-stat-label">Clients</span>
+            </div>
+            <div class="footer-stat">
+                <span class="footer-stat-value">RWF {{ number_format(($incomesTotal ?? 0) / 1000, 0) }}K</span>
+                <span class="footer-stat-label">Revenue</span>
+            </div>
+            <div class="footer-stat">
+                <span class="footer-stat-value">{{ date('Y') }}</span>
+                <span class="footer-stat-label">Active Since</span>
+            </div>
         </div>
-
-        <!-- Quick Actions Section -->
+    </footer>
         @if(!$isNewUser)
         <div class="quick-actions">
             <h2>⚡ Quick Actions</h2>
@@ -1765,50 +2333,77 @@
         </div>
 
         <!-- Recent Data Tables -->
-        <div class="two-column">
+        <div class="full-width-section">
             <div class="table-section">
                 <h2>Recent Projects</h2>
                 @if(($recentProjects ?? collect())->count() > 0)
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Project Name</th>
-                                <th>Client</th>
-                                <th>Manager</th>
-                                <th>Contract Value</th>
-                                <th>Progress</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($recentProjects as $project)
-                                <tr onclick="window.location.href='/projects/{{ $project->id }}';" style="cursor: pointer;">
-                                    <td><strong>{{ $project->name ?? 'N/A' }}</strong></td>
-                                    <td>{{ $project->client->name ?? 'No Client' }}</td>
-                                    <td>{{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'Unassigned' }}</td>
-                                    <td>RWF {{ number_format($project->contract_value ?? 0, 0) }}</td>
-                                    <td>
-                                        @php
-                                            $progress = $project->contract_value > 0 ? round(($project->amount_paid / $project->contract_value) * 100, 1) : 0;
-                                        @endphp
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <div style="flex: 1; background: #f0f0f0; border-radius: 10px; height: 6px; overflow: hidden;">
-                                                <div style="height: 100%; background: {{ $progress > 75 ? '#27ae60' : ($progress > 50 ? '#f39c12' : '#e74c3c') }}; width: {{ $progress }}%; border-radius: 10px;"></div>
-                                            </div>
-                                            <span style="font-size: 0.8rem; color: #666; min-width: 35px;">{{ $progress }}%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge {{ $project->status === 'completed' ? 'success' : ($project->status === 'active' ? 'info' : 'warning') }}">
-                                            {{ ucfirst($project->status ?? 'Planning') }}
-                                        </span>
-                                    </td>
-                                    <td style="color: #666; font-size: 0.9rem;">{{ $project->created_at ? $project->created_at->format('M d, Y') : 'N/A' }}</td>
+                    <div class="table-wrapper">
+                        <table style="table-layout: fixed; width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 1.25rem; width: 25%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: bounce 2s infinite;">🏗️</span> Project Name
+                                    </th>
+                                    <th style="text-align: left; padding: 1.25rem; width: 15%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: pulse 2s infinite;">👥</span> Client
+                                    </th>
+                                    <th style="text-align: left; padding: 1.25rem; width: 15%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: bounce 2s infinite;">👨‍💼</span> Manager
+                                    </th>
+                                    <th style="text-align: right; padding: 1.25rem; width: 12%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: pulse 2s infinite;">💰</span> Contract Value
+                                    </th>
+                                    <th style="text-align: center; padding: 1.25rem; width: 15%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: bounce 2s infinite;">🚀</span> Progress
+                                    </th>
+                                    <th style="text-align: center; padding: 1.25rem; width: 10%; border-right: 1px solid #ddd; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: pulse 2s infinite;">📈</span> Status
+                                    </th>
+                                    <th style="text-align: center; padding: 1.25rem; width: 8%; background: var(--gradient-primary); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        <span style="animation: bounce 2s infinite;">📅</span> Created
+                                    </th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($recentProjects as $project)
+                                    <tr onclick="window.location.href='/projects/{{ $project->id }}';" style="cursor: pointer;">
+                                        <td style="text-align: left; padding: 1.25rem; border-right: 1px solid #f0f0f0; width: 25%; word-wrap: break-word;">
+                                            <strong style="color: var(--dark-color);">{{ $project->name ?? 'N/A' }}</strong>
+                                        </td>
+                                        <td style="text-align: left; padding: 1.25rem; border-right: 1px solid #f0f0f0; color: #666; width: 15%; word-wrap: break-word;">
+                                            {{ $project->client->name ?? 'No Client' }}
+                                        </td>
+                                        <td style="text-align: left; padding: 1.25rem; border-right: 1px solid #f0f0f0; color: #666; width: 15%; word-wrap: break-word;">
+                                            {{ $project->manager ? $project->manager->first_name . ' ' . $project->manager->last_name : 'Unassigned' }}
+                                        </td>
+                                        <td style="text-align: right; padding: 1.25rem; border-right: 1px solid #f0f0f0; width: 12%; word-wrap: break-word;">
+                                            <strong style="color: var(--success-color);">RWF {{ number_format($project->contract_value ?? 0, 0) }}</strong>
+                                        </td>
+                                        <td style="text-align: center; padding: 1.25rem; border-right: 1px solid #f0f0f0; width: 15%;">
+                                            @php
+                                                $progress = $project->contract_value > 0 ? round(($project->amount_paid / $project->contract_value) * 100, 1) : 0;
+                                                $progressColor = $progress > 75 ? 'var(--success-color)' : ($progress > 50 ? 'var(--warning-color)' : 'var(--danger-color)');
+                                            @endphp
+                                            <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                                                <div style="flex: 1; background: #f0f2f5; border-radius: 12px; height: 8px; overflow: hidden; position: relative; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); max-width: 120px;">
+                                                    <div style="height: 100%; background: linear-gradient(90deg, {{ $progressColor }}, {{ $progress > 75 ? '#2ecc71' : ($progress > 50 ? '#f1c40f' : '#e74c3c') }}); width: {{ $progress }}%; border-radius: 12px; transition: width 0.8s ease, background 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
+                                                </div>
+                                                <span style="font-size: 0.85rem; font-weight: 600; color: {{ $progressColor }}; min-width: 40px;">{{ $progress }}%</span>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center; padding: 1.25rem; border-right: 1px solid #f0f0f0; width: 10%;">
+                                            <span class="badge {{ $project->status === 'completed' ? 'success' : ($project->status === 'active' ? 'info' : 'warning') }}">
+                                                {{ ucfirst($project->status ?? 'Planning') }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center; padding: 1.25rem; color: #888; font-size: 0.9rem; width: 8%;">
+                                            {{ $project->created_at ? $project->created_at->format('M d, Y') : 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @else
                     <div class="empty-state">
                         <p>No projects yet</p>
@@ -2446,6 +3041,321 @@
             }
         });
 
+        // Enhanced Dashboard Features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add loading animations to stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+
+                // Add click animation
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // Enhanced table interactions
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                // Add ripple effect on click
+                row.addEventListener('click', function(e) {
+                    const ripple = document.createElement('div');
+                    ripple.classList.add('ripple');
+
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(102, 126, 234, 0.3);
+                        transform: scale(0);
+                        animation: ripple 600ms linear;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: 20px;
+                        height: 20px;
+                        pointer-events: none;
+                        z-index: 1000;
+                    `;
+
+                    this.style.position = 'relative';
+                    this.appendChild(ripple);
+
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+
+                // Enhanced hover effects for progress bars
+                const progressBars = row.querySelectorAll('[style*="background:"]');
+                progressBars.forEach(bar => {
+                    bar.addEventListener('mouseenter', function() {
+                        this.style.filter = 'brightness(1.1)';
+                        this.style.transform = 'scaleY(1.2)';
+                    });
+
+                    bar.addEventListener('mouseleave', function() {
+                        this.style.filter = '';
+                        this.style.transform = '';
+                    });
+                });
+            });
+
+            // Add search functionality to Recent Projects table
+            addTableSearch();
+
+            // Add tooltips to badges and progress bars
+            addTooltips();
+
+            // Add smooth scroll for anchor links
+            addSmoothScroll();
+
+            // Add keyboard navigation
+            addKeyboardNavigation();
+        });
+
+        // Table search functionality
+        function addTableSearch() {
+            const tableSection = document.querySelector('.table-section');
+            if (!tableSection) return;
+
+            const searchContainer = document.createElement('div');
+            searchContainer.style.cssText = `
+                margin-bottom: 1.5rem;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            `;
+
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search projects...';
+            searchInput.style.cssText = `
+                flex: 1;
+                padding: 0.75rem 1rem;
+                border: 2px solid #e9ecef;
+                border-radius: 25px;
+                font-size: 0.95rem;
+                transition: all 0.3s ease;
+                background: #f8f9fa;
+            `;
+
+            searchInput.addEventListener('focus', function() {
+                this.style.borderColor = 'var(--primary-color)';
+                this.style.background = '#fff';
+                this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+            });
+
+            searchInput.addEventListener('blur', function() {
+                this.style.borderColor = '#e9ecef';
+                this.style.background = '#f8f9fa';
+                this.style.boxShadow = 'none';
+            });
+
+            const clearBtn = document.createElement('button');
+            clearBtn.innerHTML = '✕';
+            clearBtn.style.cssText = `
+                padding: 0.75rem;
+                border: none;
+                background: #6c757d;
+                color: white;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                opacity: 0.7;
+            `;
+
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                filterTable('');
+            });
+
+            searchContainer.appendChild(searchInput);
+            searchContainer.appendChild(clearBtn);
+
+            const table = tableSection.querySelector('table');
+            table.parentNode.insertBefore(searchContainer, table);
+
+            searchInput.addEventListener('input', function() {
+                filterTable(this.value);
+            });
+        }
+
+        function filterTable(query) {
+            const rows = document.querySelectorAll('tbody tr');
+            const searchTerm = query.toLowerCase();
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const match = text.includes(searchTerm);
+
+                row.style.display = match ? '' : 'none';
+
+                if (match && query) {
+                    row.style.animation = 'highlightRow 0.5s ease';
+                }
+            });
+        }
+
+        // Tooltip functionality
+        function addTooltips() {
+            const badges = document.querySelectorAll('.badge');
+            const progressBars = document.querySelectorAll('[style*="width:"]');
+
+            [...badges, ...progressBars].forEach(element => {
+                element.addEventListener('mouseenter', function(e) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'custom-tooltip';
+
+                    let content = '';
+                    if (this.classList.contains('badge')) {
+                        content = `Status: ${this.textContent}`;
+                    } else if (this.style.width) {
+                        content = `Progress: ${this.parentNode.querySelector('span').textContent}`;
+                    }
+
+                    tooltip.textContent = content;
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: rgba(0,0,0,0.8);
+                        color: white;
+                        padding: 0.5rem 1rem;
+                        border-radius: 6px;
+                        font-size: 0.8rem;
+                        z-index: 1000;
+                        pointer-events: none;
+                        white-space: nowrap;
+                        opacity: 0;
+                        transition: opacity 0.3s ease;
+                    `;
+
+                    document.body.appendChild(tooltip);
+
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = `${rect.left + rect.width/2 - tooltip.offsetWidth/2}px`;
+                    tooltip.style.top = `${rect.top - tooltip.offsetHeight - 8}px`;
+
+                    setTimeout(() => tooltip.style.opacity = '1', 10);
+
+                    this._tooltip = tooltip;
+                });
+
+                element.addEventListener('mouseleave', function() {
+                    if (this._tooltip) {
+                        this._tooltip.style.opacity = '0';
+                        setTimeout(() => {
+                            if (this._tooltip && this._tooltip.parentNode) {
+                                this._tooltip.parentNode.removeChild(this._tooltip);
+                            }
+                        }, 300);
+                    }
+                });
+            });
+        }
+
+        // Smooth scroll functionality
+        function addSmoothScroll() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Keyboard navigation
+        function addKeyboardNavigation() {
+            let currentRow = -1;
+            const rows = document.querySelectorAll('tbody tr');
+
+            document.addEventListener('keydown', function(e) {
+                if (e.target.tagName.toLowerCase() === 'input') return;
+
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        if (currentRow < rows.length - 1) {
+                            if (currentRow >= 0) rows[currentRow].classList.remove('keyboard-focus');
+                            currentRow++;
+                            rows[currentRow].classList.add('keyboard-focus');
+                            rows[currentRow].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                        break;
+
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        if (currentRow > 0) {
+                            rows[currentRow].classList.remove('keyboard-focus');
+                            currentRow--;
+                            rows[currentRow].classList.add('keyboard-focus');
+                            rows[currentRow].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                        break;
+
+                    case 'Enter':
+                        if (currentRow >= 0) {
+                            rows[currentRow].click();
+                        }
+                        break;
+
+                    case 'Escape':
+                        if (currentRow >= 0) {
+                            rows[currentRow].classList.remove('keyboard-focus');
+                            currentRow = -1;
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+
+            @keyframes highlightRow {
+                0% { background-color: rgba(102, 126, 234, 0.2); }
+                100% { background-color: transparent; }
+            }
+
+            .keyboard-focus {
+                outline: 2px solid var(--primary-color) !important;
+                outline-offset: -2px !important;
+                background: rgba(102, 126, 234, 0.05) !important;
+            }
+
+            .custom-tooltip {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            }
+
+            .stat-card:active {
+                transform: scale(0.98) !important;
+            }
+
+            .quick-action-btn:active {
+                transform: translateY(1px) scale(0.98) !important;
+            }
+        `;
+        document.head.appendChild(style);
+
         // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -2456,5 +3366,36 @@
         // Initialize calendar on page load
         renderCalendar();
     </script>
+
+    <!-- Professional Dashboard Footer -->
+    <footer style="background: var(--gradient-primary); color: white; padding: 3rem 2rem 2rem; margin-top: 4rem; text-align: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px; animation: float 6s ease-in-out infinite;"></div>
+
+        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; font-weight: 700; position: relative; z-index: 1;">
+            🏆 SiteLedger Dashboard Overview
+        </h3>
+        <p style="opacity: 0.9; font-size: 1rem; margin-bottom: 1.5rem; position: relative; z-index: 1;">
+            Your comprehensive construction project management solution
+        </p>
+
+        <div style="display: flex; justify-content: center; gap: 3rem; margin-top: 2rem; flex-wrap: wrap; position: relative; z-index: 1;">
+            <div style="text-align: center;">
+                <span style="font-size: 1.8rem; font-weight: 800; display: block;">{{ $projectsCount ?? 0 }}</span>
+                <span style="font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Projects</span>
+            </div>
+            <div style="text-align: center;">
+                <span style="font-size: 1.8rem; font-weight: 800; display: block;">{{ $totalClients ?? 0 }}</span>
+                <span style="font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Clients</span>
+            </div>
+            <div style="text-align: center;">
+                <span style="font-size: 1.8rem; font-weight: 800; display: block;">RWF {{ number_format(($incomesTotal ?? 0) / 1000, 0) }}K</span>
+                <span style="font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Revenue</span>
+            </div>
+            <div style="text-align: center;">
+                <span style="font-size: 1.8rem; font-weight: 800; display: block;">{{ date('Y') }}</span>
+                <span style="font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Active Since</span>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

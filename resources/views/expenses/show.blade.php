@@ -1,407 +1,465 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $expense->description ?? 'Expense Details' }} - SiteLedger</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+@extends('layouts.app')
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
+@section('title', 'Expense Details')
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+@section('content')
+<div class="page-container">
+    <!-- Page Header -->
+    @include('components.page-header', [
+        'title' => 'Expense Details',
+        'subtitle' => 'View expense information',
+        'breadcrumbs' => [
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Expenses', 'url' => route('expenses.index')],
+            ['label' => 'Details', 'url' => '#']
+        ],
+        'actions' => [
+            ['label' => 'Edit', 'url' => route('expenses.edit', $expense), 'icon' => '✏️', 'class' => 'btn-primary'],
+            ['label' => 'Delete', 'url' => '#', 'icon' => '🗑️', 'class' => 'btn-danger', 'onclick' => 'deleteExpense()']
+        ]
+    ])
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .back-link:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .detail-card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .expense-header {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .expense-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .expense-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .expense-value {
-            font-size: 18px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .expense-amount {
-            font-size: 32px;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            width: fit-content;
-        }
-
-        .badge-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-approved {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .description-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .description-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .description-text {
-            font-size: 16px;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .relation-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #667eea;
-        }
-
-        .relation-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .relation-value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .relation-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .relation-link:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #e9ecef;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #dee2e6;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
-        }
-
-        .meta-info {
-            font-size: 12px;
-            color: #999;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .meta-item {
-            display: inline-block;
-            margin-right: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .detail-card {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
-
-            .expense-header {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="{{ url()->previous() }}" class="back-link">← Back</a>
-
-        <div class="detail-card">
-            <h1>💰 Expense Details</h1>
-
-            <div class="expense-header">
-                <div class="expense-item">
-                    <span class="expense-label">Total Amount</span>
-                    <span class="expense-amount">RWF {{ number_format($expense->total ?? 0, 2) }}</span>
-                </div>
-
-                <div class="expense-item">
-                    <span class="expense-label">Category</span>
-                    <span class="expense-value">
-                        @if(is_object($expense->category) && isset($expense->category->name))
-                            {{ $expense->category->name }}
-                        @else
-                            {{ $expense->category ?? 'General' }}
-                        @endif
-                    </span>
-                </div>
-
-                @if($expense->quantity)
-                <div class="expense-item">
-                    <span class="expense-label">Quantity</span>
-                    <span class="expense-value">{{ $expense->quantity }} {{ $expense->unit ?? '' }}</span>
-                </div>
-                @endif
-
-                @if($expense->expense_type === 'labor' ? $expense->price_per_one : $expense->unit_price)
-                <div class="expense-item">
-                    <span class="expense-label">Unit Price</span>
-                    <span class="expense-value">RWF {{ number_format($expense->expense_type === 'labor' ? ($expense->price_per_one ?? 0) : ($expense->unit_price ?? 0), 2) }}</span>
-                </div>
-                @endif
-
-                <div class="expense-item">
-                    <span class="expense-label">Status</span>
-                    @php
-                        $statusClass = match($expense->status ?? 'pending') {
-                            'approved' => 'badge-approved',
-                            'completed' => 'badge-completed',
-                            'rejected' => 'badge-rejected',
-                            default => 'badge-pending'
-                        };
-                    @endphp
-                    <span class="status-badge {{ $statusClass }}">{{ ucfirst($expense->status ?? 'Pending') }}</span>
-                </div>
-
-                <div class="expense-item">
-                    <span class="expense-label">Date</span>
-                    <span class="expense-value">{{ $expense->date ? \Carbon\Carbon::parse($expense->date)->format('M d, Y') : $expense->created_at->format('M d, Y') }}</span>
-                </div>
-
-                <div class="expense-item">
-                    <span class="expense-label">Payment Method</span>
-                    <span class="expense-value">{{ $expense->method ?? 'Not Specified' }}</span>
-                </div>
-
-                <div class="expense-item">
-                    <span class="expense-label">Recorded</span>
-                    <span class="expense-value">
-                        @if($expense->created_at)
-                            {{ $expense->created_at->format('M d, Y - g:i A') }}
-                        @else
-                            Not recorded
-                        @endif
-                    </span>
-                </div>
-            </div>
-
-            <div class="description-section">
-                <div class="description-label">Description</div>
-                <div class="description-text">{{ $expense->description ?? 'No description provided' }}</div>
-            </div>
-
-            @if($expense->project)
-                <div class="relation-card">
-                    <div class="relation-label">📁 Associated Project</div>
-                    <div class="relation-value">
-                        <a href="{{ route('projects.show', $expense->project->id) }}" class="relation-link">{{ $expense->project->name }}</a>
+    <div class="grid grid-cols-12 gap-xl">
+        <!-- Main Content -->
+        <div class="col-span-8">
+            <!-- Expense Overview Card -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <div class="expense-header">
+                        <div class="expense-icon">
+                            {{
+                                match($expense->expense_type) {
+                                    'materials' => '🧱',
+                                    'labor' => '👷',
+                                    'equipment' => '🔧',
+                                    'transport' => '🚚',
+                                    'office' => '🏢',
+                                    default => '📦'
+                                }
+                            }}
+                        </div>
+                        <div class="expense-meta">
+                            <h1 class="expense-title">{{ $expense->item_name }}</h1>
+                            <div class="expense-details">
+                                <span class="badge badge-{{
+                                    match($expense->expense_type) {
+                                        'materials' => 'error',
+                                        'labor' => 'success',
+                                        'office' => 'info',
+                                        'equipment' => 'warning',
+                                        'transport' => 'secondary',
+                                        default => 'primary'
+                                    }
+                                }}">
+                                    {{ $expense->type_label }}
+                                </span>
+                                @if($expense->phase_label)
+                                    <span class="badge badge-outline">{{ $expense->phase_label }}</span>
+                                @endif
+                                <span class="text-muted">{{ $expense->days_ago }}</span>
+                            </div>
+                        </div>
+                        <div class="expense-amount">
+                            <div class="amount-value">{{ $expense->formatted_amount }}</div>
+                            @if($expense->quantity && $expense->unit && $expense->getEffectiveUnitPrice())
+                                <div class="amount-breakdown">
+                                    {{ $expense->quantity }} {{ $expense->unit }} × RWF {{ number_format($expense->getEffectiveUnitPrice(), 0) }}
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
-            @endif
-
-            @if($expense->client)
-                <div class="relation-card">
-                    <div class="relation-label">🏢 Associated Client</div>
-                    <div class="relation-value">
-                        <a href="{{ route('clients.show', $expense->client->id) }}" class="relation-link">{{ $expense->client->name }}</a>
-                    </div>
-                </div>
-            @endif
-
-            @if($expense->user)
-                <div class="relation-card">
-                    <div class="relation-label">👤 Recorded By</div>
-                    <div class="relation-value">{{ $expense->user->name }}</div>
-                </div>
-            @endif
-
-            <div class="action-buttons">
-                <a href="{{ route('expenses.edit', $expense->id) }}" class="btn btn-primary">Edit Expense</a>
-                <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Back to Expenses</a>
-                <form method="POST" action="{{ route('expenses.destroy', $expense->id) }}" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this expense?')">Delete Expense</button>
-                </form>
-            </div>
-
-            <div class="meta-info">
-                <div class="meta-item">ID: <strong>{{ $expense->id }}</strong></div>
-                <div class="meta-item">Last Updated: <strong>
-                    @if($expense->updated_at)
-                        {{ $expense->updated_at->format('M d, Y - g:i A') }}
-                    @else
-                        Not updated
+                <div class="card-body">
+                    @if($expense->notes)
+                        <div class="expense-notes">
+                            <h4>
+                                <span class="icon">📝</span>
+                                Notes
+                            </h4>
+                            <p>{{ $expense->notes }}</p>
+                        </div>
                     @endif
-                </strong></div>
+                </div>
+            </div>
+
+            <!-- Detailed Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="icon">📊</span>
+                        Detailed Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-section">
+                            <h5>Basic Information</h5>
+                            <div class="detail-rows">
+                                <div class="detail-row">
+                                    <span class="detail-label">Date</span>
+                                    <span class="detail-value">{{ $expense->date->format('F j, Y') }}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Item/Service</span>
+                                    <span class="detail-value">{{ $expense->item_name }}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Category</span>
+                                    <span class="detail-value">
+                                        @if($expense->category)
+                                            {{ $expense->category->name }}
+                                        @else
+                                            <span class="text-muted">Uncategorized</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Type</span>
+                                    <span class="detail-value">{{ $expense->type_label }}</span>
+                                </div>
+                                @if($expense->phase)
+                                    <div class="detail-row">
+                                        <span class="detail-label">Phase</span>
+                                        <span class="detail-value">{{ $expense->phase_label }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h5>Quantity & Pricing</h5>
+                            <div class="detail-rows">
+                                @if($expense->quantity)
+                                    <div class="detail-row">
+                                        <span class="detail-label">Quantity</span>
+                                        <span class="detail-value">{{ $expense->quantity }}</span>
+                                    </div>
+                                @endif
+                                @if($expense->unit)
+                                    <div class="detail-row">
+                                        <span class="detail-label">Unit</span>
+                                        <span class="detail-value">{{ $expense->unit }}</span>
+                                    </div>
+                                @endif
+                                @if($expense->getEffectiveUnitPrice())
+                                    <div class="detail-row">
+                                        <span class="detail-label">Unit Price</span>
+                                        <span class="detail-value">RWF {{ number_format($expense->getEffectiveUnitPrice(), 2) }}</span>
+                                    </div>
+                                @endif
+                                <div class="detail-row highlight">
+                                    <span class="detail-label">Total Amount</span>
+                                    <span class="detail-value">{{ $expense->formatted_amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-span-4 space-y-lg">
+            <!-- Project Information -->
+            @if($expense->project)
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            <span class="icon">🏗️</span>
+                            Project
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="project-info">
+                            <h5>
+                                <a href="{{ route('projects.show', $expense->project) }}" class="text-primary">
+                                    {{ $expense->project->name }}
+                                </a>
+                            </h5>
+                            @if($expense->project->description)
+                                <p class="text-muted">{{ Str::limit($expense->project->description, 100) }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            <span class="icon">🏢</span>
+                            General Expense
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">This expense is not assigned to any specific project.</p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Record Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <span class="icon">ℹ️</span>
+                        Record Information
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-rows">
+                        <div class="detail-row">
+                            <span class="detail-label">Created by</span>
+                            <span class="detail-value">
+                                @if($expense->user)
+                                    {{ $expense->user->name }}
+                                @else
+                                    <span class="text-muted">Unknown</span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Created on</span>
+                            <span class="detail-value">{{ $expense->created_at->format('M j, Y g:i A') }}</span>
+                        </div>
+                        @if($expense->updated_at != $expense->created_at)
+                            <div class="detail-row">
+                                <span class="detail-label">Last updated</span>
+                                <span class="detail-value">{{ $expense->updated_at->format('M j, Y g:i A') }}</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <span class="icon">⚡</span>
+                        Quick Actions
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons space-y-sm">
+                        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-primary btn-block">
+                            <span>✏️</span>
+                            Edit Expense
+                        </a>
+                        <a href="{{ route('expenses.create') }}" class="btn btn-secondary btn-block">
+                            <span>➕</span>
+                            Add New Expense
+                        </a>
+                        <button type="button" class="btn btn-danger btn-block" onclick="deleteExpense()">
+                            <span>🗑️</span>
+                            Delete Expense
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Delete Form -->
+<form id="delete-form" action="{{ route('expenses.destroy', $expense) }}" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<style>
+/* Expense Header */
+.expense-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-lg);
+}
+
+.expense-icon {
+    font-size: 3rem;
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: var(--radius-lg);
+}
+
+.expense-meta {
+    flex: 1;
+}
+
+.expense-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--space-sm);
+}
+
+.expense-details {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.expense-amount {
+    text-align: right;
+}
+
+.amount-value {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.amount-breakdown {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-top: var(--space-xs);
+}
+
+/* Notes Section */
+.expense-notes {
+    padding: var(--space-lg);
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary);
+}
+
+.expense-notes h4 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.expense-notes p {
+    color: var(--gray-700);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.detail-section h5 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.detail-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+}
+
+.detail-row.highlight {
+    background: var(--primary-50);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-md);
+    font-weight: 600;
+}
+
+.detail-label {
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.detail-value {
+    color: var(--gray-900);
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Project Info */
+.project-info h5 {
+    margin-bottom: var(--space-sm);
+}
+
+.project-info p {
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+    justify-content: flex-start;
+    gap: var(--space-sm);
+}
+
+/* Badge variants */
+.badge {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-outline {
+    background: transparent;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+}
+
+.badge-error { background: var(--error-light); color: var(--error-dark); }
+.badge-success { background: var(--success-light); color: var(--success-dark); }
+.badge-warning { background: var(--warning-light); color: var(--warning-dark); }
+.badge-info { background: var(--info-light); color: var(--info-dark); }
+.badge-secondary { background: var(--gray-100); color: var(--gray-700); }
+.badge-primary { background: var(--primary-100); color: var(--primary-700); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .grid-cols-12 .col-span-8,
+    .grid-cols-12 .col-span-4 {
+        grid-column: span 12;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .expense-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .expense-amount {
+        text-align: center;
+        margin-top: var(--space-md);
+    }
+}
+</style>
+
+<script>
+function deleteExpense() {
+    if (confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
+        document.getElementById('delete-form').submit();
+    }
+}
+</script>
+@endsection

@@ -31,39 +31,109 @@ class ExpenseController extends Controller
     protected int $perPage = 15;
 
     /**
-     * Display a listing of the expenses.
-     *
-     * Also prepares a minimal daily-by-category stats structure:
-     *  - $categories: array of distinct categories
-     *  - $dailyTotals: [ 'YYYY-MM-DD' => [ 'Category' => total, ... ], ... ]
+     * Display a listing of the expenses with improved filtering and pagination.
      *
      * @return \Illuminate\View\View
      */
     public function index(Request $request)
     {
-        $categories = ExpenseCategory::where('active', true)->orderBy('name')->get();
-        $query = Expense::with(['category', 'project'])->orderByDesc('date');
+        // Base query with optimized eager loading
+        $query = Expense::with(['category', 'project:id,name', 'user:id,name'])
+            ->orderByDesc('date')
+            ->orderByDesc('created_at');
 
-        // Filtering
+        // Apply RBAC filtering
+        $query = $this->rbacFilterService->filterExpenses($query);
+
+        // Advanced filtering
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('item_name', 'LIKE', "%{$search}%")
+                  ->orWhere('notes', 'LIKE', "%{$search}%")
+                  ->orWhere('expense_type', 'LIKE', "%{$search}%")
+                  ->orWhereHas('project', function($q2) use ($search) {
+                      $q2->where('name', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('category', function($q3) use ($search) {
+                      $q3->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
         if ($request->filled('category_id')) {
             $query->where('expense_category_id', $request->category_id);
         }
-        if ($request->filled('date')) {
-            $query->whereDate('date', $request->date);
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
         }
 
-        $expenses = $query->get();
-        $grandTotal = $expenses->sum('total');
+        if ($request->filled('expense_type')) {
+            $query->where('expense_type', $request->expense_type);
+        }
 
-        // Reporting
+        if ($request->filled('date_from')) {
+            $query->whereDate('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('phase')) {
+            $query->where('phase', $request->phase);
+        }
+
+        // Get paginated results
+        $expenses = $query->paginate($this->perPage)->withQueryString();
+
+        // Calculate statistics efficiently
+        $statsQuery = clone $query;
+        $allExpenses = $statsQuery->get();
+
+        $statistics = $this->calculateExpenseStatistics($allExpenses);
+
+        // Get filter options
+        $categories = ExpenseCategory::where('active', true)->orderBy('name')->get();
+        $projects = \App\Models\Project::orderBy('name')->get();
+        $expenseTypes = ['materials', 'labor', 'office', 'equipment', 'transport'];
+        $phases = ['design', 'execution'];
+
+        return view('expenses.index', compact(
+            'expenses',
+            'categories',
+            'projects',
+            'expenseTypes',
+            'phases',
+            'statistics'
+        ));
+    }
+
+    /**
+     * Calculate comprehensive expense statistics
+     */
+    private function calculateExpenseStatistics($expenses)
+    {
         $today = now()->toDateString();
-        $month = now()->format('Y-m');
-        $year = now()->format('Y');
-        $dailyTotal = $expenses->where('date', $today)->sum('total');
-        $monthlyTotal = $expenses->where('date', '>=', $month.'-01')->where('date', '<=', $month.'-31')->sum('total');
-        $yearlyTotal = $expenses->where('date', '>=', $year.'-01-01')->where('date', '<=', $year.'-12-31')->sum('total');
+        $thisMonth = now()->format('Y-m');
+        $thisYear = now()->format('Y');
 
-        return view('expenses.index', compact('expenses', 'categories', 'grandTotal', 'dailyTotal', 'monthlyTotal', 'yearlyTotal'));
+        return [
+            'grand_total' => $expenses->sum('total'),
+            'today_total' => $expenses->where('date', $today)->sum('total'),
+            'month_total' => $expenses->filter(function($expense) use ($thisMonth) {
+                return $expense->date->format('Y-m') === $thisMonth;
+            })->sum('total'),
+            'year_total' => $expenses->filter(function($expense) use ($thisYear) {
+                return $expense->date->format('Y') === $thisYear;
+            })->sum('total'),
+            'by_type' => $expenses->groupBy('expense_type')->map->sum('total'),
+            'by_phase' => $expenses->groupBy('phase')->map->sum('total'),
+            'by_project' => $expenses->groupBy('project_id')->map->sum('total'),
+            'count' => $expenses->count(),
+            'avg_amount' => $expenses->count() > 0 ? $expenses->avg('total') : 0,
+        ];
     }
 
     /**
@@ -86,42 +156,63 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
+        $rules = [
+            'project_id' => 'nullable|exists:projects,id',
             'expense_category_id' => 'required|exists:expense_categories,id',
-            'expense_type' => 'required|string',
-            'item_name' => 'nullable|string',
-            'quantity' => 'nullable|numeric|min:0',
-            'unit' => 'nullable|string',
-            'unit_price' => 'nullable|numeric|min:0',
-            'price_per_one' => 'nullable|numeric|min:0',
+            'expense_type' => 'required|string|in:materials,labor,office,equipment,transport',
+            'item_name' => 'required|string|max:255',
+            'quantity' => 'nullable|numeric|min:0.01',
+            'unit' => 'nullable|string|max:50',
+            'unit_price' => 'nullable|numeric|min:0.01',
             'total' => 'required|numeric|min:0.01',
-            'date' => 'required|date',
-            'notes' => 'nullable|string',
-        ]);
-        // Validate phase as required if expense_type is labor
-        $data['phase'] = $request->input('phase') ?? null;
-        if ($data['expense_type'] === 'labor' && empty($data['phase'])) {
-            $data['phase'] = 'design';
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:1000',
+        ];
+
+        // Phase validation for labor expenses
+        if ($request->expense_type === 'labor') {
+            $rules['phase'] = 'required|string|in:design,execution';
         }
-        $data['phase'] = $request->validate([
-            'phase' => 'required_if:expense_type,labor|string|in:design,execution',
-        ])['phase'];
-        // Calculate total if not provided and possible
-        if (empty($data['total']) && isset($data['quantity'], $data['unit_price']) && $data['quantity'] > 0 && $data['unit_price'] > 0) {
-            $data['total'] = $data['quantity'] * $data['unit_price'];
+
+        $data = $request->validate($rules);
+
+        // Auto-calculate total if quantity and unit_price are provided
+        if (!empty($data['quantity']) && !empty($data['unit_price'])) {
+            $calculatedTotal = $data['quantity'] * $data['unit_price'];
+            // Allow some tolerance for rounding differences
+            if (abs($calculatedTotal - $data['total']) > 0.02) {
+                return back()->withInput()->withErrors([
+                    'total' => 'Total amount does not match quantity × unit price. Expected: ' . number_format($calculatedTotal, 2)
+                ]);
+            }
         }
-        // Save unit_price to price_per_one for labor, and to unit_price for materials
-        if (isset($data['expense_type']) && $data['expense_type'] === 'labor') {
+
+        // Set additional fields
+        $data['user_id'] = Auth::id();
+        $data['tenant_id'] = Auth::user()->tenant_id;
+        $data['phase'] = $data['phase'] ?? null;
+
+        // Handle price storage based on expense type
+        if ($data['expense_type'] === 'labor') {
             $data['price_per_one'] = $data['unit_price'] ?? null;
+            unset($data['unit_price']);
         } else {
-            $data['unit_price'] = $data['unit_price'] ?? null;
             $data['price_per_one'] = null;
         }
-        $data['user_id'] = Auth::id();
-        $data['tenant_id'] = Auth::user()->tenant_id ?? null;
-        Expense::create($data);
-        return redirect()->route('expenses.index')->with('success', 'Expense created successfully.');
+
+        try {
+            DB::transaction(function() use ($data) {
+                Expense::create($data);
+            });
+
+            return redirect()->route('expenses.index')
+                ->with('success', 'Expense "' . $data['item_name'] . '" created successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error creating expense: ' . $e->getMessage());
+            return back()->withInput()->withErrors([
+                'error' => 'An error occurred while saving the expense. Please try again.'
+            ]);
+        }
     }
 
     /**
@@ -146,10 +237,10 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        $projects = Project::orderBy('name')->pluck('name', 'id');
-        $clients  = Client::orderBy('name')->pluck('name', 'id');
+        $categories = ExpenseCategory::where('active', true)->orderBy('name')->get();
+        $projects = \App\Models\Project::orderBy('name')->get();
 
-        return view('expenses.edit', compact('expense', 'projects', 'clients'));
+        return view('expenses.edit', compact('expense', 'categories', 'projects'));
     }
 
     /**
@@ -161,13 +252,63 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, Expense $expense)
     {
-        $data = $this->validateExpense($request);
+        $rules = [
+            'project_id' => 'nullable|exists:projects,id',
+            'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_type' => 'required|string|in:materials,labor,office,equipment,transport',
+            'item_name' => 'required|string|max:255',
+            'quantity' => 'nullable|numeric|min:0.01',
+            'unit' => 'nullable|string|max:50',
+            'unit_price' => 'nullable|numeric|min:0.01',
+            'total' => 'required|numeric|min:0.01',
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:1000',
+        ];
 
-        $expense->update($data);
+        // Phase validation for labor expenses
+        if ($request->expense_type === 'labor') {
+            $rules['phase'] = 'required|string|in:design,execution';
+        }
 
-        return redirect()
-            ->route('expenses.show', $expense)
-            ->with('success', 'Expense updated successfully.');
+        $data = $request->validate($rules);
+
+        // Auto-calculate total if quantity and unit_price are provided
+        if (!empty($data['quantity']) && !empty($data['unit_price'])) {
+            $calculatedTotal = $data['quantity'] * $data['unit_price'];
+            // Allow some tolerance for rounding differences
+            if (abs($calculatedTotal - $data['total']) > 0.02) {
+                return back()->withInput()->withErrors([
+                    'total' => 'Total amount does not match quantity × unit price. Expected: ' . number_format($calculatedTotal, 2)
+                ]);
+            }
+        }
+
+        // Set additional fields
+        $data['user_id'] = $expense->user_id; // Keep original user
+        $data['tenant_id'] = $expense->tenant_id; // Keep original tenant
+        $data['phase'] = $data['phase'] ?? null;
+
+        // Handle price storage based on expense type
+        if ($data['expense_type'] === 'labor') {
+            $data['price_per_one'] = $data['unit_price'] ?? null;
+            unset($data['unit_price']);
+        } else {
+            $data['price_per_one'] = null;
+        }
+
+        try {
+            DB::transaction(function() use ($expense, $data) {
+                $expense->update($data);
+            });
+
+            return redirect()->route('expenses.show', $expense)
+                ->with('success', 'Expense "' . $data['item_name'] . '" updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error updating expense: ' . $e->getMessage());
+            return back()->withInput()->withErrors([
+                'error' => 'An error occurred while updating the expense. Please try again.'
+            ]);
+        }
     }
 
     /**
@@ -178,11 +319,21 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
-        $expense->delete();
+        try {
+            DB::transaction(function() use ($expense) {
+                $expenseName = $expense->item_name;
+                $expense->delete();
+                return $expenseName;
+            });
 
-        return redirect()
-            ->route('expenses.index')
-            ->with('success', 'Expense deleted successfully.');
+            return redirect()->route('expenses.index')
+                ->with('success', 'Expense deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting expense: ' . $e->getMessage());
+            return back()->withErrors([
+                'error' => 'An error occurred while deleting the expense. Please try again.'
+            ]);
+        }
     }
 
     /**
